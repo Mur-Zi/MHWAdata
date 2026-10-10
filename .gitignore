@@ -1,0 +1,16 @@
+# 本地构建工具、产物与缓存
+sdk/
+dist/
+tmp/
+node_modules/
+build/*
+!build/*.mjs
+!build/*.py
+!build/version-policy.json
+_calculator_v1/xlsx/
+# 安卓签名文件与本机配置
+*.keystore
+*.jks
+*.idsig
+.env
+.env.*

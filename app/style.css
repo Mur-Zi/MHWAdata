@@ -1,0 +1,617 @@
+:root {
+  --bg: #181309;
+  --bg2: #241c0f;
+  --bg3: #2e2314;
+  --card: #20180c;
+  --line: #4a3a20;
+  --text: #e8dcc0;
+  --text-dim: #b3a37f;
+  --accent: #d4a94e;
+  --accent2: #8fb6e0;
+  --good: #7fc97f;
+  --bad: #e07b6b;
+  --hit: #f2d47a;
+  --star: #e0c060;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body { background: var(--bg); color: var(--text); font-family: -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif; font-size: 15px; line-height: 1.45; }
+body { padding-bottom: 112px; }
+
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; gap: 6px;
+  background: linear-gradient(#2e2314, #20180c);
+  border-bottom: 1px solid var(--line);
+  padding: 8px 10px;
+}
+.nav-btn {
+  background: var(--bg3); color: var(--text-dim);
+  border: 1px solid var(--line); border-radius: 8px;
+  padding: 7px 13px; font-size: 14px; cursor: pointer;
+}
+.nav-btn.active { background: var(--accent); color: #1c1506; font-weight: 600; border-color: var(--accent); }
+.nav-btn.back { color: var(--text); }
+.nav-btn.filter { background: var(--bg2); color: var(--accent2); border-color: var(--line); }
+.topbar-title { flex: 1; text-align: center; font-weight: 600; color: var(--accent); font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.view { padding: 10px 12px 30px; }
+
+.searchbar input {
+  width: 100%; padding: 10px 14px; font-size: 15px;
+  background: var(--bg2); color: var(--text);
+  border: 1px solid var(--line); border-radius: 10px; outline: none;
+}
+.searchbar input:focus { border-color: var(--accent); }
+
+.filters { margin-top: 8px; }
+.filter-row { display: flex; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+.filter-row + .filter-row { margin-top: 6px; }
+.chip {
+  flex-shrink: 0; font-size: 13px; padding: 5px 12px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--bg3); color: var(--text-dim); cursor: pointer; white-space: nowrap;
+}
+.chip.active { background: var(--accent); color: #1c1506; font-weight: 600; border-color: var(--accent); }
+.filter-row.wrap { flex-wrap: wrap; overflow-x: visible; }
+.diff-tag { display: inline-block; margin-left: 4px; font-size: 11px; line-height: 1.5; color: #ffd9a0; background: #5a3410; border-radius: 4px; padding: 0 5px; white-space: nowrap; }
+
+/* 怪物列表 */
+.monster-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; }
+@media (min-width: 560px) { .monster-list { grid-template-columns: repeat(3, 1fr); } }
+.monster-card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 10px; text-align: center; cursor: pointer; transition: transform .05s;
+}
+.monster-card:active { transform: scale(.97); }
+.monster-card img { width: 64px; height: 64px; object-fit: contain; image-rendering: auto; }
+.monster-card .zh { font-weight: 600; margin-top: 4px; }
+.monster-card .en { color: var(--text-dim); font-size: 12px; }
+
+/* 任务列表 */
+.quest-list { margin-top: 12px; }
+.quest-row {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 12px; margin-bottom: 8px; cursor: pointer;
+}
+.quest-row .star { color: var(--star); font-weight: 700; white-space: nowrap; }
+.quest-row .name { flex: 1; }
+.quest-row .sub { color: var(--text-dim); font-size: 12px; }
+.quest-row .type { font-size: 11px; color: var(--accent2); border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; white-space: nowrap; }
+
+/* 详情通用 */
+.detail-hero { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.detail-hero img { width: 84px; height: 84px; object-fit: contain; }
+.detail-hero .zh { font-size: 22px; font-weight: 700; }
+.detail-hero .en { color: var(--text-dim); font-size: 14px; }
+.meta-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.chip { font-size: 12px; color: var(--text); background: var(--bg3); border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; }
+
+.section { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+.section h2 { font-size: 16px; color: var(--accent); margin-bottom: 10px; border-left: 3px solid var(--accent); padding-left: 8px; }
+.section .hint { color: var(--text-dim); font-size: 12px; margin-bottom: 8px; }
+.section .sub-title { font-size: 13px; font-weight: 600; color: var(--accent); margin: 10px 0 6px; }
+
+/* 表格 */
+.tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { border: 1px solid var(--line); padding: 5px 7px; text-align: center; white-space: nowrap; }
+th { background: var(--bg3); color: var(--text); position: sticky; top: 0; }
+td.part-name { text-align: left; color: var(--text); font-weight: 500; white-space: nowrap; }
+td.state-tag { color: var(--accent2); font-size: 11px; }
+.note-toggle { cursor: pointer; color: var(--accent2); font-weight: 700; margin-left: 4px; font-size: 12px; padding: 0 3px; border: 1px solid var(--line); border-radius: 50%; }
+td.note-text { text-align: left; color: var(--text-dim); font-size: 12px; padding: 6px 8px; background: var(--bg2); white-space: normal; line-height: 1.5; }
+.num { font-variant-numeric: tabular-nums; }
+.num.high { color: var(--good); font-weight: 700; }
+.num.low { color: var(--bad); }
+.row-label { text-align: left; color: var(--text-dim); font-weight: 600; }
+
+/* 冻结列：肉质表前两列，其余表首列 */
+th.fz1, td.fz1 { position: sticky; left: 0; }
+th.fz2, td.fz2 { position: sticky; left: 90px; }
+th.fz1, th.fz2 { top: 0; z-index: 3; background: var(--bg3); }
+td.fz1, td.fz2 { z-index: 2; background: var(--card); }
+td.fz1, th.fz1 { min-width: 86px; }
+
+/* HZV 数值着色：越高越红/亮 */
+.hzv-0 { color: #6b6557; }
+.hzv-1 { color: #b8a878; }
+.hzv-2 { color: #e0c060; }
+.hzv-3 { color: #e09a55; }
+.hzv-4 { color: #e07650; }
+.hzv-5 { color: #e05a4a; }
+
+.toggle-group { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+.toggle-btn { font-size: 13px; padding: 5px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg3); color: var(--text-dim); cursor: pointer; }
+.toggle-btn.active { background: var(--accent); color: #1c1506; font-weight: 600; border-color: var(--accent); }
+
+/* 图片 */
+.img-frame { text-align: center; }
+.img-frame img { max-width: 100%; border-radius: 8px; border: 1px solid var(--line); background: #0f0b06; }
+.img-frame .caption { color: var(--text-dim); font-size: 12px; margin-top: 6px; }
+
+/* 肉质表图标 */
+.ic { width: 22px; height: 22px; display: inline-block; vertical-align: middle; }
+th .ic { display: block; margin: 0 auto; }
+.el-slash { color: #e8dcc0; }
+.el-blow { color: #e8dcc0; }
+.el-shot { color: #e8dcc0; }
+.el-fire { color: #f0653f; }
+.el-water { color: #5b9bd5; }
+.el-thunder { color: #e0c040; }
+.el-ice { color: #8fd0e8; }
+.el-dragon { color: #b07ad0; }
+.el-stun { color: #d0d0d0; }
+
+/* 倍率换算 */
+.scale-result { margin-top: 10px; }
+.scale-result .factor { color: var(--accent2); font-size: 12px; }
+.scale-title { font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 6px; }
+.scale-quest-picker { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; max-height: 170px; overflow-y: auto; }
+.quest-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--bg3); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 13px; color: var(--text-dim); cursor: pointer; max-width: 100%; }
+.quest-chip .chip-star { color: var(--star); font-weight: 700; white-space: nowrap; }
+.quest-chip .chip-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.quest-chip.active { background: var(--accent); color: #1c1506; border-color: var(--accent); font-weight: 600; }
+.quest-chip.active .chip-star { color: #1c1506; }
+.player-btns { display: flex; gap: 4px; margin-bottom: 8px; }
+.player-btns .toggle-btn { padding: 5px 14px; }
+
+.empty { color: var(--text-dim); text-align: center; padding: 30px 10px; }
+
+/* 右侧抽屉（怪物筛选） */
+.drawer-backdrop {
+  position: fixed; inset: 0; z-index: 30;
+  background: rgba(0,0,0,0.55); opacity: 0; transition: opacity .26s;
+}
+.drawer-backdrop.open { opacity: 1; }
+.drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 31;
+  width: 280px; max-width: 82vw;
+  background: var(--bg2); border-left: 1px solid var(--line);
+  transform: translateX(100%); transition: transform .26s ease;
+  display: flex; flex-direction: column;
+}
+.drawer[hidden] { display: none; }
+.drawer.open { transform: translateX(0); }
+.drawer-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; border-bottom: 1px solid var(--line); flex-shrink: 0;
+}
+.drawer-title { font-weight: 600; color: var(--accent); font-size: 15px; }
+.drawer-close {
+  background: var(--bg3); color: var(--text-dim); border: 1px solid var(--line);
+  border-radius: 8px; padding: 4px 12px; font-size: 14px; cursor: pointer;
+}
+.drawer-body {
+  flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 12px; display: flex; flex-direction: column;
+}
+.drawer-sub-title { font-size: 13px; color: var(--text-dim); font-weight: 600; margin: 12px 0 6px; }
+.drawer-sub-title:first-child { margin-top: 0; }
+.drawer-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.drawer-chips .chip { font-size: 14px; padding: 6px 12px; }
+.drawer-chips.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.drawer-chips.grid .chip.mchip {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 14px; padding: 7px 10px; border-radius: 10px;
+  white-space: nowrap; overflow: hidden; min-width: 0;
+}
+.drawer-chips.grid .chip.mchip img { width: 26px; height: 26px; object-fit: contain; flex-shrink: 0; }
+.drawer-chips.grid .chip.mchip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.drawer-chips.grid .chip.mchip.all { grid-column: span 2; justify-content: center; }
+
+.footer { text-align: center; color: #6b6557; font-size: 11px; padding: 16px 10px 24px; }
+.footer-contact { margin-top: 6px; }
+.footer-contact-btn { background: transparent; color: var(--accent2); border: 1px solid var(--line); border-radius: 6px; padding: 3px 12px; font-size: 11px; cursor: pointer; }
+.footer-contact-info { margin-top: 6px; color: var(--text-dim); }
+
+/* 底部栏（搜索 + 导航） */
+.bottom-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  background: linear-gradient(#2e2314, #20180c);
+  border-top: 1px solid var(--line);
+}
+.bottom-search { padding: 8px 12px; }
+.bottom-search input {
+  width: 100%; padding: 10px 14px; font-size: 15px;
+  background: var(--bg2); color: var(--text);
+  border: 1px solid var(--line); border-radius: 10px; outline: none;
+}
+.bottom-search input:focus { border-color: var(--accent); }
+.bottom-search input[hidden] { display: none; }
+.bottom-nav { display: flex; }
+.bottom-nav .nav-btn {
+  flex: 1; border: none; border-radius: 0; background: transparent;
+  padding: 13px 0; font-size: 15px; color: var(--text-dim);
+}
+.bottom-nav .nav-btn.active { background: var(--bg2); color: var(--accent); font-weight: 700; }
+
+/* ===== 伤害计算器 ===== */
+/* 全局兜底：任何带 hidden 属性的元素一律不显示。
+   必须带 !important —— 类选择器（如 .calc-grid{display:grid}、.calc-checks{display:flex}）
+   会盖掉浏览器默认的 [hidden]{display:none}，导致「属性=true 但元素还在显示」
+   （三灯/猎虫行曾因此在非操虫棍武器下露出来）。 */
+[hidden] { display: none !important; }
+.calc-header { margin: 4px 0 12px; }
+.calc-header h1 { font-size: 18px; color: var(--accent); }
+.calc-card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 12px; margin-bottom: 12px;
+}
+.calc-card h2 { font-size: 15px; color: var(--accent); margin-bottom: 10px; }
+.calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+/* 网格子项默认 min-width:auto 会被长文本（如「餐点基本效果（用餐券）」）顶宽，
+   导致 1fr 轨道不等宽、窄屏横向溢出；统一允许收缩，超长文本交给自绘按钮做省略号 */
+.calc-grid > *, .calc-item-grid > * { min-width: 0; }
+.calc-field { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--text-dim); min-width: 0; }
+.calc-field input, .calc-field select {
+  background: var(--bg2); color: var(--text); border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 10px; font-size: 14px; outline: none; width: 100%;
+}
+.calc-field input:focus, .calc-field select:focus { border-color: var(--accent); }
+.calc-checks { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 10px; }
+.calc-check { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: var(--text); cursor: pointer; }
+.calc-check input { accent-color: var(--accent); }
+.calc-check-field { gap: 6px; }
+/* 勾选项旁边的短说明（如狂龙衣装那句「开启后把衣装给各招补的加段并入原招式」） */
+.calc-check-note { font-size: 11px; color: var(--accent2); align-self: center; }
+/* 状态与条件：入口按钮 + 当前生效条件摘要（详情在右侧抽屉里） */
+.calc-cond-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+.calc-cond-bar .calc-btn { flex-shrink: 0; }
+.calc-cond-summary { font-size: 12px; color: var(--text-dim); min-width: 0; overflow-wrap: anywhere; }
+.calc-cond-summary.on { color: var(--accent); }
+.calc-cond-list { display: flex; flex-direction: column; gap: 2px; }
+.calc-cond-list .calc-check {
+  display: flex; align-items: center; gap: 8px; font-size: 14px;
+  padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg3);
+}
+.calc-cond-list .calc-check + .calc-check { margin-top: 6px; }
+.calc-cond-list .calc-check input { width: 16px; height: 16px; }
+.calc-cond-list .picker-btn { width: auto; }
+.calc-drawer-note { font-size: 12px; color: var(--text-dim); line-height: 1.6; margin: 0 0 10px; }
+.calc-hint { margin-top: 10px; font-size: 12px; color: var(--accent2); }
+.calc-skill-list { display: flex; flex-direction: column; gap: 6px; }
+.calc-skill-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.calc-skill-name { font-size: 13px; color: var(--text); }
+.calc-skill-row select {
+  background: var(--bg2); color: var(--text); border: 1px solid var(--line);
+  border-radius: 8px; padding: 5px 8px; font-size: 13px; min-width: 64px;
+}
+.calc-add-row { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; }
+.calc-add-row > select {
+  background: var(--bg2); color: var(--text); border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 10px; font-size: 14px; flex: 1; min-width: 120px;
+}
+.calc-btn { background: var(--accent); color: #1c1506; border: none; border-radius: 8px; padding: 9px 16px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.calc-combo-list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+/* 连段行：控件多时换行，招式名永远保持横排（不能被挤成竖排） */
+.calc-combo-item { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: var(--bg2); border-radius: 8px; padding: 7px 10px; }
+.calc-move-name {
+  flex: 1 1 auto; min-width: 0; font-size: 13px; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* 行内的分段按钮 / 段数选择器 / 删除键作为一组排在右侧，放不下就整体换到第二行 */
+.calc-combo-item .seg-group,
+.calc-combo-item .picker-btn,
+.calc-combo-item .calc-tag,
+.calc-combo-item .calc-rm { flex: 0 0 auto; }
+/* 段数选择器在连段行里必须是紧凑按钮（.picker-btn 默认 width:100% 会把整行撑成三行） */
+.calc-combo-item .picker-btn {
+  width: auto; min-width: 0; gap: 6px;
+  padding: 5px 10px; font-size: 12px; background: var(--bg3);
+}
+.calc-combo-item .picker-btn .picker-btn-text { flex: 0 1 auto; }
+.calc-combo-item .calc-rm { margin-left: auto; }
+.calc-combo-item select {
+  background: var(--bg3); color: var(--text); border: 1px solid var(--line);
+  border-radius: 6px; padding: 4px 6px; font-size: 12px;
+}
+.calc-rm { background: transparent; color: var(--bad); border: none; font-size: 18px; cursor: pointer; padding: 0 4px; }
+.calc-result-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 10px; }
+.calc-stat { background: var(--bg2); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; }
+.calc-stat span { font-size: 11px; color: var(--text-dim); }
+.calc-stat strong { font-size: 16px; color: var(--hit); }
+.calc-hit-table { overflow-x: auto; }
+.calc-hit-table table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.calc-hit-table th, .calc-hit-table td { padding: 5px 6px; text-align: right; border-bottom: 1px solid var(--line); }
+.calc-hit-table th { color: var(--text-dim); font-weight: 600; text-align: right; }
+.calc-hit-table td.part-name { text-align: left; color: var(--text); white-space: nowrap; }
+.calc-tag { display: inline-block; margin-left: 4px; padding: 0 4px; font-size: 10px; border-radius: 4px; background: var(--bg3); color: var(--accent2); vertical-align: middle; }
+.calc-tag.weak { background: rgba(212,169,78,.18); color: var(--accent); font-weight: 600; }
+.calc-auto-note { font-size: 11px; color: var(--text-dim); flex-basis: 100%; }
+
+/* 折叠区（道具/餐点） */
+.calc-details { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 8px; }
+.calc-details > summary {
+  font-size: 13px; color: var(--accent2); cursor: pointer; list-style: none; padding: 4px 0;
+}
+.calc-details > summary::-webkit-details-marker { display: none; }
+.calc-details > summary::before { content: '▸ '; color: var(--text-dim); }
+.calc-details[open] > summary::before { content: '▾ '; }
+.calc-item-grid { margin-top: 8px; }
+/* 技能/道具后数值面板 */
+.calc-panel { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 8px; }
+.calc-panel:empty { display: none; }
+.calc-panel-title { font-size: 12px; color: var(--text-dim); margin-bottom: 6px; }
+/* 技能池分类标题（武器/防具/套装/群组） */
+.calc-skill-group + .calc-skill-group { margin-top: 10px; }
+.calc-skill-group-head {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; color: var(--accent);
+  padding: 6px 2px 4px; border-bottom: 1px solid var(--line); margin-bottom: 6px;
+}
+.calc-skill-group-head i { font-style: normal; font-weight: 400; font-size: 11px; color: var(--text-dim); }
+/* 「未计入伤害的技能」提示（选了但本计算器算不出来的） */
+.calc-panel-title.warned { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); color: #e0a33a; }
+.calc-panel-row b.warn { color: #e0a33a; font-weight: 600; }
+.calc-panel-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 5px 8px; font-size: 13px; border-radius: 6px;
+}
+.calc-panel-row:nth-child(odd) { background: var(--bg2); }
+.calc-panel-row span { color: var(--text-dim); }
+.calc-panel-row b { color: var(--text); font-weight: 600; }
+.calc-panel-row b.up { color: var(--good); }
+.calc-panel-row b.cap { color: var(--star); }
+
+/* 连段开关行 */
+.calc-derive-toggle { margin-bottom: 10px; }
+
+/* 蓄力等级：分段按钮 */
+.seg-group {
+  display: inline-flex; flex-shrink: 0;
+  background: var(--bg3); border: 1px solid var(--line); border-radius: 8px; overflow: hidden;
+}
+.seg-btn {
+  background: transparent; color: var(--text-dim); border: none;
+  padding: 6px 11px; font-size: 12px; font-family: inherit; cursor: pointer; transition: background .15s;
+}
+.seg-btn + .seg-btn { border-left: 1px solid var(--line); }
+.seg-btn.active { background: var(--accent); color: #1c1506; font-weight: 700; }
+.seg-btn:not(.active):active { background: var(--line); }
+
+/* 逐刀明细：按招式分组折叠 */
+.calc-hit-group { border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; overflow: hidden; }
+.calc-hit-head {
+  width: 100%; display: flex; align-items: center; gap: 8px;
+  background: var(--bg2); color: var(--text); border: none;
+  padding: 10px 12px; font-size: 13px; font-family: inherit; text-align: left; cursor: pointer;
+}
+.calc-hit-head:active { background: var(--bg3); }
+.calc-hit-name { flex: 1; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
+.calc-hit-name em { font-style: normal; color: var(--text-dim); font-size: 11px; }
+.calc-hit-tags {
+  font-style: normal; font-size: 10px; color: var(--accent2);
+  background: var(--bg3); border-radius: 4px; padding: 1px 5px;
+}
+.calc-hit-nums { color: var(--text-dim); font-size: 12px; white-space: normal; overflow-wrap: anywhere; min-width: 0; }
+.calc-hit-nums b { color: var(--hit); font-weight: 600; }
+.calc-hit-caret { color: var(--text-dim); font-size: 11px; transition: transform .18s; flex-shrink: 0; }
+.calc-hit-head.open .calc-hit-caret { transform: rotate(90deg); }
+.calc-hit-body { padding: 4px 8px 8px; background: var(--bg); overflow-x: auto; }
+.calc-subtable { width: 100%; border-collapse: collapse; font-size: 12px; }
+.calc-subtable th, .calc-subtable td { padding: 4px 6px; text-align: right; border-bottom: 1px solid var(--line); }
+.calc-subtable th { color: var(--text-dim); font-weight: 600; }
+.calc-subtable th:first-child, .calc-subtable td:first-child { text-align: left; }
+
+/* 飞燕标记（哪些刀的动作值吃飞燕加成） */
+.calc-hien-tag {
+  display: inline-block; margin-left: 5px; padding: 0 4px;
+  font-size: 10px; font-style: normal; line-height: 15px; border-radius: 4px;
+  background: rgba(127,201,127,.16); color: var(--good);
+  border: 1px solid rgba(127,201,127,.4); vertical-align: middle;
+}
+/* 动作值：原始值大字 + 表内原始值/耗斩小字（围绕原始值显示） */
+.calc-mv-raw { font-weight: 600; color: var(--text); font-size: 13px; }
+.calc-mv-after {
+  font-style: normal; font-size: 10px; color: var(--good);
+  margin-left: 3px; vertical-align: 1px; white-space: nowrap;
+}
+.calc-mv-eff { font-style: normal; font-size: 10px; color: var(--accent2); margin-left: 4px; white-space: nowrap; }
+/* 飞燕：勾了技能才亮标 —— 数值本身发绿 + 单元格淡绿底，不加文字 */
+.calc-mv-hien { color: var(--good); }
+.calc-hien-cell { white-space: nowrap; background: rgba(127,201,127,.14); border-radius: 4px; }
+/* 高速变形（盾斧/斩击斧）：凡触发剑斧形态变化的招式都吃 —— 亮蓝色，与飞燕的绿区分开 */
+.calc-morph-tag {
+  display: inline-block; margin-left: 5px; padding: 0 4px;
+  font-size: 10px; font-style: normal; line-height: 15px; border-radius: 4px;
+  background: rgba(143,182,224,.16); color: var(--accent2);
+  border: 1px solid rgba(143,182,224,.45); vertical-align: middle;
+}
+.calc-mv-morph { color: var(--accent2); }
+.calc-morph-cell { white-space: nowrap; background: rgba(143,182,224,.14); border-radius: 4px; }
+/* 长枪力防（力量格挡的力防层数）：紧接派生出的那一招前 3 hit 吃倍率 —— 琥珀色，与飞燕绿/变形蓝区分 */
+.calc-force-tag {
+  display: inline-block; margin-left: 5px; padding: 0 4px;
+  font-size: 10px; font-style: normal; line-height: 15px; border-radius: 4px;
+  background: rgba(212,169,78,.16); color: var(--accent);
+  border: 1px solid rgba(212,169,78,.45); vertical-align: middle;
+}
+.calc-mv-force { color: var(--accent); }
+/* 铳枪：派生边上的标签（「加速」= 龙击炮的加速派生，用户 2026-10-01 拍板用 branchTags 挂边上）—— 青蓝色，与力防琥珀/飞燕绿/变形蓝区分 */
+.calc-branch-tag {
+  display: inline-block; margin-left: 5px; padding: 0 4px;
+  font-size: 10px; font-style: normal; line-height: 15px; border-radius: 4px;
+  background: rgba(86,182,214,.16); color: #7fd3ea;
+  border: 1px solid rgba(86,182,214,.45); vertical-align: middle;
+}
+/* 双刀：逐刀标出这一刀是右手还是左手（表内 R/L 判定） */
+.calc-hand-tag {
+  display: inline-block; margin-left: 5px; padding: 0 4px;
+  font-size: 10px; font-style: normal; line-height: 15px; border-radius: 4px; vertical-align: middle;
+  white-space: nowrap;
+}
+.calc-hand-r { background: rgba(224,183,143,.14); color: #e0b78f; border: 1px solid rgba(224,183,143,.4); }
+.calc-hand-l { background: rgba(143,201,224,.14); color: #8fc9e0; border: 1px solid rgba(143,201,224,.4); }
+/* 被「打断上一个蓄力斩」取消的刀（大剑冲撞攻击）：整刀归零 → 灰掉 + 「已取消」标注 */
+.calc-row-cancelled { opacity: .55; }
+.calc-row-cancelled .num { text-decoration: line-through; text-decoration-color: var(--bad); }
+.calc-mv-cancelled {
+  display: inline-block; margin-left: 5px; padding: 0 4px;
+  font-style: normal; font-size: 10px; line-height: 15px; border-radius: 4px;
+  background: rgba(224,143,143,.16); color: var(--bad);
+  border: 1px solid rgba(224,143,143,.45); vertical-align: middle; white-space: nowrap;
+}
+/* 汇总行内所有数值统一字号（不再单独放大总动作值） */.calc-combo-sum-mv { display: inline-flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
+.calc-combo-sum-mv b { color: var(--hit); font-weight: 600; }
+.calc-combo-sum-hien { color: var(--good); }
+/* 耗斩 / 猎虫（单列汇总，不并入上面的伤害与动作值合计） */
+.calc-combo-sum-sharp { color: var(--accent2); }
+.calc-combo-sum-insect {
+  flex-basis: 100%; color: var(--accent2); opacity: .92;
+}
+.calc-combo-sum-insect b { color: var(--accent2); }
+.calc-insect-tag {
+  display: block; margin: 0 0 6px; padding: 4px 7px; border-radius: 6px;
+  font-style: normal; font-size: 11px; color: var(--accent2);
+  background: rgba(143,182,224,.1); border: 1px solid rgba(143,182,224,.28);
+}
+/* 铳枪炮击系：单列展示（固伤，不吃肉质/会心/斩味）—— 与音波/猎虫同款，但换一个色调区分 */
+.calc-shell-tag { color: #e0b78f; background: rgba(224,183,143,.1); border-color: rgba(224,183,143,.3); }
+.calc-combo-sum-shell { color: #e0b78f; }
+.calc-combo-sum-shell b { color: #e0b78f; }
+/* 双刀蓝鬼：等效值单列（基础攻击力 A → B、属性 A → B） */
+.calc-bluedemon-sum { color: #d8a0d0; }
+.calc-bluedemon-sum b { color: #d8a0d0; }
+/* 「无」属性 / 「无」异常时置灰的输入框 */
+.calc-field input:disabled { opacity: .4; }
+/* 数值面板里的补充说明（如三灯加值） */
+.calc-panel-note { font-style: normal; font-size: 11px; color: var(--accent2); font-weight: 400; }
+
+/* 舞踏自动层数 */
+.calc-dance-note { font-size: 12px; color: var(--accent2); }
+
+/* 总伤害优先展示 */
+.calc-stat.primary {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, rgba(212,169,78,.18), var(--bg2));
+  border: 1px solid rgba(212,169,78,.35);
+  flex-direction: row; align-items: baseline; justify-content: space-between;
+}
+.calc-stat.primary span { font-size: 13px; color: var(--accent); }
+.calc-stat.primary strong { font-size: 26px; color: var(--accent); }
+
+/* 连段汇总（总动作值 / 总属补 / 总异常补） */
+.calc-combo-sum {
+  display: flex; flex-wrap: wrap; gap: 6px 16px;
+  margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line);
+  font-size: 12px; color: var(--text-dim);
+}
+.calc-combo-sum b { color: var(--hit); font-weight: 600; }
+.calc-combo-sum-note { color: var(--accent2); }
+.calc-combo-sum:empty { display: none; }
+.calc-skip-row td { opacity: .55; }
+
+/* 技能抽屉 / 连段约束 / 肉质状态 */
+.calc-btn.ghost { background: var(--bg3); color: var(--accent2); border: 1px solid var(--line); font-weight: 500; }
+.calc-btn:disabled { opacity: .45; }
+.calc-presets { border-bottom: 1px solid var(--line); padding-bottom: 10px; margin-bottom: 10px; min-width: 0; }
+.calc-preset-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.calc-preset-actions .calc-btn { padding: 7px 12px; font-size: 12px; }
+.calc-preset-editor { padding: 10px; margin-top: 8px; border-radius: 8px; background: var(--bg2); }
+.calc-preset-message { overflow-wrap: anywhere; }
+.calc-skill-bar { display: flex; align-items: center; gap: 10px; }
+.calc-skill-count { font-size: 12px; color: var(--text-dim); }
+.calc-skill-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.calc-skill-chip {
+  display: inline-flex; align-items: center; gap: 4px; font-size: 12px;
+  background: var(--bg3); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; color: var(--text);
+}
+.calc-skill-chip b { color: var(--accent); font-weight: 700; }
+.calc-drawer-search {
+  width: 100%; padding: 9px 12px; font-size: 14px; margin-bottom: 8px;
+  background: var(--bg3); color: var(--text); border: 1px solid var(--line); border-radius: 8px; outline: none;
+}
+.calc-drawer-clear { width: 100%; margin-bottom: 10px; }
+.calc-combo-bar { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; margin-top: 10px; }
+.calc-combo-bar .calc-field { flex: 0 0 100px; }
+
+/* ===== 自绘选择器（替代系统原生 select 的白色直角弹窗） ===== */
+.picker-btn {
+  width: 100%; max-width: 100%; min-width: 0;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  background: var(--bg2); color: var(--text); border: 1px solid var(--line);
+  border-radius: 8px; padding: 9px 12px; font-size: 14px; font-family: inherit;
+  cursor: pointer; text-align: left;
+}
+.picker-btn:active { border-color: var(--accent); background: var(--bg3); }
+.picker-btn:disabled { opacity: .45; }
+.picker-btn-text { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.picker-btn-caret { color: var(--text-dim); flex-shrink: 0; font-size: 12px; }
+
+.picker-backdrop {
+  position: fixed; inset: 0; z-index: 40;
+  background: rgba(0,0,0,.58); opacity: 0; transition: opacity .22s;
+}
+.picker-backdrop[hidden] { display: none; }
+.picker-backdrop.open { opacity: 1; }
+
+.picker-sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 41;
+  background: var(--bg2); border-top: 1px solid var(--line);
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -10px 30px rgba(0,0,0,.6);
+  max-height: 66vh; display: flex; flex-direction: column;
+  transform: translateY(100%); transition: transform .24s ease;
+}
+.picker-sheet[hidden] { display: none; }
+.picker-sheet.open { transform: translateY(0); }
+.picker-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 16px; border-bottom: 1px solid var(--line); flex-shrink: 0;
+}
+.picker-title { font-weight: 600; color: var(--accent); font-size: 15px; }
+.picker-close {
+  background: var(--bg3); color: var(--text-dim); border: 1px solid var(--line);
+  border-radius: 8px; padding: 4px 12px; font-size: 14px; cursor: pointer;
+}
+.picker-list { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 8px 8px calc(12px + env(safe-area-inset-bottom)); }
+.picker-item {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  background: transparent; color: var(--text); border: none; border-radius: 10px;
+  padding: 13px 14px; font-size: 15px; font-family: inherit; text-align: left; cursor: pointer;
+}
+.picker-item + .picker-item { margin-top: 2px; }
+/* 选项文字可能很长（道具/餐点），允许收缩换行，避免撑宽弹层 */
+.picker-item > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.picker-item:active { background: var(--bg3); }
+.picker-item.active { background: var(--bg3); color: var(--accent); font-weight: 600; }
+.picker-check { color: var(--accent); font-weight: 700; flex-shrink: 0; }
+
+/* 原生 select 保留在 DOM 里供逻辑使用，但不参与渲染（避免系统白底弹窗） */
+.calc-native-select { display: none !important; }
+
+/* picker 按钮在各容器里的尺寸修正 */
+.calc-add-row .picker-btn { flex: 1; min-width: 140px; width: auto; }
+.calc-check .picker-btn { width: auto; min-width: 74px; padding: 6px 10px; font-size: 13px; }
+
+/* 技能等级步进器 */
+.calc-stepper { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.step-btn {
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  background: var(--bg3); color: var(--accent2); border: 1px solid var(--line);
+  border-radius: 8px; font-size: 17px; line-height: 1; cursor: pointer; font-family: inherit;
+}
+.step-btn:active { background: var(--line); }
+.step-btn:disabled { opacity: .35; }
+.step-val { min-width: 40px; text-align: center; font-size: 13px; color: var(--text); }
+.step-val.on { color: var(--accent); font-weight: 700; }
+
+/* 技能覆盖率条（用户 2026-10-06）：只有防具/套装技能与心眼渲染；整数百分比 + 左右 ±1 微调 */
+/* 用户 2026-10-08：覆盖率条要独占一行放在技能行下方（原来挤在行内，滑块会顶出屏幕右边） */
+.calc-skill-row { flex-wrap: wrap; }
+.calc-skill-cov {
+  flex-wrap: wrap;
+  flex: 1 1 100%;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 6px; padding: 4px 8px;
+  background: var(--bg3); border: 1px solid var(--line); border-radius: 8px;
+}
+.calc-cov-label { font-size: 12px; color: var(--muted, var(--text)); opacity: .8; flex: none; }
+.calc-cov-range { flex: 1 1 auto; min-width: 0; accent-color: var(--accent); height: 20px; }
+.calc-cov-val { min-width: 44px; text-align: right; font-size: 13px; color: var(--accent); font-weight: 700; }
+.calc-cov-btn { width: 26px; height: 26px; font-size: 15px; flex: none; }
+.calc-chip-cov { font-style: normal; margin-left: 4px; color: var(--accent); font-weight: 700; }

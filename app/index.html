@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <meta name="theme-color" content="#181309">
+  <title>MHWA数据库</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <button id="nav-back" class="nav-btn back" style="display:none">← 返回</button>
+    <div class="topbar-title" id="topbar-title">MHWA数据库</div>
+    <button id="filter-trigger" class="nav-btn filter" style="display:none">筛选 ▸</button>
+  </header>
+
+  <main id="view-monsters" class="view">
+    <div id="monster-list" class="monster-list"></div>
+  </main>
+
+  <main id="view-quests" class="view" hidden>
+    <div id="quest-list" class="quest-list"></div>
+  </main>
+
+  <main id="view-monster-detail" class="view" hidden></main>
+  <main id="view-quest-detail" class="view" hidden></main>
+  <main id="view-calculator" class="view" hidden></main>
+
+  <footer class="footer">
+    数据来源：robomeche/MHWilds-Database · kuroyonhon.com<br>
+    数据处理、翻译、整合和app制作作者：MurZi
+    <div class="footer-contact">
+      <button id="footer-contact" type="button" class="footer-contact-btn">联系 / 勘误</button>
+      <div id="footer-contact-info" class="footer-contact-info" hidden>若有勘误或咨询请联系QQ2818019811</div>
+    </div>
+  </footer>
+
+  <div class="bottom-bar">
+    <div class="bottom-search">
+      <input id="monster-search" type="search" placeholder="搜索怪物（中文 / 英文）" autocomplete="off">
+      <input id="quest-search" type="search" placeholder="搜索任务名" autocomplete="off" hidden>
+    </div>
+    <nav class="bottom-nav">
+      <button id="nav-monsters" class="nav-btn active" data-view="monsters">怪物</button>
+      <button id="nav-quests" class="nav-btn" data-view="quests">任务</button>
+      <button id="nav-calculator" class="nav-btn" data-view="calculator">计算器</button>
+    </nav>
+  </div>
+
+  <div class="drawer-backdrop" id="monster-drawer-backdrop" hidden></div>
+  <aside class="drawer" id="monster-drawer" hidden>
+    <div class="drawer-head">
+      <span class="drawer-title">筛选</span>
+      <button class="drawer-close" id="monster-drawer-close">✕</button>
+    </div>
+    <div class="drawer-body">
+      <div class="drawer-sub-title">星级</div>
+      <div class="drawer-chips" id="level-filter"></div>
+      <div class="drawer-sub-title">难度</div>
+      <div class="drawer-chips" id="difficulty-filter"></div>
+      <div class="drawer-sub-title">怪物</div>
+      <div class="drawer-chips grid" id="monster-filter"></div>
+    </div>
+  </aside>
+
+  <script src="data.js"></script>
+  <script src="kuro-hzv.js"></script>
+  <script src="config.js"></script>
+  <script src="loader.js"></script>
+  <script src="calc-data.js"></script>
+  <script src="calculator.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
