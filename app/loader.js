@@ -66,14 +66,17 @@
         .then(function (v) { return { base: base, version: (v && typeof v.version === 'number') ? v.version : 0 }; })
         .catch(function () { return null; });
     })).then(function (results) {
-      var best = null;
+      var candidates = [];
       for (var i = 0; i < results.length; i++) {
         var r = results[i];
-        if (r && r.version > localVer && (!best || r.version > best.version)) best = r;
+        if (r && r.version > localVer) candidates.push(r);
       }
-      if (!best) return; // 无更新或全部失败
-      return fetchJson(best.base + 'data.json').then(function (pkg) {
-        if (!pkg || !pkg.RAW || pkg.version !== best.version) throw new Error('bad data or version mismatch');
+      candidates.sort(function (a, b) { return b.version - a.version; });
+      function trySource(index) {
+        if (index >= candidates.length) return; // 无更新或全部失败
+        var source = candidates[index];
+        return fetchJson(source.base + 'data.json').then(function (pkg) {
+        if (!pkg || !pkg.RAW || pkg.version !== source.version) throw new Error('bad data or version mismatch');
         var cachedOK = false;
         try {
           localStorage.setItem(CACHE_KEY, JSON.stringify(pkg));
@@ -83,7 +86,9 @@
         if (applied) return;
         applied = true;
         if (cachedOK && apply(pkg)) { try { window.location.reload(); } catch (e) {} }
-      });
+        }).catch(function () { return trySource(index + 1); });
+      }
+      return trySource(0);
     }).catch(function () { /* 静默回退 */ });
   }
 
