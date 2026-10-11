@@ -1799,6 +1799,7 @@
           fullHealth: state.fullHealth,
           wound: currentIsWound(),   // 自动：选中「伤口」肉质状态时应用伤口相关技能
           overcomeFrenzy: state.overcomeFrenzy,
+          overcomeFrenzyCoverage: skillCoverage('HunterSkill_183'),
           clash: state.clash,            // 角力/抵消成功（辟兽之力、冻峰龙之反叛）
           ateMeat: state.ateMeat,        // 食用烤熟的肉等道具（暗器蛸之力）
           apexSoulReady:state.apexSoulReady,encouragement:state.encouragement,ailment:state.ailment,
@@ -2321,8 +2322,21 @@
     // 技能覆盖率（用户 2026-10-06）：整数百分比，默认 100；只有数据层标了 coverage 的技能才渲染滑块
     const skillCoverage = (id) => {
       const v = state.skillCoverage[id];
-      return v == null ? 100 : Math.max(0, Math.min(100, Math.round(v)));
+      return v == null ? (id==='HunterSkill_183'?(state.overcomeFrenzy?100:0):100) : Math.max(0, Math.min(100, Math.round(v)));
     };
+    function syncFrenzyCoverage() {
+      const cov=skillCoverage('HunterSkill_183');state.overcomeFrenzy=cov>0;
+      el.querySelectorAll('[data-cond="overcomeFrenzy"]').forEach(cb=>{cb.checked=state.overcomeFrenzy;});
+      el.querySelectorAll('[data-frenzy-range]').forEach(r=>{r.value=String(cov);});
+      el.querySelectorAll('[data-frenzy-val]').forEach(s=>{s.textContent=cov+'%';});
+      el.querySelectorAll('[data-cov-range="HunterSkill_183"]').forEach(r=>{r.value=String(cov);});
+      el.querySelectorAll('[data-cov-val="HunterSkill_183"]').forEach(s=>{s.textContent=cov+'%';});
+      el.querySelectorAll('[data-cov-first="HunterSkill_183"]').forEach(s=>{s.textContent='狂龙症状态 '+(100-cov)+'%';});
+    }
+    function setFrenzyCoverage(v) {
+      state.skillCoverage.HunterSkill_183=Math.max(0,Math.min(100,Math.round(Number(v)||0)));
+      syncFrenzyCoverage();renderSkillChips();recalc();
+    }
     // 分组按用户提供的技能表 SkillCommonData.skillCategory：武器专属 / 防具 / 套装 / 群组
     const SKILL_CAT_CN = { WEAPON: '武器技能', EQUIP: '防具技能', SERIES: '套装技能', GROUP: '群组技能' };
     const SKILL_CAT_ORDER = ['WEAPON', 'EQUIP', 'SERIES', 'GROUP'];
@@ -2435,6 +2449,7 @@
       });
       // 覆盖率条：拖动 + 左右 ±1%（整数，只有 coverage 技能才渲染）
       const setCov = (id, v) => {
+        if(id==='HunterSkill_183'){setFrenzyCoverage(v);return;}
         const next = Math.max(0, Math.min(100, Math.round(Number(v) || 0)));
         state.skillCoverage[id] = next;
         box.querySelectorAll('[data-cov-range="' + id + '"]').forEach((r) => { r.value = String(next); });
@@ -2591,6 +2606,7 @@
     const condHtml = `
       <label class="calc-check"><input type="checkbox" data-cond="fullHealth"${state.fullHealth ? ' checked' : ''}>满体力</label>
       <label class="calc-check"><input type="checkbox" data-cond="overcomeFrenzy"${state.overcomeFrenzy ? ' checked' : ''}>克服狂龙症（会心率 +10%）</label>
+      <div class="calc-skill-cov"><span class="calc-cov-label">克服覆盖率</span><button type="button" class="step-btn calc-cov-btn" data-frenzy-step="-1">−</button><input type="range" class="calc-cov-range" data-frenzy-range min="0" max="100" step="1" value="${skillCoverage('HunterSkill_183')}" aria-label="克服狂龙症覆盖率"><span class="calc-cov-val" data-frenzy-val>${skillCoverage('HunterSkill_183')}%</span><button type="button" class="step-btn calc-cov-btn" data-frenzy-step="1">+</button></div>
       <label class="calc-check"><input type="checkbox" data-cond="clash"${state.clash ? ' checked' : ''}>角力/抵消成功</label>
       <label class="calc-check"><input type="checkbox" data-cond="ateMeat"${state.ateMeat ? ' checked' : ''}>食用烤熟的肉</label>
       <label class="calc-check"><input type="checkbox" data-cond="dodgeEvade"${state.dodgeEvade ? ' checked' : ''}>巧击发动中回避成功</label>
@@ -2996,6 +3012,7 @@
       const checks = { lamp: 'threeLamp', mantle: 'mantle', 'cb-redshield': 'cbRedShield', 'cb-redsword': 'cbRedSword',
         'swax-awakened': 'swaxAwakened', 'swax-redaxe': 'swaxRedAxe', bluedemon: 'blueDemon' };
       Object.entries(checks).forEach(([id, key]) => { const cb = el.querySelector('#calc-' + id); if (cb) cb.checked = !!state[key]; });
+      syncFrenzyCoverage();
       el.querySelectorAll('[data-cond]').forEach(cb => { cb.checked = !!state[cb.dataset.cond]; });
       buildItemSelectors(); updateCondSummary(); applyWeapon();
     }
@@ -3073,10 +3090,13 @@
     el.querySelectorAll('[data-cond]').forEach((cb) => {
       cb.addEventListener('change', () => {
         state[cb.dataset.cond] = cb.checked;
+        if(cb.dataset.cond==='overcomeFrenzy'){setFrenzyCoverage(cb.checked?(skillCoverage('HunterSkill_183')||100):0);return;}
         updateCondSummary();
         recalc();
       });
     });
+    el.querySelectorAll('[data-frenzy-range]').forEach(r=>{r.addEventListener('input',()=>setFrenzyCoverage(r.value));r.addEventListener('change',()=>setFrenzyCoverage(r.value));});
+    el.querySelectorAll('[data-frenzy-step]').forEach(b=>b.addEventListener('click',()=>setFrenzyCoverage(skillCoverage('HunterSkill_183')+Number(b.dataset.frenzyStep))));
     // 三灯（操虫棍子选项）：切换后重算（攻击倍率 + 移动斩/移动连斩 动作值都随之变）
     const lampCb = $('input#calc-lamp');
     if (lampCb) lampCb.addEventListener('change', () => { state.threeLamp = lampCb.checked; recalc(); });
@@ -3257,7 +3277,7 @@
       const span = $('span#calc-cond-summary');
       if (!span) return;
       const linked={apexSoulReady:'custom_apex_soul',encouragement:'HunterSkill_170',ailment:'HunterSkill_171'};
-      const on = COND_LABELS.filter((x) => !!state[x[0]]&&(!linked[x[0]]||state.skillLevels[linked[x[0]]]>0)).map((x) => x[1]);
+      const on = COND_LABELS.filter((x) => !!state[x[0]]&&(!linked[x[0]]||state.skillLevels[linked[x[0]]]>0)).map((x) => x[1]+(x[0]==='overcomeFrenzy'?' '+skillCoverage('HunterSkill_183')+'%':''));
       span.textContent = on.length ? on.join(' · ') : '未设置条件';
       span.classList.toggle('on', on.length > 0);
       const btn = $('button#calc-cond-open');

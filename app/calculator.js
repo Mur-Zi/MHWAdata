@@ -173,6 +173,8 @@
 
   // 应用选中技能 → 汇总状态
   function applySkills(base, selectedSkills, weaponId, ctx) {
+    const frenzyCov = Number.isFinite(ctx?.overcomeFrenzyCoverage)
+      ? clamp(ctx.overcomeFrenzyCoverage, 0, 100) / 100 : ((ctx && ctx.overcomeFrenzy) ? 1 : 0);
     const st = {
       // 「攻击」技能改的是**基础攻击力**；其余攻击类技能是加在最终攻击力上的条件加成
       baseAttackFlat: 0, baseAttackPct: 1, baseAttackBonusPct: 0,
@@ -244,7 +246,8 @@
       // 覆盖率（用户 2026-10-06）：技能效果的**期望值**折算 —— 只有数据层标了 coverage 的技能吃这个开关
       //   （防具技能 / 套装技能 / 心眼），默认 100%；未标 coverage 的技能恒为 1（行为不变）。
       //   加法类效果 × 覆盖率（+30% 会心 × 80% = +24%）；乘法类效果折算成 1+(v−1)× 覆盖率（×1.05 @80% → ×1.04）
-      const cov = skill.coverage ? clamp(n(sel.coverage, 100), 0, 100) / 100 : 1;
+      const cov = skill.id === 'HunterSkill_183' && level === 4 && Number.isFinite(ctx?.overcomeFrenzyCoverage)
+        ? frenzyCov : (skill.coverage ? clamp(n(sel.coverage, 100), 0, 100) / 100 : 1);
       const covFlat = function (v) { return n(v) * cov; };
       const covMult = function (v, d) { return 1 + (n(v, d) - 1) * cov; };
 
@@ -367,9 +370,7 @@
             break;
           }
           case 'frenzy': { // 无我之境：克服后会心 +3/6/10
-            if (conditionActive('ailment', { ailment: !!(ctx && ctx.overcomeFrenzy) })) {
-              st.frenzyAffinity += level*5*cov;
-            }
+            st.frenzyAffinity += level*5*cov*frenzyCov;
             break;
           }
           case 'charge_boost': // 蓄击强化（仅大锤）：晕厥×1.3
@@ -379,7 +380,7 @@
       }
     });
 
-    st.affinity += st.frenzyAffinity + ((ctx && ctx.overcomeFrenzy) ? 10 : 0);
+    st.affinity += st.frenzyAffinity + 10*frenzyCov;
     st.affinity = clamp(st.affinity, -100, 100);
     st.skillNotes = skillNotes;   // 选了但本计算器算不出来的技能（界面提示用）
     return st;
