@@ -1962,6 +1962,7 @@
   }
   // ===================== 导出 =====================
   const API = {
+    DATA_SCHEMA_VERSION: 1,
     CRIT_BASE, CRIT_NEG, STATUS_PROC, ELEMENT_TYPES, WEAPONS, DEFAULT_SHARPNESS,
     SHARPNESS_ORDER, SHARPNESS_CN,
     ELEMENT_CAP_RATE, ELEMENT_CAP_MIN, elementCap, floorAtk,

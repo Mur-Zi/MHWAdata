@@ -1,4 +1,4 @@
-// 在线数据更新 + 本地缓存兜底（多源回退：jsDelivr → raw.githubusercontent → fastly.jsdelivr）
+// 在线怪物与计算器数据更新 + 本地缓存兜底（多源回退：jsDelivr → raw.githubusercontent → fastly.jsdelivr）
 // 数据源：GitHub 仓库 Mur-Zi/MHWAdata（main 分支根目录的 version.json + data.json）
 // 流程：
 //   1) 启动时同步读 localStorage 缓存，覆盖内置 data.js/kuro-hzv.js/config.js（断网也能用缓存）。
@@ -24,6 +24,11 @@
       if (pkg.META) window.MHWILD_META = pkg.META;
       if (pkg.KURO_HZV) window.MHWILD_KURO_HZV = pkg.KURO_HZV;
       if (pkg.CONFIG) window.MHWILD_CONFIG = pkg.CONFIG;
+      // 只加载与本地引擎兼容的纯数据；不执行远程代码。
+      if (pkg.CALC_SCHEMA === 1 && window.MHCalculator && window.MHCalculator.DATA_SCHEMA_VERSION === 1
+          && pkg.CALC_DATA && Array.isArray(pkg.CALC_DATA.skills) && pkg.CALC_DATA.weaponMoves) {
+        window.MHWCALC = pkg.CALC_DATA;
+      }
       return true;
     } catch (e) { return false; }
   }
@@ -68,14 +73,16 @@
       }
       if (!best) return; // 无更新或全部失败
       return fetchJson(best.base + 'data.json').then(function (pkg) {
-        if (!pkg || !pkg.RAW) throw new Error('bad data');
+        if (!pkg || !pkg.RAW || pkg.version !== best.version) throw new Error('bad data or version mismatch');
+        var cachedOK = false;
         try {
           localStorage.setItem(CACHE_KEY, JSON.stringify(pkg));
-          localStorage.setItem(VER_KEY, String(best.version));
+          localStorage.setItem(VER_KEY, String(pkg.version));
+          cachedOK = true;
         } catch (e) { /* 缓存写入失败则本次不生效，下次再试 */ }
         if (applied) return;
         applied = true;
-        if (apply(pkg)) { try { window.location.reload(); } catch (e) {} }
+        if (cachedOK && apply(pkg)) { try { window.location.reload(); } catch (e) {} }
       });
     }).catch(function () { /* 静默回退 */ });
   }
