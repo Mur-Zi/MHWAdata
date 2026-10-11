@@ -6,6 +6,33 @@
 //   3) 所有源失败 / 超时 / 数据无效 → 静默回退到内置或缓存数据，不影响使用。
 (function () {
   'use strict';
+  // 网页以同次Pages部署的内置数据为准，不让安卓热更新缓存覆盖新网站。
+  if (/^https?:$/.test(window.location.protocol)) {
+    var buildMeta = document.querySelector('meta[name="mhwa-web-build"]');
+    var currentBuild = buildMeta && buildMeta.content;
+    var checking = false, noticeShown = false;
+    function checkWebUpdate() {
+      if (!currentBuild || checking || noticeShown || document.hidden) return;
+      checking = true;
+      fetch(new URL('web-version.json', document.baseURI).href, { cache: 'no-store' })
+        .then(function (response) { if (!response.ok) throw new Error('version unavailable'); return response.json(); })
+        .then(function (version) {
+          if (!version || !version.build || version.build === currentBuild || noticeShown) return;
+          noticeShown = true;
+          var notice = document.createElement('button');
+          notice.type = 'button';
+          notice.textContent = '网站已更新，点击刷新（未保存的设置请先保存预设）';
+          notice.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;max-width:90vw;padding:12px 18px;border:1px solid #d4aa50;border-radius:10px;background:#302514;color:#ffe0a0;cursor:pointer';
+          notice.onclick = function () { window.location.reload(); };
+          document.body.appendChild(notice);
+        }).catch(function () {}).then(function () { checking = false; });
+    }
+    setTimeout(checkWebUpdate, 1000);
+    setInterval(checkWebUpdate, 60000);
+    document.addEventListener('visibilitychange', checkWebUpdate);
+    window.addEventListener('focus', checkWebUpdate);
+    return;
+  }
   var BASES = [
     'https://cdn.jsdelivr.net/gh/Mur-Zi/MHWAdata@main/',
     'https://raw.githubusercontent.com/Mur-Zi/MHWAdata/main/',
