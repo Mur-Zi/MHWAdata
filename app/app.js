@@ -1002,8 +1002,8 @@
       cbRedSword: false,      // 红剑
       // 斩击斧（switch_axe）：武器级开关（用户 2026-10-06 拍板）
       swaxAwakened: false,    // 开刃（觉醒）：剑形态攻击附带瓶爆
-      swaxPhial: 'power',     // 'power' = 强击瓶（剑形态招式 +17% 基础攻击力）/ 'element' = 强属性瓶（+45% 基础属性）
-      swaxRedAxe: false,      // 红斧（强化敲打开出）：斧形态基础攻击力 +10
+      swaxPhial: 'power',     // 'power' = 强击瓶（剑形态招式 +17% 攻击力）/ 'element' = 强属性瓶（+45% 基础属性）
+      swaxRedAxe: false,      // 红斧（强化敲打开出）：斧形态攻击力 +10
       balladCount: 0,         // 狩猎笛：响玉数量（0~3，默认 0）—— 常态招式触发平A共鸣、演奏/奏击/重奏触发演奏共鸣
       // 双刀：蓝鬼（鬼人闪身）开关，默认关；只在选双刀时渲染，切走武器会复位
       blueDemon: false,
@@ -1527,7 +1527,7 @@
         }), { raw: 0, element: 0, status: 0, stun: 0 });
         const tags = [];
         if(g.hits.some(h=>h.swaxPhial))tags.push('开刃瓶爆 '+g.hits.filter(h=>h.swaxPhial).length+' hit');
-        if(state.weaponId==='switch_axe'&&moveOf(g.moveId)?.form==='sword')tags.push(state.swaxPhial==='power'?'强击瓶：剑形态基础攻击力×1.17':'强属性瓶：剑形态属性×1.45');
+        if(state.weaponId==='switch_axe'&&moveOf(g.moveId)?.form==='sword')tags.push(state.swaxPhial==='power'?'强击瓶：剑形态攻击力×1.17':'强属性瓶：剑形态属性×1.45');
         const wyvern=shells.find(h=>h.shellMove==='wyvernfire');
         if(wyvern)tags.push((GL_TYPE_CN[wyvern.shellTypeKey]||wyvern.shellTypeKey)+' 龙击炮：每hit动作值'+rd2(wyvern.shellMv)+'／火属性'+rd2(wyvern.shellFire));
         // 边上的标签（铳枪「加速」）：这一招是经由上一条边的「加速」派生出来的 → 行内标出来
@@ -3131,7 +3131,7 @@
     const swaxPhialSel = $('select#calc-swax-phial');
     if (swaxPhialSel) {
       swaxPhialSel.addEventListener('change', () => { state.swaxPhial = swaxPhialSel.value === 'element' ? 'element' : 'power'; recalc(); });
-      enhanceSelect(swaxPhialSel, '斩击斧 · 瓶种（强击瓶 = 剑形态招式基础攻击力 +17% / 强属性瓶 = 基础属性 +45%）');
+      enhanceSelect(swaxPhialSel, '斩击斧 · 瓶种（强击瓶 = 剑形态招式攻击力 +17% / 强属性瓶 = 基础属性 +45%）');
     }
     const swaxAwakenedCb = $('input#calc-swax-awakened');
     if (swaxAwakenedCb) {

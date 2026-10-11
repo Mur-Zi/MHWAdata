@@ -676,10 +676,9 @@
     // 连击：前4击档0(+5/+50)，第5击起档 level(Lv1-5)
     const baseAtkValue = p.baseAttack != null ? n(p.baseAttack) : n(p.attack);
     let attack = baseAtkValue * st.attackPct + st.attackFlat + n(p.lampFlat);
-    // 斩击斧（用户 2026-10-06）：红斧 +10 斧形态基础攻击力 / 强击瓶 剑形态招式 +17% 基础攻击力
-    //   两者都在「基础攻击力」层面 → 乘/加在 st.attackPct 之前；因子为 1/0 时保持原式不变（行为等价）
+    // 太刀刃色保留基础补正；斩斧强化作用于含技能、道具加算的攻击力。
     if (n(p.swaxBasePct, 1) !== 1 || n(p.swaxBaseAdd, 0) !== 0 || n(p.baseAtkPct, 1) !== 1) {
-      attack = (baseAtkValue * n(p.swaxBasePct, 1) * n(p.baseAtkPct, 1) + n(p.swaxBaseAdd, 0)) * st.attackPct + st.attackFlat + n(p.lampFlat);
+      attack = (baseAtkValue * n(p.baseAtkPct, 1) * st.attackPct + st.attackFlat + n(p.lampFlat)) * n(p.swaxBasePct, 1) + n(p.swaxBaseAdd, 0);
     }
     const chainIdx = (p.hitIndex || 0) < 4 ? 0 : (st.chainLevel || 1);
     attack = floorAtk(attack);   // 攻击力向下取整（含连击加值）
@@ -1508,9 +1507,8 @@
           // 高速变形适用：**打这一刀时剑斧形态变了**（上一招打完的形态 ≠ 这一招打完的形态）；
           //   狂龙衣加段是「由主命中派生的附加命中」，用自己的动作值 → 不吃（与蓄力倍率同口径）
           morphMult: (isMantle || !morphOn || hit.morphEligible === false) ? 1 : morphMul,
-          // 斩击斧（用户 2026-10-06 拍板）：红斧 = 斧形态基础攻击力 +10；
-          //   强击瓶 = 剑形态招式 +17% 基础攻击力；强属性瓶 = +45% 基础属性
-          //   都作用在「基础」层面（乘在 st.attackPct 之前）→ 由 calcHit 里按这三个因子重算攻击力
+          // 斩斧红斧：斧形态攻击力+10；强击瓶：剑形态攻击力×1.17。
+          // 强属性瓶保持基础属性×1.45；字段名兼容旧参数，计算位置由calcHit处理。
           swaxBasePct: (isSWAX && swaxPhialKind === 'power' && ((hit.formOverride||move.form) === 'sword'||hit.swaxPhial)) ? 1.17 : 1,
           // 太刀「有气」：招式级开关（默认开）→ 该招的 hit 取表内 col81 有气动作值
           lsQiOn: !(item && item.qi === false),
