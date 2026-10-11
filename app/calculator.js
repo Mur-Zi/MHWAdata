@@ -379,7 +379,7 @@
       }
     });
 
-    st.affinity += st.frenzyAffinity;
+    st.affinity += st.frenzyAffinity + ((ctx && ctx.overcomeFrenzy) ? 10 : 0);
     st.affinity = clamp(st.affinity, -100, 100);
     st.skillNotes = skillNotes;   // 选了但本计算器算不出来的技能（界面提示用）
     return st;

@@ -2590,7 +2590,7 @@
 
     const condHtml = `
       <label class="calc-check"><input type="checkbox" data-cond="fullHealth"${state.fullHealth ? ' checked' : ''}>满体力</label>
-      <label class="calc-check"><input type="checkbox" data-cond="overcomeFrenzy"${state.overcomeFrenzy ? ' checked' : ''}>克服狂龙症</label>
+      <label class="calc-check"><input type="checkbox" data-cond="overcomeFrenzy"${state.overcomeFrenzy ? ' checked' : ''}>克服狂龙症（会心率 +10%）</label>
       <label class="calc-check"><input type="checkbox" data-cond="clash"${state.clash ? ' checked' : ''}>角力/抵消成功</label>
       <label class="calc-check"><input type="checkbox" data-cond="ateMeat"${state.ateMeat ? ' checked' : ''}>食用烤熟的肉</label>
       <label class="calc-check"><input type="checkbox" data-cond="dodgeEvade"${state.dodgeEvade ? ' checked' : ''}>巧击发动中回避成功</label>
@@ -2602,7 +2602,7 @@
       <label class="calc-check calc-check-field">属性吸收受击<select id="calc-absorb">${[1, 2, 3].map((n) => `<option value="${n}"${n === state.absorbHits ? ' selected' : ''}>${n}次</option>`).join('')}</select></label>`;
     // 条件清单（界面摘要与抽屉共用同一份定义，避免两处文案漂移）
     const COND_LABELS = [
-      ['monsterEnraged', '怪物愤怒'], ['fullHealth', '满体力'], ['overcomeFrenzy', '克服狂龙症'],
+      ['monsterEnraged', '怪物愤怒'], ['fullHealth', '满体力'], ['overcomeFrenzy', '克服狂龙症（会心率 +10%）'],
       ['clash', '角力成功'], ['ateMeat', '食用烤肉'], ['dodgeEvade', '巧击回避'],
       ['festival', '祭典期间'], ['warCry', '咆哮后'],['apexSoulReady','毅力【果敢】未触发'],['encouragement','激励发动中'],['ailment','状态异常中']
     ];
