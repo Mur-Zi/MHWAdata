@@ -178,7 +178,7 @@
     const st = {
       // 「攻击」技能改的是**基础攻击力**；其余攻击类技能是加在最终攻击力上的条件加成
       baseAttackFlat: 0, baseAttackPct: 1, baseAttackBonusPct: 0,
-      attackFlat: 0, attackPct: 1, attackFromBasePct: 0,
+      attackFlat: 0, attackPct: 1, attackFromBasePct: 0, finalAttackPct: 1,
       elementFlat: 0, elementPct: 1,        // 显示值口径
       statusFlat: 0, statusPct: 1,          // 显示值口径
       affinity: n(base.affinity),
@@ -272,6 +272,7 @@
       // 霸主之魂与三灯同源：取基础攻击力的5%作为末端加值。
       // 按技能ID处理，兼容已缓存的旧数据标记，避免再次落入基础乘区或独立倍率。
       if (skill.id === 'custom_apex_soul') { st.attackFromBasePct += covFlat(.05); return; }
+      if (skill.id === 'HunterSkill_028') { st.finalAttackPct *= 1 + .05 * level * cov; return; }
 
       // 需要面板有属性 / 有异常的技能（用户拍板：属性武器不享受会心击【特殊】）
       const hasElem = (base.elementType !== 'None') && ELEMENT_TYPES.indexOf(base.elementType) >= 0;
@@ -685,7 +686,7 @@
       attack = (baseAtkValue * n(p.baseAtkPct, 1) * st.attackPct + st.attackFlat + n(p.lampFlat)) * n(p.swaxBasePct, 1) + n(p.swaxBaseAdd, 0);
     }
     const chainIdx = (p.hitIndex || 0) < 4 ? 0 : (st.chainLevel || 1);
-    attack = floorAtk(attack);   // 攻击力向下取整（含连击加值）
+    attack = floorAtk(attack * st.finalAttackPct);   // 攻击守势乘包含加算的最终攻击力
 
     // 属性显示值（含技能）＋ 连击属性档 —— 顺序 (基础×乘算)+加算
     const hitElementBase = hit.waveElementOnly ? n(hit.waveElementValue, 0) : p.element;
@@ -889,7 +890,7 @@
     const lampFlat = floorAtk(baseAttack * (lampRate + state.attackFromBasePct)) - soulFlat;
     state.attackFlat += soulFlat;
     // 最终攻击力同样向下取整（技能乘算/加算、道具、三灯加值全部算完之后）
-    const attackFinal = floorAtk(baseAttack * state.attackPct + state.attackFlat + lampFlat);
+    const attackFinal = floorAtk((baseAttack * state.attackPct + state.attackFlat + lampFlat) * state.finalAttackPct);
 
     // 面板类型：「无」属性 / 「无」异常 → 整条链路归零（含猎虫属性）
     const noElemType = params.elementType === 'None'
@@ -1077,7 +1078,7 @@
       //   单独存一份「用户选的轮数」，供逐刀结果回传给界面（标注「N 轮（M 刀）」）
       let loopRounds = null;
 
-      // 狂龙衣装（狂化装衣）加段：用户拍板「加段不单独当招式，界面最上面给开关，开启后并进原招式」。
+      // 蚀攻衣装（狂化装衣）加段：用户拍板「加段不单独当招式，界面最上面给开关，开启后并进原招式」。
       // 表内已按招式挂好（move.mantleHits；档位招式挂在具体档位上，如大剑普蓄的第 2 个加段「3 蓄才有」）。
       const mantleOn = !!params.mantle;
       const mantleList = mantleOn
@@ -1251,7 +1252,7 @@
       // 高速变形（用户 2026-09-30 口径）：**凡触发剑斧形态变化就吃**，不加白名单。
       //   判据 = 打这一刀时剑斧形态变了：上一招打完的形态（cbFormState）≠ 这一招打完的形态。
       //   → 盾突刺/防御 之后派生的大解·超解（剑→斧）、斧形态的变形斩（斧→剑）都自动吃；
-      //     同形态内的招式（一解、二解、红剑…)不吃。狂龙衣加段也不吃（在 hit 参数里按 isMantle 归零）。
+      //     同形态内的招式（一解、二解、红剑…)不吃。蚀攻衣装加段也不吃（在 hit 参数里按 isMantle 归零）。
       // 注意 cbFormState 用**打出这一刀时的形态**：
       //   招式声明了 form → 就是它；不限起手形态的招式（swingForm，如超解：剑也能直接出）→ 取派生链上的实际形态，
       //   再与「挥砍形态 swingForm」比较：剑形态出的超解 = 出招时变斧 → 发生了形态变化 → 吃高速变形。
@@ -1426,9 +1427,9 @@
             shellLevel: glLevel,
             baseAttack: baseAttack,
             // 与估算器 skill_data!C2 同口径：面板 × 全部乘算（基础乘区 × 其他乘区），**不取整**
-            shellBaseAllMuls: n(params.attack) * (state.baseAttackPct+state.baseAttackBonusPct) * state.attackPct,
+            shellBaseAllMuls: n(params.attack) * (state.baseAttackPct+state.baseAttackBonusPct) * state.attackPct * state.finalAttackPct,
             // 与估算器 skill_data!D2 同口径：全部加算（基础加算 + 其他加算 + 灯具加值）
-            atkFlatPool: state.baseAttackFlat + state.attackFlat + n(lampFlat),
+            atkFlatPool: (state.baseAttackFlat + state.attackFlat + n(lampFlat)) * state.finalAttackPct,
             artyMul: state.gunlanceArtyMul,
             artyAdd: state.gunlanceArtyAdd,
             shellAmmoUsed: ((move.shellHits || []).filter(function (h) {
@@ -1479,7 +1480,7 @@
         } else if (!isMantle && hitLimit != null && truncated) {
           return;   // 已到上限后残留的猎虫段也一并跳过
         }
-        // 力防加成：只给本招**自己的命中**（狂龙衣加段 / 伤口追加段是附加命中 → 不吃也不占额度），
+        // 力防加成：只给本招**自己的命中**（蚀攻衣装加段 / 伤口追加段是附加命中 → 不吃也不占额度），
         //   且只给前 N hit（表内 r116 口径 = 前 3 hit）
         const fgThis = (!isMantle && !entry.wound && fgRemain > 0) ? n(forceGuard.mul, 1) : 1;
         if (fgThis !== 1) { fgRemain -= 1; fgApplied += 1; }
@@ -1502,7 +1503,7 @@
           sharpGreen: params.sharpGreen,   // 绿斩倍率（狩猎笛响周波固定绿斩用）
           state: state,
           mode: params.mode || 'expected',
-          // 狂龙衣装加段：表内给的就是它自己的实测动作值/属补/耗斩（独立于原招式），
+          // 蚀攻衣装加段：表内给的就是它自己的实测动作值/属补/耗斩（独立于原招式），
           // 不再吃原招式的蓄力倍率（大剑那些「3 蓄才有」的加段已在数据层按档位挂好）
           chargeMul: isMantle ? 1 : chargeMul,
           danceMul: danceMul,
@@ -1511,7 +1512,7 @@
           chargeable: usesCharge,
           hien: !!hit.hien,   // 飞燕适用（表列39 IsSkillHien）
           // 高速变形适用：**打这一刀时剑斧形态变了**（上一招打完的形态 ≠ 这一招打完的形态）；
-          //   狂龙衣加段是「由主命中派生的附加命中」，用自己的动作值 → 不吃（与蓄力倍率同口径）
+          //   蚀攻衣装加段是「由主命中派生的附加命中」，用自己的动作值 → 不吃（与蓄力倍率同口径）
           morphMult: (isMantle || !morphOn || hit.morphEligible === false) ? 1 : morphMul,
           // 斩斧红斧：斧形态攻击力+10；强击瓶：剑形态攻击力×1.17。
           // 强属性瓶保持基础属性×1.45；字段名兼容旧参数，计算位置由calcHit处理。
@@ -1548,7 +1549,7 @@
           chargeUnit: levelUnit,
           chargeLevels: lvList ? lvList.map(function (l) { return l.level; }) : null,
           chargeInherited: !!move.inheritCharge,
-          mantle: isMantle,        // 狂龙衣装加段（界面单独标注）
+          mantle: isMantle,        // 蚀攻衣装加段（界面单独标注）
           swaxPhial:!!hit.swaxPhial,
           weakSwapped: weakSwapped,   // 大剑真蓄：本段换成了强击数值（界面标注）
           wound: entry.wound,      // 命中伤口/绽伤时的追加 hit（界面单独标注）
@@ -1598,7 +1599,7 @@
           totalMv += r.mv;
           totalMvAfterHien += r.mv * (r.hien ? r.airborneMult : 1) * n(r.morphMult, 1);
           totalMvEffective += r.effectiveMv;
-          // 狂龙衣加段是真实命中（伤害/耗斩/动作值照算），但按「由主命中派生的附加命中」口径
+          // 蚀攻衣装加段是真实命中（伤害/耗斩/动作值照算），但按「由主命中派生的附加命中」口径
           // 不推进连击档位计数（界面单独标注）。
           if (!isMantle) hitIndex += 1;   // 连击档位只按棍子命中数推进
         }
@@ -1746,6 +1747,7 @@
       attackLampFlat: lampFlat,        // 面板里拆出三灯加值，便于界面标注
       attackOtherPct: state.attackPct, // 其他技能/道具的乘算（供面板说明）
       attackOtherFlat: state.attackFlat,
+      attackFinalPct: state.finalAttackPct,
       elementBase: noElemType ? 0 : n(params.element),
       // 与 calcHit 的口径一致（含属性吸收/属性变换的加算），并套用 max(2.3倍, 400) 上限
       elementAfter: noElemType ? 0 : Math.min(elemAfterRaw, elementCap(params.element)),
@@ -1809,7 +1811,7 @@
         //   注意：炮术加算（artyAdd）**不进固伤**，只加到附带火属性 —— 别写回这里
         coefficient: isGL
           ? Math.round(((n(params.attack) * (state.baseAttackPct+state.baseAttackBonusPct) * state.attackPct) * state.gunlanceArtyMul
-            + state.baseAttackFlat + state.attackFlat + n(lampFlat)) * 100) / 100
+            + state.baseAttackFlat + state.attackFlat + n(lampFlat)) * state.finalAttackPct * 100) / 100
           : 0,
         coefficientFrom: isGL ? '（面板×全部乘算）×炮术倍率 + 全部加算 —— 与估算器 skill_data!K1 同口径' : null
       },

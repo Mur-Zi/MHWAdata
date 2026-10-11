@@ -994,7 +994,7 @@
       ateMeat: false, festival: false, warCry: false,   // 套装技能条件：食用烤熟的肉 / 祭典期间 / 咆哮后
       absorbHits: 1,
       threeLamp: true,    // 操虫棍三灯（红+白+橙）：攻击力加算 基础×0.15，移动斩/移动连斩 用三灯动作值
-      mantle: false,      // 狂龙衣装（狂化装衣）：开启后把衣装给各招补的加段并入原招式
+      mantle: false,      // 蚀攻衣装（狂化装衣）：开启后把衣装给各招补的加段并入原招式
       // 盾斧（charge_blade）：开局选的四项状态 —— 瓶种 / 瓶状态 / 红盾 / 红剑
       cbPhial: 'impact',      // 'impact' = 榴弹瓶 / 'element' = 强属性瓶
       cbReinforced: false,    // 瓶状态：false = 普通瓶 / true = 强化瓶
@@ -1139,7 +1139,7 @@
     // ===== 高速变形（盾斧/斩击斧）=====
     // 用户 2026-09-30 口径：**凡「打这一刀时剑斧形态变了」就吃**（不加任何手写白名单）。
     //   判据 = 上一招打完的形态 ≠ 这一招打完的形态 —— 所以 盾突刺/防御 之后派生的大解·超解（剑→斧）
-    //   同样吃；超解自己（斧→剑）也吃。狂龙衣加段不吃（引擎侧按 isMantle 归零）。
+    //   同样吃；超解自己（斧→剑）也吃。蚀攻衣装加段不吃（引擎侧按 isMantle 归零）。
     const isMorphMove = (move) => !!(move && move.morph);
     // 技能是否真的在生效（高速变形没勾就不亮标，避免误导）
     //   注意技能等级存在 state.skillLevels（{技能id: 等级}），不是数组
@@ -1597,14 +1597,14 @@
         // 铳枪炮击系：**不再单列小字**（用户 2026-10-01：「炮击的伤害不要小字显示，还是显示在招式栏里面」）
         //   → 炮击的每一发都并进下面的招式表（动作值栏写炮击动作值 + 固伤标注）；
         //     结果卡里仍然单列一条炮击系汇总（那是用户更早要求的口径，保留）
-        // 狂龙衣装加段：并进本招，但单独标出来（用户拍板：加段归到原招式里，不单独成招）
+        // 蚀攻衣装加段：并进本招，但单独标出来（用户拍板：加段归到原招式里，不单独成招）
         // 加段是表内的独立 hit 行 —— 动作值 / 属补 / 自定义耗斩都是它自己的，这里一并显示出来
         const mantleHits = blade.filter((h) => h.mantle);
         if (mantleHits.length) {
           const mmv = mantleHits.reduce((a, h) => a + (Number(h.mv) || 0), 0);
           const mer = mantleHits.reduce((a, h) => a + (Number(h.elemRate) || 0), 0) / mantleHits.length;
           const msh = mantleHits.reduce((a, h) => a + (Number(h.sharpCost) || 0), 0);
-          tags.push('狂龙衣加段 ' + mantleHits.length + ' hit（动作值 ' + rd2(mmv)
+          tags.push('蚀攻衣装加段 ' + mantleHits.length + ' hit（动作值 ' + rd2(mmv)
             + ' · 属补 ' + rd2(mer) + ' · 耗斩 ' + rd2(msh / 10) + '刀）');
         }
         // 命中伤口/绽伤时的追加 hit（大锤集中殴打）：选中「伤口」肉质时自动并入，标出来
@@ -1650,7 +1650,7 @@
         const hasHand = blade.some((h) => h.hand === 'R' || h.hand === 'L');
         blade.forEach((h, hi) => {
           // 动作值：大字 = 实际生效值（含蓄力/舞踏/飞燕）；与表内原始值不同时小字标出原始值
-          // 耗斩：表内逐 hit 的「自定义耗斩」（10 = 面板 1 刀）；不是 10 的 hit（如狂龙衣加段、上捞类）单独标出来
+          // 耗斩：表内逐 hit 的「自定义耗斩」（10 = 面板 1 刀）；不是 10 的 hit（如蚀攻衣装加段、上捞类）单独标出来
           const effMv = h.effectiveMv != null ? h.effectiveMv : h.mv;
           const mvChanged = Math.abs(effMv - (Number(h.mv) || 0)) > 0.005;
           const sharpNote = (!h.phial && !h.noSharp && h.sharpCost != null && h.sharpCost !== 10)
@@ -1770,7 +1770,7 @@
         scarLegendary: scarRawOf().legendary,
         mode: state.mode,
         combo: state.combo,
-        mantle: !!state.mantle,         // 狂龙衣装：开启后把衣装的加段并入对应招式
+        mantle: !!state.mantle,         // 蚀攻衣装：开启后把衣装的加段并入对应招式
         // 盾斧：瓶种 / 瓶状态 / 红盾 / 红剑（开局就选；其他武器一律不吃）
         cb: isCB ? {
           phial: state.cbPhial, reinforced: !!state.cbReinforced,
@@ -2217,14 +2217,14 @@
         rm.className = 'calc-rm'; rm.textContent = '×';
         rm.addEventListener('click', () => { state.combo.splice(i, 1); refreshComboUI(); });
         row.appendChild(rm);
-        // 狂龙衣装开启时：该招带加段的话行内标一下（加段已并入本招，不单独成招）
+        // 蚀攻衣装开启时：该招带加段的话行内标一下（加段已并入本招，不单独成招）
         if (move && state.mantle) {
           const extra = [].concat(move.mantleHits || [],
             (levelsOf(move) ? (levelsOf(move).find((l) => l.level === chargeOf(item, move)) || {}).mantleHits : null) || []);
           if (extra.length) {
             const tag = document.createElement('span');
             tag.className = 'calc-tag';
-            tag.textContent = '狂龙衣加段 ' + extra.map((h) => h.mv).join('+');
+            tag.textContent = '蚀攻衣装加段 ' + extra.map((h) => h.mv).join('+');
             // 用户 2026-10-07：不加提示文字
             row.appendChild(tag);
           }
@@ -2523,6 +2523,7 @@
       if (p.attackLampFlat) atkParts.push('三灯 +' + num(p.attackLampFlat));
       const otherFlat = Math.abs((p.attackOtherFlat || 0)) > 1e-6 ? '其他技能/道具 +' + num(p.attackOtherFlat) : '';
       if (otherFlat) atkParts.push(otherFlat);
+      if (p.attackFinalPct && Math.abs(p.attackFinalPct - 1) > 1e-6) atkParts.push('攻击守势：最终 ×' + num(p.attackFinalPct));
       html += `<div class="calc-panel-row"><span>最终攻击力</span><b class="${Math.abs(p.attackAfter - baseAtk) > 1e-6 ? 'up' : ''}">${num(p.attackAfter)}`
         + (atkParts.length ? `　<i class="calc-panel-note">${atkParts.join(' · ')}</i>` : '') + '</b></div>';
       html += row('面板属性值', p.elementBase, p.elementAfter);
@@ -2637,7 +2638,7 @@
           <label class="calc-field"><span>猎虫等级</span><select id="calc-kinsect-level">${kinsectLevels.map((l) => `<option value="${l}"${l === state.kinsectLevel ? ' selected' : ''}>Lv${l}</option>`).join('')}</select></label>
         </div>`;
     const isIGNow = state.weaponId === 'insect_glaive';
-    // 狂龙衣装（狂化装衣）：开启后把衣装给各招补的加段并入原招式（数据里已按招式挂好）
+    // 蚀攻衣装（狂化装衣）：开启后把衣装给各招补的加段并入原招式（数据里已按招式挂好）
     // 只有「当前武器确实有加段数据」时才显示这个选项（按可触发性过滤，和技能池同一套口径）
     const mantleMoves = () => currentMoves().filter((m) => m.mantleHits || (m.chargeLevels || []).some((l) => l.mantleHits));
     const mantleAvailable = mantleMoves().length > 0;
@@ -2686,7 +2687,7 @@
         ${kinsectHtml.replace('id="calc-kinsect-row"', 'id="calc-kinsect-row"' + (isIGNow ? '' : ' hidden'))}
         ${melodyRowHtml}
         <div class="calc-checks" id="calc-mantle-row"${mantleAvailable ? '' : ' hidden'}>
-          <label class="calc-check"><input type="checkbox" id="calc-mantle"${state.mantle ? ' checked' : ''}>狂龙衣装</label>
+          <label class="calc-check"><input type="checkbox" id="calc-mantle"${state.mantle ? ' checked' : ''}>蚀攻衣装</label>
           <span class="calc-check-note"></span>
         </div>
         <div class="calc-checks" id="calc-cb-row" hidden>
@@ -2918,7 +2919,7 @@
       if (lampRow) lampRow.hidden = !isIG;
       const kinsectRow = $('div#calc-kinsect-row');
       if (kinsectRow) kinsectRow.hidden = !isIG;
-      // 狂龙衣装：只有当前武器有加段数据时才给这个选项
+      // 蚀攻衣装：只有当前武器有加段数据时才给这个选项
       const mantleRow = $('div#calc-mantle-row');
       if (mantleRow) mantleRow.hidden = mantleMoves().length === 0;
       // 盾斧：瓶种 / 瓶状态 / 红盾 / 红剑（只有盾斧显示）
@@ -3109,7 +3110,7 @@
     // 三灯（操虫棍子选项）：切换后重算（攻击倍率 + 移动斩/移动连斩 动作值都随之变）
     const lampCb = $('input#calc-lamp');
     if (lampCb) lampCb.addEventListener('change', () => { state.threeLamp = lampCb.checked; recalc(); });
-    // 狂龙衣装：改了要重画连段行（行内会标出该招的加段）与结果表
+    // 蚀攻衣装：改了要重画连段行（行内会标出该招的加段）与结果表
     const mantleCb = $('input#calc-mantle');
     if (mantleCb) mantleCb.addEventListener('change', () => { state.mantle = mantleCb.checked; refreshComboUI(); });
     // 盾斧：瓶种 / 瓶状态 / 红盾 / 红剑（都会改伤害与瓶爆 → 重算）

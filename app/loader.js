@@ -6,8 +6,11 @@
 //   3) 所有源失败 / 超时 / 数据无效 → 静默回退到内置或缓存数据，不影响使用。
 (function () {
   'use strict';
-  // 网页以同次Pages部署的内置数据为准，不让安卓热更新缓存覆盖新网站。
-  if (/^https?:$/.test(window.location.protocol)) {
+  var isWeb = /^https?:$/.test(window.location.protocol);
+  var dataMeta = isWeb && document.querySelector('meta[name="mhwa-data-version"]');
+  var bundledDataVersion = dataMeta ? Number(dataMeta.content) || 0 : 0;
+  // 网页先用部署自带数据，只允许更新的镜像数据覆盖。
+  if (isWeb) {
     var buildMeta = document.querySelector('meta[name="mhwa-web-build"]');
     var currentBuild = buildMeta && buildMeta.content;
     var checking = false, noticeShown = false;
@@ -31,7 +34,6 @@
     setInterval(checkWebUpdate, 60000);
     document.addEventListener('visibilitychange', checkWebUpdate);
     window.addEventListener('focus', checkWebUpdate);
-    return;
   }
   var BASES = [
     'https://mhwadata.pages.dev/updates/',
@@ -64,7 +66,10 @@
   // 1) 同步读缓存（无网络依赖）
   try {
     var cached = localStorage.getItem(CACHE_KEY);
-    if (cached) apply(JSON.parse(cached));
+    if (cached) {
+      var cachedPackage = JSON.parse(cached);
+      if (!isWeb || cachedPackage.version > bundledDataVersion) apply(cachedPackage);
+    }
   } catch (e) { /* 缓存不存在或损坏则用内置数据 */ }
 
   // 带超时的 fetch JSON
@@ -88,6 +93,7 @@
   function checkUpdate() {
     var localVer = 0;
     try { localVer = parseInt(localStorage.getItem(VER_KEY) || '0', 10) || 0; } catch (e) {}
+    if (isWeb) localVer = Math.max(localVer, bundledDataVersion);
 
     function checkFallback() { return Promise.all(BASES.slice(1).map(function (base) {
       return fetchJson(base + 'version.json')
