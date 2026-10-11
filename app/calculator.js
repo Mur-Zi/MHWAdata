@@ -178,7 +178,7 @@
     const st = {
       // 「攻击」技能改的是**基础攻击力**；其余攻击类技能是加在最终攻击力上的条件加成
       baseAttackFlat: 0, baseAttackPct: 1, baseAttackBonusPct: 0,
-      attackFlat: 0, attackPct: 1,
+      attackFlat: 0, attackPct: 1, attackFromBasePct: 0,
       elementFlat: 0, elementPct: 1,        // 显示值口径
       statusFlat: 0, statusPct: 1,          // 显示值口径
       affinity: n(base.affinity),
@@ -268,6 +268,10 @@
       // 属性/异常强化技能：只在与面板所选类型一致时生效（火武器不吃冰属性强化）
       if (skill.elementType && skill.elementType !== base.elementType) return;
       if (skill.statusType && skill.statusType !== base.statusType) return;
+
+      // 霸主之魂与三灯同源：取基础攻击力的5%作为末端加值。
+      // 按技能ID处理，兼容已缓存的旧数据标记，避免再次落入基础乘区或独立倍率。
+      if (skill.id === 'custom_apex_soul') { st.attackFromBasePct += covFlat(.05); return; }
 
       // 需要面板有属性 / 有异常的技能（用户拍板：属性武器不享受会心击【特殊】）
       const hasElem = (base.elementType !== 'None') && ELEMENT_TYPES.indexOf(base.elementType) >= 0;
@@ -879,9 +883,11 @@
     const lamp = params.lamp || {};
     // 加值 = 基础攻击力（含攻击技能）× (表内 TrippleAtkRate - 1)；未传 lamp 配置时加值为 0
     // 注意这是**加算**项：攻击力 = 基础攻击力 × Π其他乘算 + Σ加算（含三灯加值 + 其他技能/道具加值）
-    const lampFlat = threeLamp && n(lamp.threeAtkRate, 1) > 0
-      ? floorAtk(baseAttack * (n(lamp.threeAtkRate, 1) - 1))
-      : 0;
+    const lampRate = threeLamp && n(lamp.threeAtkRate, 1) > 0 ? n(lamp.threeAtkRate, 1) - 1 : 0;
+    const soulFlat = floorAtk(baseAttack * state.attackFromBasePct);
+    // 同源百分比先相加再取整，避免两次取整丢失1点攻击力。
+    const lampFlat = floorAtk(baseAttack * (lampRate + state.attackFromBasePct)) - soulFlat;
+    state.attackFlat += soulFlat;
     // 最终攻击力同样向下取整（技能乘算/加算、道具、三灯加值全部算完之后）
     const attackFinal = floorAtk(baseAttack * state.attackPct + state.attackFlat + lampFlat);
 
