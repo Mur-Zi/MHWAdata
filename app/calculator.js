@@ -370,7 +370,7 @@
             break;
           }
           case 'frenzy': { // 无我之境：克服后会心 +3/6/10
-            st.frenzyAffinity += level*5*cov*frenzyCov;
+            st.frenzyAffinity += level*5*frenzyCov;
             break;
           }
           case 'charge_boost': // 蓄击强化（仅大锤）：晕厥×1.3

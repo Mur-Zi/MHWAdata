@@ -991,7 +991,7 @@
       quest: '', players: 1,
       mode: 'expected',
       weakSpot: false, monsterEnraged: false, fullHealth: true, wound: false, overcomeFrenzy: false, clash: false,
-      ateMeat: false, dodgeEvade: false, festival: false, warCry: false,   // 套装技能条件：食用烤熟的肉 / 巧击中回避成功 / 祭典期间 / 咆哮后
+      ateMeat: false, festival: false, warCry: false,   // 套装技能条件：食用烤熟的肉 / 祭典期间 / 咆哮后
       absorbHits: 1,
       threeLamp: true,    // 操虫棍三灯（红+白+橙）：攻击力加算 基础×0.15，移动斩/移动连斩 用三灯动作值
       mantle: false,      // 狂龙衣装（狂化装衣）：开启后把衣装给各招补的加段并入原招式
@@ -1026,7 +1026,7 @@
     const itemGroups = (CALC.items && CALC.items.groups) || [];
     const PRESET_KEY = 'mhwa_calculator_presets_v1';
     const CONFIG_KEYS = ['weaponId', 'attack', 'affinity', 'element', 'elementType', 'status', 'statusType', 'sharpness',
-      'fullHealth', 'overcomeFrenzy', 'clash', 'ateMeat', 'dodgeEvade', 'festival', 'warCry', 'absorbHits',
+      'fullHealth', 'overcomeFrenzy', 'clash', 'ateMeat', 'festival', 'warCry', 'absorbHits',
       'threeLamp', 'mantle', 'cbPhial', 'cbReinforced', 'cbRedShield', 'cbRedSword', 'swaxAwakened', 'swaxPhial','apexSoulReady','encouragement','ailment',
       'swaxRedAxe', 'balladCount', 'blueDemon', 'dbMode', 'glType', 'glLevel', 'melodyIds', 'kinsectId', 'kinsectLevel',
       'itemPicks', 'skillLevels', 'skillCoverage'];
@@ -1803,7 +1803,7 @@
           clash: state.clash,            // 角力/抵消成功（辟兽之力、冻峰龙之反叛）
           ateMeat: state.ateMeat,        // 食用烤熟的肉等道具（暗器蛸之力）
           apexSoulReady:state.apexSoulReady,encouragement:state.encouragement,ailment:state.ailment,
-          dodgeEvade: state.dodgeEvade,  // 巧击发动中回避成功（千刃龙的斗志）
+          dodgeEvade: state.skillLevels.SeriesSkill_01>=4, // 千刃龙效果由技能覆盖率表达。
           festival: state.festival,      // 祭典期间（大地之恩惠）
           warCry: state.warCry,          // 肢体动作「咆哮」后（雪狮子王之斗志）
           absorbHits: state.absorbHits,
@@ -2256,7 +2256,7 @@
       count.textContent = picked.length ? `已选 ${picked.length} 个` : '未选技能';
       box.innerHTML = picked.map((id) => {
         const s = skills.find((x) => x.id === id);
-        const paired=s?.coverageMode==='complementary'&&(id!=='HunterSkill_183'||state.skillLevels[id]===4);
+        const paired=id==='HunterSkill_195'||(s?.coverageMode==='complementary'&&(id!=='HunterSkill_183'||state.skillLevels[id]===4));
         return s ? `<span class="calc-skill-chip">${s.name}<b>Lv${state.skillLevels[id]}</b>${(s.coverage && (paired||skillCoverage(id) < 100)) ? `<i class="calc-chip-cov">${paired?(id==='HunterSkill_114'?'二段 ':'克服 '):''}${skillCoverage(id)}%</i>` : ''}</span>` : '';
       }).join('');
       updateCondSummary();
@@ -2321,20 +2321,25 @@
     // 技能列表：按当前属性/异常类型过滤后重建（切换类型时刷新）
     // 技能覆盖率（用户 2026-10-06）：整数百分比，默认 100；只有数据层标了 coverage 的技能才渲染滑块
     const skillCoverage = (id) => {
+      if(id==='HunterSkill_195')id='HunterSkill_183';
       const v = state.skillCoverage[id];
       return v == null ? (id==='HunterSkill_183'?(state.overcomeFrenzy?100:0):100) : Math.max(0, Math.min(100, Math.round(v)));
     };
     function syncFrenzyCoverage() {
+      delete state.skillCoverage.HunterSkill_195;
       const cov=skillCoverage('HunterSkill_183');state.overcomeFrenzy=cov>0;
       el.querySelectorAll('[data-cond="overcomeFrenzy"]').forEach(cb=>{cb.checked=state.overcomeFrenzy;});
       el.querySelectorAll('[data-frenzy-range]').forEach(r=>{r.value=String(cov);});
       el.querySelectorAll('[data-frenzy-val]').forEach(s=>{s.textContent=cov+'%';});
       el.querySelectorAll('[data-cov-range="HunterSkill_183"]').forEach(r=>{r.value=String(cov);});
       el.querySelectorAll('[data-cov-val="HunterSkill_183"]').forEach(s=>{s.textContent=cov+'%';});
+      el.querySelectorAll('[data-cov-range="HunterSkill_195"]').forEach(r=>{r.value=String(cov);});
+      el.querySelectorAll('[data-cov-val="HunterSkill_195"]').forEach(s=>{s.textContent=cov+'%';});
       el.querySelectorAll('[data-cov-first="HunterSkill_183"]').forEach(s=>{s.textContent='狂龙症状态 '+(100-cov)+'%';});
     }
     function setFrenzyCoverage(v) {
       state.skillCoverage.HunterSkill_183=Math.max(0,Math.min(100,Math.round(Number(v)||0)));
+      delete state.skillCoverage.HunterSkill_195;
       syncFrenzyCoverage();renderSkillChips();recalc();
     }
     // 分组按用户提供的技能表 SkillCommonData.skillCategory：武器专属 / 防具 / 套装 / 群组
@@ -2372,7 +2377,7 @@
         const second=s.id==='HunterSkill_114'?'二段':'克服狂龙症';
         return `<div class="calc-skill-cov" data-cov-row="${s.id}">
           ${paired?`<span class="calc-cov-label" data-cov-first="${s.id}">${first} ${100-cov}%</span>`:''}
-          <span class="calc-cov-label">${paired?second+'覆盖率':'覆盖率'}</span>
+          <span class="calc-cov-label">${s.id==='HunterSkill_195'?'克服覆盖率':(paired?second+'覆盖率':'覆盖率')}</span>
           <button type="button" class="step-btn calc-cov-btn" data-cov-step="${s.id}" data-step="-1">−</button>
           <input type="range" class="calc-cov-range" data-cov-range="${s.id}" min="0" max="100" step="1" value="${cov}" aria-label="${s.name} ${paired?second+'覆盖率':'覆盖率'}">
           <span class="calc-cov-val" data-cov-val="${s.id}">${cov}%</span>
@@ -2449,7 +2454,7 @@
       });
       // 覆盖率条：拖动 + 左右 ±1%（整数，只有 coverage 技能才渲染）
       const setCov = (id, v) => {
-        if(id==='HunterSkill_183'){setFrenzyCoverage(v);return;}
+        if(id==='HunterSkill_183'||id==='HunterSkill_195'){setFrenzyCoverage(v);return;}
         const next = Math.max(0, Math.min(100, Math.round(Number(v) || 0)));
         state.skillCoverage[id] = next;
         box.querySelectorAll('[data-cov-range="' + id + '"]').forEach((r) => { r.value = String(next); });
@@ -2609,7 +2614,6 @@
       <div class="calc-skill-cov"><span class="calc-cov-label">克服覆盖率</span><button type="button" class="step-btn calc-cov-btn" data-frenzy-step="-1">−</button><input type="range" class="calc-cov-range" data-frenzy-range min="0" max="100" step="1" value="${skillCoverage('HunterSkill_183')}" aria-label="克服狂龙症覆盖率"><span class="calc-cov-val" data-frenzy-val>${skillCoverage('HunterSkill_183')}%</span><button type="button" class="step-btn calc-cov-btn" data-frenzy-step="1">+</button></div>
       <label class="calc-check"><input type="checkbox" data-cond="clash"${state.clash ? ' checked' : ''}>角力/抵消成功</label>
       <label class="calc-check"><input type="checkbox" data-cond="ateMeat"${state.ateMeat ? ' checked' : ''}>食用烤熟的肉</label>
-      <label class="calc-check"><input type="checkbox" data-cond="dodgeEvade"${state.dodgeEvade ? ' checked' : ''}>巧击发动中回避成功</label>
       <label class="calc-check"><input type="checkbox" data-cond="festival"${state.festival ? ' checked' : ''}>祭典期间</label>
       <label class="calc-check"><input type="checkbox" data-cond="warCry"${state.warCry ? ' checked' : ''}>动作「咆哮」后</label>
       <label class="calc-check"><input type="checkbox" data-cond="apexSoulReady"${state.apexSoulReady ? ' checked' : ''}>毅力【果敢】未触发</label>
@@ -2619,7 +2623,7 @@
     // 条件清单（界面摘要与抽屉共用同一份定义，避免两处文案漂移）
     const COND_LABELS = [
       ['monsterEnraged', '怪物愤怒'], ['fullHealth', '满体力'], ['overcomeFrenzy', '克服狂龙症（会心率 +10%）'],
-      ['clash', '角力成功'], ['ateMeat', '食用烤肉'], ['dodgeEvade', '巧击回避'],
+      ['clash', '角力成功'], ['ateMeat', '食用烤肉'],
       ['festival', '祭典期间'], ['warCry', '咆哮后'],['apexSoulReady','毅力【果敢】未触发'],['encouragement','激励发动中'],['ailment','状态异常中']
     ];
 
