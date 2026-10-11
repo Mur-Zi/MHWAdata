@@ -3387,7 +3387,7 @@
       el.textContent = sc.valid
         ? (state.quest ? '' : '未选择任务，爆伤口使用基础倍率 · ') + 'Scar Raw ' + shown(sc.questRaw)
           + (sc.playerRate !== 1 ? ' × 人数倍率 ' + shown(sc.playerRate) + ' = ' + shown(sc.raw) : '')
-          + (sc.legendary ? ' · 默认历战伤口 ×1.3（可逐招选择）' : '')
+          + (sc.legendary ? ' · 默认历战伤口 ×1.3' : '')
         : sc.reason + '，不计爆伤口伤害';
     }
     function refreshParts() {
