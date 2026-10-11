@@ -34,6 +34,7 @@
     return;
   }
   var BASES = [
+    'https://mhwadata.pages.dev/updates/',
     'https://cdn.jsdelivr.net/gh/Mur-Zi/MHWAdata@main/',
     'https://raw.githubusercontent.com/Mur-Zi/MHWAdata/main/',
     'https://fastly.jsdelivr.net/gh/Mur-Zi/MHWAdata@main/'
@@ -88,7 +89,7 @@
     var localVer = 0;
     try { localVer = parseInt(localStorage.getItem(VER_KEY) || '0', 10) || 0; } catch (e) {}
 
-    Promise.all(BASES.map(function (base) {
+    function checkFallback() { return Promise.all(BASES.slice(1).map(function (base) {
       return fetchJson(base + 'version.json')
         .then(function (v) { return { base: base, version: (v && typeof v.version === 'number') ? v.version : 0 }; })
         .catch(function () { return null; });
@@ -116,7 +117,19 @@
         }).catch(function () { return trySource(index + 1); });
       }
       return trySource(0);
-    }).catch(function () { /* 静默回退 */ });
+    }).catch(function () { /* 静默回退 */ }); }
+    // 首选网站镜像成功即可更新，不等待不可达的GitHub/CDN。
+    fetchJson(BASES[0] + 'version.json').then(function (v) {
+      if (!v || !Number.isSafeInteger(v.version) || v.version < 1) throw new Error('bad version');
+      if (v.version <= localVer) return;
+      if (v.dataFile !== 'data.v' + v.version + '.json') throw new Error('bad mirror path');
+      return fetchJson(BASES[0] + v.dataFile).then(function (pkg) {
+        if (!pkg || !pkg.RAW || pkg.version !== v.version) throw new Error('mirror mismatch');
+        localStorage.setItem(CACHE_KEY, JSON.stringify(pkg));
+        localStorage.setItem(VER_KEY, String(pkg.version));
+        if (!applied && apply(pkg)) { applied = true; window.location.reload(); }
+      });
+    }).catch(checkFallback);
   }
 
   // 延迟到首屏渲染后再检查，避免阻塞启动

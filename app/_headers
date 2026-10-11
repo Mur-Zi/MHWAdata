@@ -12,3 +12,10 @@
 /web-version.json
   ! Cache-Control
   Cache-Control: no-store
+
+/updates/*
+  Access-Control-Allow-Origin: *
+
+/updates/version.json
+  ! Cache-Control
+  Cache-Control: no-store
