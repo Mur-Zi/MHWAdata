@@ -1,0 +1,12 @@
+{
+  "outputDirectory": "app",
+  "headers": [
+    { "source": "/", "headers": [{ "key": "Cache-Control", "value": "no-store" }] },
+    { "source": "/index.html", "headers": [{ "key": "Cache-Control", "value": "no-store" }] },
+    { "source": "/web-version.json", "headers": [{ "key": "Cache-Control", "value": "no-store" }] },
+    { "source": "/*.js", "headers": [{ "key": "Cache-Control", "value": "no-cache, must-revalidate" }] },
+    { "source": "/*.css", "headers": [{ "key": "Cache-Control", "value": "no-cache, must-revalidate" }] },
+    { "source": "/updates/*", "headers": [{ "key": "Access-Control-Allow-Origin", "value": "*" }] },
+    { "source": "/updates/version.json", "headers": [{ "key": "Cache-Control", "value": "no-store" }] }
+  ]
+}
