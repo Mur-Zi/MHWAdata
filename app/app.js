@@ -3018,7 +3018,7 @@
       Object.entries(checks).forEach(([id, key]) => { const cb = el.querySelector('#calc-' + id); if (cb) cb.checked = !!state[key]; });
       syncFrenzyCoverage();
       el.querySelectorAll('[data-cond]').forEach(cb => { cb.checked = !!state[cb.dataset.cond]; });
-      buildItemSelectors(); updateCondSummary(); applyWeapon();
+      syncTypeInputs();buildItemSelectors(); updateCondSummary(); applyWeapon();
     }
     function setupPresets() {
       enhanceSelect($('select#calc-settings-preset'), '配置预设');
