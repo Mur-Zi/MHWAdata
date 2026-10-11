@@ -1045,6 +1045,7 @@
       <div class="calc-preset-actions">
         <button type="button" class="calc-btn ghost" id="calc-${kind}-preset-load">读取</button>
         <button type="button" class="calc-btn ghost" id="calc-${kind}-preset-save">保存当前</button>
+        <button type="button" class="calc-btn ghost" id="calc-${kind}-preset-overwrite">覆盖保存</button>
         <button type="button" class="calc-btn ghost" id="calc-${kind}-preset-rename">重命名</button>
         <button type="button" class="calc-btn ghost" id="calc-${kind}-preset-delete">删除</button>
       </div>
@@ -2983,7 +2984,7 @@
         });
         sel.value = Array.from(sel.options).some(o => o.value === keep) ? keep : '';
         syncPicker(sel);
-        ['load', 'rename', 'delete'].forEach(action => { $('button#calc-' + type + '-preset-' + action).disabled = !sel.value; });
+        ['load', 'overwrite', 'rename', 'delete'].forEach(action => { $('button#calc-' + type + '-preset-' + action).disabled = !sel.value; });
       });
     }
     function restoreSettingsPreset(preset) {
@@ -3032,22 +3033,22 @@
         const close = () => { editor.hidden = true; editing = null; };
         sel.addEventListener('change', () => { close(); refreshPresetLists(kind); presetMessage(kind, ''); });
         $('button#calc-' + kind + '-preset-cancel').addEventListener('click', close);
-        ['save', 'rename', 'delete'].forEach(action => {
+        ['save', 'overwrite', 'rename', 'delete'].forEach(action => {
           $('button#calc-' + kind + '-preset-' + action).addEventListener('click', () => {
             const p = action === 'save' ? null : find();
             if (action !== 'save' && !p) return;
-            if (action === 'save' && kind === 'combos' && !state.combo.length) { presetMessage(kind, '请先添加招式再保存连段'); return; }
+            if ((action === 'save'||action === 'overwrite') && kind === 'combos' && !state.combo.length) { presetMessage(kind, '请先添加招式再保存连段'); return; }
             editing = { action, id: p && p.id };
-            input.readOnly = action === 'delete'; input.required = action !== 'delete';
+            input.readOnly = action === 'delete'||action === 'overwrite'; input.required = action !== 'delete';
             input.value = p ? p.name : '';
-            $('span#calc-' + kind + '-preset-edit-label').textContent = action === 'delete' ? '确认删除以下预设' : '预设名称';
-            $('button#calc-' + kind + '-preset-confirm').textContent = action === 'delete' ? '确认删除' : '保存';
+            $('span#calc-' + kind + '-preset-edit-label').textContent = action === 'delete' ? '确认删除以下预设' : (action==='overwrite'?'用当前内容覆盖以下预设':'预设名称');
+            $('button#calc-' + kind + '-preset-confirm').textContent = action === 'delete' ? '确认删除' : (action==='overwrite'?'确认覆盖':'保存');
             editor.hidden = false; presetMessage(kind, ''); input.focus();
           });
         });
         editor.addEventListener('submit', e => {
           e.preventDefault(); if (!editing) return;
-          if (editing.action === 'save' && kind === 'combos' && !state.combo.length) { presetMessage(kind, '请先添加招式再保存连段'); return; }
+          if ((editing.action === 'save'||editing.action === 'overwrite') && kind === 'combos' && !state.combo.length) { presetMessage(kind, '请先添加招式再保存连段'); return; }
           const name = input.value.trim().slice(0, 80);
           if (editing.action !== 'delete' && !name) { presetMessage(kind, '请输入预设名称'); return; }
           const bank = readPresets(); let id = editing.id;
@@ -3060,12 +3061,16 @@
             const p = bank[kind].find(p => p.id === id);
             if (!p) { presetMessage(kind, '该预设已不存在'); return; }
             if (editing.action === 'rename') p.name = name;
+            else if (editing.action === 'overwrite') {
+              p.data=kind==='settings'?Object.fromEntries(CONFIG_KEYS.map(key=>[key,clonePreset(state[key])])):{combo:clonePreset(state.combo),deriveMode:state.deriveMode};
+              p.weaponId=state.weaponId;p.savedAt=Date.now();
+            }
             else bank[kind] = bank[kind].filter(p => p.id !== id);
           }
           try { localStorage.setItem(PRESET_KEY, JSON.stringify(bank)); }
           catch (error) { presetMessage(kind, '保存失败，本机存储空间不足或不可用'); return; }
           const action = editing.action; close(); refreshPresetLists(kind, action === 'delete' ? '' : id);
-          presetMessage(kind, action === 'delete' ? '已删除预设' : '预设已保存到本机');
+          presetMessage(kind, action === 'delete' ? '已删除预设' : (action==='overwrite'?'已覆盖保存预设':'预设已保存到本机'));
         });
         $('button#calc-' + kind + '-preset-load').addEventListener('click', () => {
           const p = find(); if (!p) return;
