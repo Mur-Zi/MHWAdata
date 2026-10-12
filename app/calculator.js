@@ -200,7 +200,7 @@
       gunlanceArtyAdd: 0,                   // 铳枪炮术：炮击系附带火属性加算（估算器 skill_data!J3，**不进固伤**）
       gunlanceShellAdd: 0,                  // 炮弹装填（增弹）：铳枪装填数加值（估算器 read me!I3 = 有 → +1）
       gunlanceChargeAccel: 1.0,             // 铳枪炮术：蓄力加速（帧数用，本计算器不参与伤害）
-      blueDemon: null,                      // 双刀蓝鬼 { attackBaseMul, elementBaseAdd }；非双刀恒为 null
+      blueDemonElementDamageMul: 1,
       frenzyAffinity: 0,                    // 无我之境（克服后）
       woundBurstPct: 1.0                    // 破坏王（用户 2026-10-08）：只加「集中处决爆伤口」伤害（每级 +10%）
     };
@@ -765,6 +765,7 @@
       * chargeElem;
     elemental *= n(p.cbElementMul,1);
     if (elemental > 0 && elemental < 1) elemental = 1;
+    elemental *= st.blueDemonElementDamageMul;
 
     // 怪物发怒「受击倍率」（用户 2026-10-08）：数据库 AngryTable 的 PlDamage（player dmg）
     //   只作用**最终伤害**（物理 + 属性）；未开愤怒 / 该怪没有发怒表时为 1（中性因子，行为与接入前完全一致）
@@ -855,17 +856,17 @@
 
     // ===== 双刀（dual_blades）：蓝鬼（鬼人闪身）=====
     //   用户拍板：开启时**基础攻击力 ×1.15**（与「攻击」技能/力量护符同一层 → 进基础乘区，故必须在
-    //   baseAttack 计算**之前**乘进 state.baseAttackPct），**属性 = 基础属性 + 基础属性×0.3**（加算项，不是整体 ×1.3）。
+    //   baseAttack 计算**之前**乘进 state.baseAttackPct），**招式属性伤害 ×1.3**（面板属性不变）。
     //   只在 weaponId === 'dual_blades' 时生效 —— 其他武器传了也忽略（引擎侧硬拦截）。
     const isDB = params.weaponId === 'dual_blades';
     const dbCfg = params.blueDemon || {};
     const blueDemonOn = isDB && !!dbCfg.on;
     const blueDemonMul = blueDemonOn ? n(dbCfg.attackBaseMul, 1.15) : 1;
-    const blueDemonElemAdd = blueDemonOn ? n(dbCfg.elementBaseAdd, 0.3) : 0;
+    const blueDemonElemMul = blueDemonOn ? n(dbCfg.elementDamageMul, 1.3) : 1;
     if (blueDemonOn) {
       state.baseAttackPct *= blueDemonMul;
-      // 属性加算项：基础属性（面板值）× 0.3，作为显示值口径的加算（与「属性吸收/属性变换」同层）
-      state.elementFlat += n(params.element) * blueDemonElemAdd;
+      // 属性加成作用于最终属性伤害，不进入属性面板或属性上限。
+      state.blueDemonElementDamageMul = blueDemonElemMul;
     }
 
     // 基础攻击力 = 面板 × 基础攻击力乘算 + 基础攻击力加算，再**向下取整**（用户拍板：攻击力舍弃小数点）
@@ -1827,7 +1828,7 @@
       blueDemon: {                           // 双刀蓝鬼（面板展示用：等效值 = 实际生效值）
         enabled: blueDemonOn,
         attackBaseMul: blueDemonMul,
-        elementBaseAdd: blueDemonElemAdd,
+        elementDamageMul: blueDemonElemMul,
         baseAttackBefore: Math.round(n(params.attack) * 1e6) / 1e6,
         baseAttackAfter: baseAttack,
         elementBase: noElemType ? 0 : n(params.element),

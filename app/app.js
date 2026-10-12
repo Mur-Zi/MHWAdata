@@ -6,6 +6,8 @@
   const TR = window.MHWILD_TR;
   const META = window.MHWILD_META;
   const TRAINING_TARGET = 'High Purrformance Barrel Puncher';
+  const guardianArkveld = RAW['Monster Data'][String(RAW['Monster Names']['Guardian Arkveld'])];
+  if (guardianArkveld) guardianArkveld.CantCap = true;
 
   // 用户确认的训练靶肉质也应用于在线缓存，避免旧数据覆盖内置修正。
   {
@@ -150,11 +152,13 @@
   const STATUS_MULTI_KEY = { Poison: '_BadConditionAddLimit', Sleep: '_BadConditionAddLimit', Blast: '_BadConditionAddLimit', Paralyze: '_ParalyzeAddLimit', Stun: '_StunAddLimit', Exhaust: '_ExhaustAddLimit', Mount: '_RideAddLimit', Flayer: '_SkillStabbingAddLimit', ConEle: '_SkillRyukiAddLimit' };
 
   // 历战层级 → Legendary 字段后缀（0=普通 1=历战 2=历战王）
-  const LEGENDARY_TIER = { 0: '', 1: '_Hard', 2: '_King_Hard' };
-  function legendaryRate(m, key, legendaryID) {
+  function legendaryRate(m, key, legendaryID, rate) {
+    if (!legendaryID) return 1;
     const L = m && m.data && m.data.Legendary;
     if (!L) return 1;
-    const tier = LEGENDARY_TIER[legendaryID] || '';
+    const rank = Number(String(rate?._RewardRank?._Value || '').match(/(\d+)$/)?.[1] || 0);
+    const tier = (legendaryID === 2 ? '_King' : '')
+      + ((legendaryID === 2 && rank >= 10) || (legendaryID === 1 && rank >= 9) ? '_Hard' : '');
     const v = L[key + tier];
     return (typeof v === 'number') ? v : 1;
   }
@@ -711,11 +715,11 @@
       const rate = diffRates[t.diff];
       const multi = getMulti(rate);
       const lid = t.legendaryID || 0;
-      const lParts = legendaryRate(m, 'PartsVitalRate', lid);
-      const lNormal = legendaryRate(m, 'NormalVitalRate', lid);
-      const lTear = legendaryRate(m, 'TearVitalRate', lid); // 普通绽伤 (Scar Tear)
-      const lTearLeg = legendaryRate(m, 'TearVitalRateLegendaryScar', lid); // 伤痕覆盖绽伤 (Scar Tear Legendary)
-      const lHealth = legendaryRate(m, 'HealthRate', lid); // 血量
+      const lParts = legendaryRate(m, 'PartsVitalRate', lid, rate);
+      const lNormal = legendaryRate(m, 'NormalVitalRate', lid, rate);
+      const lTear = legendaryRate(m, 'TearVitalRate', lid, rate); // 普通绽伤 (Scar Tear)
+      const lTearLeg = legendaryRate(m, 'TearVitalRateLegendaryScar', lid, rate); // 伤痕覆盖绽伤 (Scar Tear Legendary)
+      const lHealth = legendaryRate(m, 'HealthRate', lid, rate); // 血量
       const status = {};
       for (const s of ['Poison', 'Paralyze', 'Sleep', 'Blast', 'Stun', 'Exhaust', 'Mount', 'Flayer', 'ConEle']) {
         const dk = STATUS_DIFF_KEY[s];
@@ -881,8 +885,8 @@
     const kinsects = (KINSECTS.kinsects || []).filter((k) => k.attackType);
     const kinsectPowerTable = KINSECTS.kinsectPowerMultiplierMasterData || {};
     const kinsectLevels = Array.from({ length: 10 }, (_, i) => i + 1);   // 猎虫等级 Lv1~Lv10
-    // 双刀蓝鬼（鬼人闪身）：基础攻击力 ×1.15、属性 +基础属性×0.3（数据来自 dualblades_moves.json 的 blueDemon）
-    const blueDemonCfg = CALC.blueDemon || { label: '蓝鬼', attackBaseMul: 1.15, elementBaseAdd: 0.3 };
+    // 双刀蓝鬼（鬼人闪身）：基础攻击力 ×1.15、属性伤害 ×1.3（数据来自 dualblades_moves.json 的 blueDemon）
+    const blueDemonCfg = CALC.blueDemon || { label: '蓝鬼', attackBaseMul: 1.15, elementDamageMul: 1.3 };
     // 铳枪炮击表（三种炮击类型 × 等级 1~7）+ 招式级参数
     const GL_SHELL = CALC.gunlanceShell || {};
     const GL_TYPES = (GL_SHELL.types || []).filter(Boolean);
@@ -1788,7 +1792,7 @@
         balladTable: (CALC.hornBallads || null),
         // 双刀：蓝鬼（鬼人闪身）—— 只有双刀会生效（引擎侧按 weaponId 硬拦截，其他武器传了也忽略）
         blueDemon: isDB
-          ? { on: !!state.blueDemon, attackBaseMul: blueDemonCfg.attackBaseMul, elementBaseAdd: blueDemonCfg.elementBaseAdd }
+          ? { on: !!state.blueDemon, attackBaseMul: blueDemonCfg.attackBaseMul, elementDamageMul: blueDemonCfg.elementDamageMul || 1.3 }
           : null,
         // 铳枪：炮击类型 / 等级 + 炮击表（同样只在铳枪生效）
         gunlance: isGL ? { type: state.glType, level: state.glLevel } : null,
@@ -1893,7 +1897,7 @@
           ? `<span class="calc-combo-sum-note calc-bluedemon-sum">蓝鬼：基础攻击力 <b>${rd(r.blueDemon.baseAttackBefore)}</b> → <b>${rd(r.blueDemon.baseAttackAfter)}</b>`
             + `（×${r.blueDemon.attackBaseMul}）`
             + (r.blueDemon.elementBase > 0
-              ? ` · 属性 <b>${rd(r.blueDemon.elementBase)}</b> → <b>${rd(r.blueDemon.elementAfter)}</b>` : '')
+              ? ` · 属性伤害 ×${r.blueDemon.elementDamageMul}` : '')
             + '</span>'
           : '')
         + (airMult !== 1 && !hienHits && blade.length
@@ -3148,7 +3152,7 @@
       balladSel.addEventListener('change', () => { state.balladCount = Number(balladSel.value) || 0; recalc(); });
       enhanceSelect(balladSel, '狩猎笛 · 响玉数量');
     }
-    // 双刀：蓝鬼（鬼人闪身）—— 基础攻击力 ×1.15、属性 +基础属性×0.3（只在双刀生效，引擎侧硬拦截）
+    // 双刀：蓝鬼（鬼人闪身）—— 基础攻击力 ×1.15、属性伤害 ×1.3（只在双刀生效，引擎侧硬拦截）
     const blueCb = $('input#calc-bluedemon');
     if (blueCb) {
       blueCb.addEventListener('change', () => {
@@ -3179,15 +3183,15 @@
       const el2 = $('span#calc-bluedemon-note');
       if (!el2) return;
       const mul = Number(blueDemonCfg.attackBaseMul) || 1.15;
-      const add = Number(blueDemonCfg.elementBaseAdd) || 0.3;
+      const elemMul = Number(blueDemonCfg.elementDamageMul) || 1.3;
       if (!state.blueDemon) {
-        el2.textContent = '基础攻击力 ×' + mul + ' · 属性 +基础属性×' + add;
+        el2.textContent = '攻击力 ×' + mul + ' · 属性伤害 ×' + elemMul;
         return;
       }
       const atk = Number(state.attack) || 0;
       const elem = Number(state.element) || 0;
       el2.textContent = '攻击力 ' + atk + ' → ' + Math.floor(Math.round(atk * mul * 1e6) / 1e6)
-        + ' · 属性 ' + elem + ' → ' + Math.round((elem + elem * add) * 1e6) / 1e6;
+        + ' · 属性伤害 ×' + elemMul;
     }
 
     // 旋律（多选 + 右侧抽拉式抽屉）：攻击力/属性强化作用在基础值上，会心强化加会心率
