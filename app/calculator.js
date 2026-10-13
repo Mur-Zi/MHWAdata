@@ -105,6 +105,7 @@
       case 'full_hp': case 'FULL_HEALTH': return !!c.fullHealth;
       case 'guard': return !!c.guard;
       case 'ailment': return !!c.ailment;
+      case 'ailment_cleared': return !!c.ailmentCleared;
       case 'apex_soul_ready': return c.apexSoulReady!==false;
       case 'encouragement': return !!c.encouragement;
       case 'low_hp': case 'LOW_HEALTH': return !!c.lowHealth;
@@ -253,7 +254,8 @@
 
       // 技能级条件（如挑战者=enraged、无伤=full_hp）
       // 例外：weak_spot 已改为「按命中部位肉质逐刀判定」，此处不拦
-      if (skill.condition && skill.condition !== 'weak_spot' && !conditionActive(skill.condition, ctxEff)) {
+      const skillCondition = skill.id === 'HunterSkill_113' ? 'ailment_cleared' : skill.condition;
+      if (skillCondition && skillCondition !== 'weak_spot' && !conditionActive(skillCondition, ctxEff)) {
         if (UNSUPPORTED_CONDITIONS.indexOf(skill.condition) >= 0) {
           noteOnce(skill.name, CONDITION_LABEL[skill.condition] || '条件未支持');
         }
@@ -347,8 +349,8 @@
           case 'convert': { // 因祸得福：属性 + 异常双加成
             const ve = groupValue(base.weaponGroups && base.weaponGroups.convert_elem, weaponId, level);
             const vs = groupValue(base.weaponGroups && base.weaponGroups.convert_status, weaponId, level);
-            if (ve) st.convertElemMult = ve;
-            if (vs) st.convertStatusMult = vs;
+            if (ve) st.convertElemMult = covMult(ve, 1);
+            if (vs) st.convertStatusMult = covMult(vs, 1);
             break;
           }
           case 'absorb_elem': { // 属性吸收：等级决定首击加值，后续每次受击+10（至多+20）

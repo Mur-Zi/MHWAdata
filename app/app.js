@@ -1024,14 +1024,14 @@
       combo: [],
       skillLevels: {}, // id -> level
       skillCoverage: {}, // id -> 覆盖率（整数 %，默认 100；只有防具/套装技能与心眼用）
-      apexSoulReady:true,encouragement:false,ailment:false,
+      apexSoulReady:true,encouragement:false,ailmentCleared:false,ailment:false,
     };
     // 道具/餐点分组（同组互斥，单选）
     const itemGroups = (CALC.items && CALC.items.groups) || [];
     const PRESET_KEY = 'mhwa_calculator_presets_v1';
     const CONFIG_KEYS = ['weaponId', 'attack', 'affinity', 'element', 'elementType', 'status', 'statusType', 'sharpness',
       'fullHealth', 'overcomeFrenzy', 'clash', 'ateMeat', 'festival', 'warCry', 'absorbHits',
-      'threeLamp', 'mantle', 'cbPhial', 'cbReinforced', 'cbRedShield', 'cbRedSword', 'swaxAwakened', 'swaxPhial','apexSoulReady','encouragement','ailment',
+      'threeLamp', 'mantle', 'cbPhial', 'cbReinforced', 'cbRedShield', 'cbRedSword', 'swaxAwakened', 'swaxPhial','apexSoulReady','encouragement','ailmentCleared','ailment',
       'swaxRedAxe', 'balladCount', 'blueDemon', 'dbMode', 'glType', 'glLevel', 'melodyIds', 'kinsectId', 'kinsectLevel',
       'itemPicks', 'skillLevels', 'skillCoverage'];
     const clonePreset = value => JSON.parse(JSON.stringify(value));
@@ -1807,7 +1807,7 @@
           overcomeFrenzyCoverage: skillCoverage('HunterSkill_183'),
           clash: state.clash,            // 角力/抵消成功（辟兽之力、冻峰龙之反叛）
           ateMeat: state.ateMeat,        // 食用烤熟的肉等道具（暗器蛸之力）
-          apexSoulReady:state.apexSoulReady,encouragement:state.encouragement,ailment:state.ailment,
+          apexSoulReady:state.apexSoulReady,encouragement:state.encouragement,ailmentCleared:state.ailmentCleared,ailment:state.ailment,
           dodgeEvade: state.skillLevels.SeriesSkill_01>=4, // 千刃龙效果由技能覆盖率表达。
           festival: state.festival,      // 祭典期间（大地之恩惠）
           warCry: state.warCry,          // 肢体动作「咆哮」后（雪狮子王之斗志）
@@ -2623,14 +2623,15 @@
       <label class="calc-check"><input type="checkbox" data-cond="festival"${state.festival ? ' checked' : ''}>祭典期间</label>
       <label class="calc-check"><input type="checkbox" data-cond="warCry"${state.warCry ? ' checked' : ''}>动作「咆哮」后</label>
       <label class="calc-check"><input type="checkbox" data-cond="apexSoulReady"${state.apexSoulReady ? ' checked' : ''}>毅力【果敢】未触发</label>
-      <label class="calc-check"><input type="checkbox" data-cond="encouragement"${state.encouragement ? ' checked' : ''}>激励发动中</label>
+      <label class="calc-check"><input type="checkbox" data-cond="encouragement"${state.encouragement ? ' checked' : ''}>被队友赋予 buff</label>
+      <label class="calc-check"><input type="checkbox" data-cond="ailmentCleared"${state.ailmentCleared ? ' checked' : ''}>解除异常状态</label>
       <label class="calc-check"><input type="checkbox" data-cond="ailment"${state.ailment ? ' checked' : ''}>处于状态异常</label>
       <label class="calc-check calc-check-field">属性吸收受击<select id="calc-absorb">${[1, 2, 3].map((n) => `<option value="${n}"${n === state.absorbHits ? ' selected' : ''}>${n}次</option>`).join('')}</select></label>`;
     // 条件清单（界面摘要与抽屉共用同一份定义，避免两处文案漂移）
     const COND_LABELS = [
       ['monsterEnraged', '怪物愤怒'], ['fullHealth', '满体力'], ['overcomeFrenzy', '克服狂龙症（会心率 +10%）'],
       ['clash', '角力成功'], ['ateMeat', '食用烤肉'],
-      ['festival', '祭典期间'], ['warCry', '咆哮后'],['apexSoulReady','毅力【果敢】未触发'],['encouragement','激励发动中'],['ailment','状态异常中']
+      ['festival', '祭典期间'], ['warCry', '咆哮后'],['apexSoulReady','毅力【果敢】未触发'],['encouragement','被队友赋予 buff'],['ailmentCleared','解除异常状态'],['ailment','状态异常中']
     ];
 
     // 三灯（红+白+橙）/ 猎虫（共斗虫）：**操虫棍独有**（用户拍板：不能混进别的武器）
@@ -3290,7 +3291,7 @@
     function updateCondSummary() {
       const span = $('span#calc-cond-summary');
       if (!span) return;
-      const linked={apexSoulReady:'custom_apex_soul',encouragement:'HunterSkill_170',ailment:'HunterSkill_171'};
+      const linked={apexSoulReady:'custom_apex_soul',encouragement:'HunterSkill_170',ailmentCleared:'HunterSkill_113',ailment:'HunterSkill_171'};
       const on = COND_LABELS.filter((x) => !!state[x[0]]&&(!linked[x[0]]||state.skillLevels[linked[x[0]]]>0)).map((x) => x[1]+(x[0]==='overcomeFrenzy'?' '+skillCoverage('HunterSkill_183')+'%':''));
       span.textContent = on.length ? on.join(' · ') : '未设置条件';
       span.classList.toggle('on', on.length > 0);
