@@ -1,7 +1,7 @@
 import fs from 'node:fs';import crypto from 'node:crypto';
 const app=new URL('../app/',import.meta.url),htmlFile=new URL('index.html',app);
 let html=fs.readFileSync(htmlFile,'utf8');
-const files=['style.css','data.js','kuro-hzv.js','config.js','calc-data.js','calculator.js','loader.js','app.js'];
+const files=['style.css','data.js','kuro-hzv.js','config.js','calc-data.js','calculator.js','loader.js','app.js','announcement.js'];
 const hash=crypto.createHash('sha256');
 for(const file of files){const content=fs.readFileSync(new URL(file,app));hash.update(file).update(content);const v=crypto.createHash('sha256').update(content).digest('hex').slice(0,16);html=html.replace(new RegExp('(["\'])'+file.replaceAll('.','\\.')+'(?:\\?v=[^"\']*)?(["\'])','g'),`$1${file}?v=${v}$2`);}
 html=html.replace(/\s*<meta name="mhwa-web-build" content="[^"]*">/,'');

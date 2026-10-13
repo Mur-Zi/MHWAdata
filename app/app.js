@@ -205,7 +205,7 @@
     if (typeof v !== 'number') return '';
     if (v >= 80) return 'hzv-5';
     if (v >= 60) return 'hzv-4';
-    if (v >= 40) return 'hzv-3';
+    if (v >= 45) return 'hzv-3';
     if (v >= 20) return 'hzv-2';
     if (v > 0) return 'hzv-1';
     return 'hzv-0';
@@ -2533,15 +2533,15 @@
       html += row('面板属性值', p.elementBase, p.elementAfter);
       if (p.elementCapped) html += '<div class="calc-panel-row"><span>属性上限</span><b class="cap">已触上限（基础×2.3 或 400 取高）</b></div>';
       html += row('面板异常值', p.statusBase, p.statusAfter);
-      // 会心率：含技能加成，并按当前所选部位自动应用弱点特效 / 伤口（弱电 = 该武器物理类型肉质 > 45）
+      // 会心率：含技能加成，并按当前所选部位自动应用弱点特效 / 伤口（弱电 = 该武器物理类型肉质 ≥ 45）
       const aff = p.affinityVsTarget != null ? p.affinityVsTarget : p.affinityAfter;
       html += row('会心率', p.affinityBase, aff, '%');
       html += `<div class="calc-panel-row"><span>会心倍率</span><b>${num(p.critMult)}×</b></div>`;
       if (p.weakSpotAffinity) {
         html += `<div class="calc-panel-row"><span>弱点特效</span><b class="${p.affinityTargetIsWeak ? 'up' : ''}">`
           + (p.affinityTargetIsWeak
-            ? `已生效 +${num(p.weakSpotAffinity)}%（当前部位${p.affinityTargetType === 'Blow' ? '打击' : '斩击'}肉质 ${p.affinityTargetRaw} > 45）`
-            : `未生效（当前部位肉质 ${p.affinityTargetRaw} ≤ 45）`)
+            ? `已生效 +${num(p.weakSpotAffinity)}%（当前部位${p.affinityTargetType === 'Blow' ? '打击' : '斩击'}肉质 ${p.affinityTargetRaw} ≥ 45）`
+            : `未生效（当前部位肉质 ${p.affinityTargetRaw} < 45）`)
           + '</b></div>';
       }
       if (p.woundAffinity) {

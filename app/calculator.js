@@ -182,7 +182,7 @@
       elementFlat: 0, elementPct: 1,        // 显示值口径
       statusFlat: 0, statusPct: 1,          // 显示值口径
       affinity: n(base.affinity),
-      weakSpotAffinity: 0,                  // 弱点特效：仅肉质>45 的 hit 生效（逐刀判定）
+      weakSpotAffinity: 0,                  // 弱点特效：仅肉质≥45 的 hit 生效（逐刀判定）
       woundAffinity: 0,                     // 弱点特效：命中伤口时生效
       critMult: CRIT_BASE,                  // 超会心
       elementCritMult: 1.0,                 // 会心击【属性】
@@ -283,7 +283,7 @@
       (lv.effects || []).forEach(function (e) {
         // 效果级武器过滤（盾斧高速变形：对盾斧是「变形类招式动作值 ×1.05/1.1/1.2」）
         if (Array.isArray(e.weapons) && e.weapons.indexOf(weaponId) < 0) return;
-        // 弱点特效的两条加成改由 calcHit 逐刀判定（肉质>45 / 命中伤口），此处只归类
+        // 弱点特效的两条加成改由 calcHit 逐刀判定（肉质≥45 / 命中伤口），此处只归类
         //   覆盖率按期望折算（用户例子：弱点特效 Lv5 会心 +30%、覆盖率 80% → +24%）
         if (e.condition === 'weak_spot') { if (e.type === 'affinity') st.weakSpotAffinity += covFlat(e.value); return; }
         if (e.condition === 'wound') { if (e.type === 'affinity') st.woundAffinity += covFlat(e.value); return; }
@@ -705,9 +705,9 @@
     const elemRate = n(hit.elemRate, 1);       // 属补
     const statusRate = n(hit.statusRate, 0);   // 异常补正
 
-    // 弱点部位自动判定：该 hit 所用肉质 > 45（用户规则，逐刀判定）
+    // 弱点部位自动判定：该 hit 所用肉质 ≥ 45（用户规则，逐刀判定）
     // 伤口：由部位肉质状态自动应用（选「伤口」肉质时 isWound=true）
-    const isWeak = hitzoneRaw > 45;
+    const isWeak = hitzoneRaw >= 45;
     const isWound = !!p.isWound;
     const affinityEff = clamp(
       st.affinity + (isWeak ? st.weakSpotAffinity : 0) + (isWound ? st.woundAffinity : 0),
@@ -814,7 +814,7 @@
       elemRate: elemRate,
       statusRate: statusRate,
       type: hit.type,
-      isWeak: isWeak,          // 肉质>45 自动判定
+      isWeak: isWeak,          // 肉质≥45 自动判定
       affinityUsed: affinityEff
     };
   }
@@ -1413,7 +1413,7 @@
           //   · 附带火属性：属性段吃火属性吸收（炮击附带的是火属性）
           const shellZone = n(params.hitzones && params.hitzones.Slash, n(params.hitzoneRaw));
           const shellAff = clamp(
-            state.affinity + ((shellZone > 45) ? state.weakSpotAffinity : 0) + (isWound ? state.woundAffinity : 0),
+            state.affinity + ((shellZone >= 45) ? state.weakSpotAffinity : 0) + (isWound ? state.woundAffinity : 0),
             -100, 100
           );
           const shellCrit = rawCritMultiplier(shellAff, state.critMult, params.mode);
@@ -1731,11 +1731,12 @@
     // 面板汇总：基础值 → 技能/道具后（供 UI 显示「有技能后的数值」）
     // 武器类型选「无」时属性/异常整条链路归零（面板也显示 0）
     const elemAfterRaw = n(params.element) * state.elementPct + state.elementFlat + state.absorbElemFlat + state.dragonElemFlat;
-    // 目标部位会心：弱点特效 / 伤口 按当前所选部位自动应用（弱点 = 该武器物理类型肉质 > 45）
+    // 目标部位会心：弱点特效 / 伤口 按当前所选部位自动应用（弱点 = 该武器物理类型肉质 ≥ 45）
     // 供面板与结果卡显示「最终会心率」时与逐刀判定保持一致
-    const targetRawType = (WEAPONS.filter(function (w) { return w.id === params.weaponId; })[0] || {}).damageType || 'Slash';
+    const primaryRawType = (WEAPONS.filter(function (w) { return w.id === params.weaponId; })[0] || {}).damageType || 'Slash';
+    const targetRawType = primaryRawType === 'Blunt' ? 'Blow' : primaryRawType;
     const targetRaw = n(params.hitzones && params.hitzones[targetRawType], n(params.hitzoneRaw));
-    const targetIsWeak = targetRaw > 45;
+    const targetIsWeak = targetRaw >= 45;
     const affinityVsTarget = clamp(
       state.affinity + (targetIsWeak ? state.weakSpotAffinity : 0) + (isWound ? state.woundAffinity : 0),
       -100, 100

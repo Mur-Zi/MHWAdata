@@ -117,8 +117,9 @@ td.fz1, th.fz1 { min-width: 86px; }
 /* HZV 数值着色：越高越红/亮 */
 .hzv-0 { color: #6b6557; }
 .hzv-1 { color: #b8a878; }
-.hzv-2 { color: #e0c060; }
-.hzv-3 { color: #e09a55; }
+.hzv-2 { color: #c9bc94; }
+.hzv-3 { color: #ffa657; }
+.hzv-3, .hzv-4, .hzv-5 { font-weight: 600; }
 .hzv-4 { color: #e07650; }
 .hzv-5 { color: #e05a4a; }
 
@@ -205,6 +206,12 @@ th .ic { display: block; margin: 0 auto; }
 .footer-contact { margin-top: 6px; }
 .footer-contact-btn { background: transparent; color: var(--accent2); border: 1px solid var(--line); border-radius: 6px; padding: 3px 12px; font-size: 11px; cursor: pointer; }
 .footer-contact-info { margin-top: 6px; color: var(--text-dim); }
+.footer-contact-info a { color: var(--accent2); text-decoration: underline; }
+.announcement-overlay { position: fixed; inset: 0; z-index: 20000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0,0,0,.72); }
+.announcement-panel { width: min(560px,100%); max-height: 85vh; overflow-y: auto; box-sizing: border-box; padding: 22px; border: 1px solid var(--accent2); border-radius: 14px; background: var(--bg); color: var(--text); box-shadow: 0 12px 40px rgba(0,0,0,.5); }
+.announcement-panel h2 { margin: 0 0 16px; font-size: 19px; color: var(--accent2); }
+.announcement-panel p { margin: 0 0 12px; line-height: 1.7; }
+.announcement-panel button { display: block; width: 100%; margin-top: 18px; white-space: normal; }
 
 /* 底部栏（搜索 + 导航） */
 .bottom-bar {
