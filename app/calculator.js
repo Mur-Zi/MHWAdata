@@ -300,6 +300,7 @@
         switch (e.type) {
           case 'baseAtkBonusPct': st.baseAttackBonusPct+=covFlat(e.value);break;
           case 'atkFlat':
+            if (skill.id === 'HunterSkill_188') st.mightSeedSetBonus = { value: n(e.value), coverage: cov };
             if (isBase) st.baseAttackFlat += covFlat(e.value); else st.attackFlat += covFlat(e.value);
             break;
           case 'atkPct':
@@ -453,12 +454,15 @@
 
   // 应用道具/餐点（同组互斥由 UI 保证；此处按 effects 直接累加）
   function applyItems(st, items) {
+    const seedIds = ['item_effect_might_seed','item_effect_might_pill','item_effect_demon_ammo','item_effect_mizutsune_red_bubble','meal_effect_resting'];
+    let seedAttack = 0;
     (items || []).forEach(function (it) {
       // 用户 2026-09-30：「力量护符加的是基础攻击力」→ 该组带 baseAttack 标记，走基础攻击力那一层
       const base = !!(it && it.baseAttack);
       (it && it.effects ? it.effects : []).forEach(function (e) {
         switch (e.target) {
           case 'rawAttack':
+            if (e.type === 'add' && seedIds.indexOf(it.id) >= 0) { seedAttack = Math.max(seedAttack, n(e.value)); break; }
             if (e.type === 'add') { if (base) st.baseAttackFlat += n(e.value); else st.attackFlat += n(e.value); }
             else if (e.type === 'multiply') { if (base) st.baseAttackPct *= n(e.value, 1); else st.attackPct *= n(e.value, 1); }
             break;
@@ -476,6 +480,11 @@
         }
       });
     });
+    // 暗器蛸与怪力种子类同组；技能未覆盖的时间仍保留道具效果。
+    const setBonus = st.mightSeedSetBonus;
+    st.attackFlat += setBonus
+      ? seedAttack + (Math.max(seedAttack, setBonus.value) - seedAttack - setBonus.value) * setBonus.coverage
+      : seedAttack;
     st.affinity = clamp(st.affinity, -100, 100);
     return st;
   }
