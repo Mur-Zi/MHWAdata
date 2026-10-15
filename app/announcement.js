@@ -31,9 +31,9 @@
   title.id = 'announcement-title';
   title.textContent = announcement.title;
   panel.appendChild(title);
-  announcement.paragraphs.forEach(function (text) {
+  announcement.paragraphs.forEach(function (text, index) {
     var p = document.createElement('p');
-    p.textContent = text;
+    p.textContent = (index + 1) + '. ' + text;
     panel.appendChild(p);
   });
   var close = document.createElement('button');
