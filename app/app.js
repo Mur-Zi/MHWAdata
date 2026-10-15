@@ -2557,14 +2557,6 @@
           + (currentIsWound() ? `已生效 +${num(p.woundAffinity)}%（当前肉质状态为伤口）` : `未生效（肉质状态没选伤口）`)
           + '</b></div>';
       }
-      // 选了、但本计算器算不出来的技能：明确列出来，避免误以为已经计入
-      const notes = skillNotes || [];
-      if (notes.length) {
-        html += '<div class="calc-panel-title warned">未计入伤害的技能</div>';
-        notes.forEach((n) => {
-          html += `<div class="calc-panel-row"><span>${n.name}</span><b class="warn">${n.reason}</b></div>`;
-        });
-      }
       box.innerHTML = html;
     }
 
