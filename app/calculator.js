@@ -385,7 +385,7 @@
             st.frenzyAffinity += level*5*frenzyCov;
             break;
           }
-          case 'charge_boost': // 大锤指定五招的最终伤害+3%，不增加晕厥。
+          case 'charge_boost': // 大锤指定五招的最终物理伤害+3%，属性和晕厥不变。
             st.hammerChargeDamageMult = covMult(1.03, 1);
             break;
         }
@@ -787,7 +787,6 @@
     const enrageMul = n(p.enrageMul, 1);
     if (enrageMul !== 1) { raw *= enrageMul; elemental *= enrageMul; }
     raw *= n(p.hammerChargeDamageMult, 1);
-    elemental *= n(p.hammerChargeDamageMult, 1);
     // 重奏的10点追加是绝对固定伤害，不走攻击力、属性或其他补正。
     if (hit.constantDamage != null) { raw=n(hit.constantDamage,0); elemental=0; }
 
