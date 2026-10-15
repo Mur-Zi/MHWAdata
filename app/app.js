@@ -925,8 +925,8 @@
     // 猎虫名用官方中文名（《猎虫数据1.0.xlsx》RodInsectData，nameZh）；匹配不到时退回日文原名
     const kinsectName = (k) => (k && (k.nameZh || k.name)) || '';
     const kinsectLabel = (k) => `${kinsectName(k)}（${k.attackType === 'SEVER' ? '斩击' : '打击'}·${POWER_CN[k.powderType] || k.powderType}）`;
-    const sharpKeys = ['red', 'orange', 'yellow', 'green', 'blue', 'white']; // 荒野无紫斩
-    const sharpCn = { red: '红', orange: '橙', yellow: '黄', green: '绿', blue: '蓝', white: '白' };
+    const sharpKeys = ['red', 'orange', 'yellow', 'green', 'blue', 'white', 'seregios']; // 荒野无紫斩
+    const sharpCn = { red: '红', orange: '橙', yellow: '黄', green: '绿', blue: '蓝', white: '白', seregios:'千刃斩味' };
     const EL_CN = { None: '无', Fire: '火', Water: '水', Thunder: '雷', Ice: '冰', Dragon: '龙' };
     const EL_TYPES = ['None', 'Fire', 'Water', 'Thunder', 'Ice', 'Dragon'];   // 武器要么只有属性要么只有异常，故提供「无」
     const ST_TYPES = ['None', 'Poison', 'Sleep', 'Paralyze', 'Blast'];
@@ -996,7 +996,7 @@
       mode: 'expected',
       weakSpot: false, monsterEnraged: false, fullHealth: true, wound: false, overcomeFrenzy: false, clash: false,
       ateMeat: false, festival: false, warCry: false,   // 套装技能条件：食用烤熟的肉 / 祭典期间 / 咆哮后
-      absorbHits: 1,
+      absorbHits: 1, wet:false, bubble:false,
       threeLamp: true,    // 操虫棍三灯（红+白+橙）：攻击力加算 基础×0.15，移动斩/移动连斩 用三灯动作值
       mantle: false,      // 蚀攻衣装（狂化装衣）：开启后把衣装给各招补的加段并入原招式
       // 盾斧（charge_blade）：开局选的四项状态 —— 瓶种 / 瓶状态 / 红盾 / 红剑
@@ -1030,7 +1030,7 @@
     const itemGroups = (CALC.items && CALC.items.groups) || [];
     const PRESET_KEY = 'mhwa_calculator_presets_v1';
     const CONFIG_KEYS = ['weaponId', 'attack', 'affinity', 'element', 'elementType', 'status', 'statusType', 'sharpness',
-      'fullHealth', 'overcomeFrenzy', 'clash', 'ateMeat', 'festival', 'warCry', 'absorbHits',
+      'fullHealth', 'overcomeFrenzy', 'clash', 'ateMeat', 'festival', 'warCry', 'absorbHits', 'wet', 'bubble',
       'threeLamp', 'mantle', 'cbPhial', 'cbReinforced', 'cbRedShield', 'cbRedSword', 'swaxAwakened', 'swaxPhial','apexSoulReady','encouragement','ailmentCleared','ailment',
       'swaxRedAxe', 'balladCount', 'blueDemon', 'dbMode', 'glType', 'glLevel', 'melodyIds', 'kinsectId', 'kinsectLevel',
       'itemPicks', 'skillLevels', 'skillCoverage'];
@@ -1774,7 +1774,7 @@
         scarLegendary: scarRawOf().legendary,
         mode: state.mode,
         combo: state.combo,
-        mantle: !!state.mantle,         // 蚀攻衣装：开启后把衣装的加段并入对应招式
+        mantle: false,         // 蚀攻衣装：开启后把衣装的加段并入对应招式
         // 盾斧：瓶种 / 瓶状态 / 红盾 / 红剑（开局就选；其他武器一律不吃）
         cb: isCB ? {
           phial: state.cbPhial, reinforced: !!state.cbReinforced,
@@ -1800,11 +1800,12 @@
         // 旋律（所有武器都有，可多选；自我强化按数据层 weapons 过滤，非笛子不会出现）
         melodies: (CALC.melodies || []).filter((m) => state.melodyIds.indexOf(m.id) >= 0),
         context: {
+          autoSkillConditions:true, wet:state.wet, bubble:state.bubble,
           monsterEnraged: state.monsterEnraged,
           fullHealth: state.fullHealth,
           wound: currentIsWound(),   // 自动：选中「伤口」肉质状态时应用伤口相关技能
-          overcomeFrenzy: state.overcomeFrenzy,
-          overcomeFrenzyCoverage: skillCoverage('HunterSkill_183'),
+          overcomeFrenzy: true,
+          overcomeFrenzyCoverage: ['HunterSkill_183','HunterSkill_195','custom_overcome_frenzy'].some(id=>state.skillLevels[id]>0)?skillCoverage('HunterSkill_183'):0,
           clash: state.clash,            // 角力/抵消成功（辟兽之力、冻峰龙之反叛）
           ateMeat: state.ateMeat,        // 食用烤熟的肉等道具（暗器蛸之力）
           apexSoulReady:state.apexSoulReady,encouragement:state.encouragement,ailmentCleared:state.ailmentCleared,ailment:state.ailment,
@@ -2070,7 +2071,7 @@
             sel.appendChild(el);
           });
           sel.value = String(cur);
-          sel.addEventListener('change', () => { state.combo[i][field==='soundCountPick'?'soundCount':field] = Number(sel.value)+(field==='soundCountPick'?1:0); refreshComboUI(); });
+          sel.addEventListener('change', () => { if(field==='mantlePick')state.combo[i].mantleMode=['none','before','after','evasion'][Number(sel.value)];else state.combo[i][field==='soundCountPick'?'soundCount':field] = Number(sel.value)+(field==='soundCountPick'?1:0); refreshComboUI(); });
           row.appendChild(sel);
           enhanceSelect(sel, tip);
         };
@@ -2099,6 +2100,7 @@
           lab.appendChild(sp);
           row.appendChild(lab);
         };
+        cbPick([{label:'无衣装',value:0},{label:'蚀攻衣装·克服前',value:1},{label:'蚀攻衣装·克服后',value:2},{label:'回避衣装',value:3}],['none','before','after','evasion'].indexOf(item.mantleMode||'none'),'mantlePick','衣装');
         const MOVE_OPTION_RENDERERS = [
           {key:'ranged',has:m=>!!(m.rangedVariants||m.rangedStages),render:()=>{
             item.rangedWholeVersion=1;
@@ -2222,7 +2224,7 @@
         rm.addEventListener('click', () => { state.combo.splice(i, 1); refreshComboUI(); });
         row.appendChild(rm);
         // 蚀攻衣装开启时：该招带加段的话行内标一下（加段已并入本招，不单独成招）
-        if (move && state.mantle) {
+        if (move && item.mantleMode === 'after') {
           const extra = [].concat(move.mantleHits || [],
             (levelsOf(move) ? (levelsOf(move).find((l) => l.level === chargeOf(item, move)) || {}).mantleHits : null) || []);
           if (extra.length) {
@@ -2261,7 +2263,7 @@
       count.textContent = picked.length ? `已选 ${picked.length} 个` : '未选技能';
       box.innerHTML = picked.map((id) => {
         const s = skills.find((x) => x.id === id);
-        const paired=id==='HunterSkill_195'||(s?.coverageMode==='complementary'&&(id!=='HunterSkill_183'||state.skillLevels[id]===4));
+        const paired=(id==='HunterSkill_195'||id==='custom_overcome_frenzy')||(s?.coverageMode==='complementary'&&(id!=='HunterSkill_183'||state.skillLevels[id]===4));
         return s ? `<span class="calc-skill-chip">${s.name}<b>Lv${state.skillLevels[id]}</b>${(s.coverage && (paired||skillCoverage(id) < 100)) ? `<i class="calc-chip-cov">${paired?(id==='HunterSkill_114'?'二段 ':'克服 '):''}${skillCoverage(id)}%</i>` : ''}</span>` : '';
       }).join('');
       updateCondSummary();
@@ -2326,9 +2328,9 @@
     // 技能列表：按当前属性/异常类型过滤后重建（切换类型时刷新）
     // 技能覆盖率（用户 2026-10-06）：整数百分比，默认 100；只有数据层标了 coverage 的技能才渲染滑块
     const skillCoverage = (id) => {
-      if(id==='HunterSkill_195')id='HunterSkill_183';
+      if(id==='HunterSkill_195'||id==='custom_overcome_frenzy')id='HunterSkill_183';
       const v = state.skillCoverage[id];
-      return v == null ? (id==='HunterSkill_183'?(state.overcomeFrenzy?100:0):100) : Math.max(0, Math.min(100, Math.round(v)));
+      return v == null ? 100 : Math.max(0, Math.min(100, Math.round(v)));
     };
     function syncFrenzyCoverage() {
       delete state.skillCoverage.HunterSkill_195;
@@ -2371,6 +2373,8 @@
           </div>
           <select class="calc-native-select" data-skill="${s.id}" data-max="${maxLv}" data-levels="${lvList}"><option value="0">${lvUnit(0)}</option>${opts}</select>
           ${(cur > 0 && s.coverage) ? covRowHtml(s) : ''}
+          ${cur>0&&s.id==='HunterSkill_190'?'<label class="calc-check">属性吸收受击<select id="calc-absorb">'+[1,2,3].map(n=>'<option value="'+n+'"'+(state.absorbHits===n?' selected':'')+'>'+n+'次</option>').join('')+'</select></label>':''}
+          ${cur>0&&s.id==='custom_water_blade'?'<label class="calc-check"><input type="checkbox" data-water="wet"'+(state.wet?' checked':'')+'>淋湿</label><label class="calc-check"><input type="checkbox" data-water="bubble"'+(state.bubble?' checked':'')+'>泡沫异常</label>':''}
         </div>`;
       };
       // 覆盖率条（用户 2026-10-06）：选了等级才出现，整数百分比，左右带 −/+ 微调
@@ -2405,6 +2409,8 @@
           + '</div>';
       }).join('');
 
+      box.querySelectorAll('[data-water]').forEach(cb=>cb.addEventListener('change',()=>{state[cb.dataset.water]=cb.checked;recalc();}));
+      const absorb=box.querySelector('#calc-absorb');if(absorb){absorb.addEventListener('change',()=>{state.absorbHits=Number(absorb.value);recalc();});enhanceSelect(absorb,'属性吸收受击次数');}
       // 技能行的等级显示（直接沿用选项文案：普通技能是 LvN、套装技能是 N件）
       const syncSkillRow = (sel) => {
         const val = box.querySelector('[data-skill-val="' + sel.dataset.skill + '"]');
@@ -2459,7 +2465,7 @@
       });
       // 覆盖率条：拖动 + 左右 ±1%（整数，只有 coverage 技能才渲染）
       const setCov = (id, v) => {
-        if(id==='HunterSkill_183'||id==='HunterSkill_195'){setFrenzyCoverage(v);return;}
+        if(id==='HunterSkill_183'||id==='HunterSkill_195'||id==='custom_overcome_frenzy'){setFrenzyCoverage(v);return;}
         const next = Math.max(0, Math.min(100, Math.round(Number(v) || 0)));
         state.skillCoverage[id] = next;
         box.querySelectorAll('[data-cov-range="' + id + '"]').forEach((r) => { r.value = String(next); });
@@ -2509,11 +2515,11 @@
         const changed = Math.abs(after - base) > 1e-6;
         return `<div class="calc-panel-row"><span>${label}</span><b class="${changed ? 'up' : ''}">${num(base)}${unit || ''}${changed ? ' → ' + num(after) + (unit || '') : ''}</b></div>`;
       };
-      let html = '<div class="calc-panel-title">技能 / 道具后数值</div>';
+      let html = '<div class="calc-panel-title">技能 / 道具后数值'+(state.combo.length?'（衣装按末招显示）':'')+'</div>';
       // 旋律（可多选）：列出生效的旋律名，否则看不出伤害是按哪几条旋律算的
       const melOn = (CALC.melodies || []).filter((m) => state.melodyIds.indexOf(m.id) >= 0);
       if (melOn.length) {
-        html += `<div class="calc-panel-row"><span>旋律</span><b class="up">${melOn.map((m) => m.name).join(' · ')}</b></div>`;
+        html += `<div class="calc-panel-row"><span>旋律</span><b class="up">${melOn.map((m) => m.name+(m.note?'（'+m.note+'）':'')).join(' · ')}</b></div>`;
       }
       // 基础攻击力：面板输入 → 含「攻击」技能（其他技能不算基础攻击力）
       const baseAtk = p.baseAttackAfter != null ? p.baseAttackAfter : p.attackBase;
@@ -2536,7 +2542,7 @@
       // 会心率：含技能加成，并按当前所选部位自动应用弱点特效 / 伤口（弱电 = 该武器物理类型肉质 ≥ 45）
       const aff = p.affinityVsTarget != null ? p.affinityVsTarget : p.affinityAfter;
       html += row('会心率', p.affinityBase, aff, '%');
-      html += `<div class="calc-panel-row"><span>会心倍率</span><b>${num(p.critMult)}×</b></div>`;
+      html += `<div class="calc-panel-row"><span>会心倍率</span><b>物理 ${num(p.critMult)}× · 属性 ${num(p.elementCritMult)}× · 异常 ${num(p.statusCritMult)}×</b></div>`;
       if (p.weakSpotAffinity) {
         html += `<div class="calc-panel-row"><span>弱点特效</span><b class="${p.affinityTargetIsWeak ? 'up' : ''}">`
           + (p.affinityTargetIsWeak
@@ -2614,25 +2620,7 @@
       return true;
     }
 
-    const condHtml = `
-      <label class="calc-check"><input type="checkbox" data-cond="fullHealth"${state.fullHealth ? ' checked' : ''}>满体力</label>
-      <label class="calc-check"><input type="checkbox" data-cond="overcomeFrenzy"${state.overcomeFrenzy ? ' checked' : ''}>克服狂龙症（会心率 +10%）</label>
-      <div class="calc-skill-cov"><span class="calc-cov-label">克服覆盖率</span><button type="button" class="step-btn calc-cov-btn" data-frenzy-step="-1">−</button><input type="range" class="calc-cov-range" data-frenzy-range min="0" max="100" step="1" value="${skillCoverage('HunterSkill_183')}" aria-label="克服狂龙症覆盖率"><span class="calc-cov-val" data-frenzy-val>${skillCoverage('HunterSkill_183')}%</span><button type="button" class="step-btn calc-cov-btn" data-frenzy-step="1">+</button></div>
-      <label class="calc-check"><input type="checkbox" data-cond="clash"${state.clash ? ' checked' : ''}>角力/抵消成功</label>
-      <label class="calc-check"><input type="checkbox" data-cond="ateMeat"${state.ateMeat ? ' checked' : ''}>食用烤熟的肉</label>
-      <label class="calc-check"><input type="checkbox" data-cond="festival"${state.festival ? ' checked' : ''}>祭典期间</label>
-      <label class="calc-check"><input type="checkbox" data-cond="warCry"${state.warCry ? ' checked' : ''}>动作「咆哮」后</label>
-      <label class="calc-check"><input type="checkbox" data-cond="apexSoulReady"${state.apexSoulReady ? ' checked' : ''}>毅力【果敢】未触发</label>
-      <label class="calc-check"><input type="checkbox" data-cond="encouragement"${state.encouragement ? ' checked' : ''}>被队友赋予 buff</label>
-      <label class="calc-check"><input type="checkbox" data-cond="ailmentCleared"${state.ailmentCleared ? ' checked' : ''}>解除异常状态</label>
-      <label class="calc-check"><input type="checkbox" data-cond="ailment"${state.ailment ? ' checked' : ''}>处于状态异常</label>
-      <label class="calc-check calc-check-field">属性吸收受击<select id="calc-absorb">${[1, 2, 3].map((n) => `<option value="${n}"${n === state.absorbHits ? ' selected' : ''}>${n}次</option>`).join('')}</select></label>`;
-    // 条件清单（界面摘要与抽屉共用同一份定义，避免两处文案漂移）
-    const COND_LABELS = [
-      ['monsterEnraged', '怪物愤怒'], ['fullHealth', '满体力'], ['overcomeFrenzy', '克服狂龙症（会心率 +10%）'],
-      ['clash', '角力成功'], ['ateMeat', '食用烤肉'],
-      ['festival', '祭典期间'], ['warCry', '咆哮后'],['apexSoulReady','毅力【果敢】未触发'],['encouragement','被队友赋予 buff'],['ailmentCleared','解除异常状态'],['ailment','状态异常中']
-    ];
+
 
     // 三灯（红+白+橙）/ 猎虫（共斗虫）：**操虫棍独有**（用户拍板：不能混进别的武器）
     // 做法：标记与控件始终渲染，靠外层容器 hidden 按武器显隐 —— 换武器时不用整页重渲染
@@ -2691,10 +2679,7 @@
         <div class="calc-checks" id="calc-lamp-row"${isIGNow ? '' : ' hidden'}>${lampHtml}</div>
         ${kinsectHtml.replace('id="calc-kinsect-row"', 'id="calc-kinsect-row"' + (isIGNow ? '' : ' hidden'))}
         ${melodyRowHtml}
-        <div class="calc-checks" id="calc-mantle-row"${mantleAvailable ? '' : ' hidden'}>
-          <label class="calc-check"><input type="checkbox" id="calc-mantle"${state.mantle ? ' checked' : ''}>蚀攻衣装</label>
-          <span class="calc-check-note"></span>
-        </div>
+
         <div class="calc-checks" id="calc-cb-row" hidden>
           <label class="calc-field calc-field-inline"><span>瓶</span>
             <select id="calc-cb-phial">
@@ -2766,10 +2751,7 @@
           <label class="calc-field"><span>面板异常值</span><input id="calc-status" type="number" min="0" step="10" value="${state.status}"></label>
           <label class="calc-field" style="grid-column:1 / -1"><span>斩味</span><select id="calc-sharp">${sharpKeys.map((k) => `<option value="${k}"${k === state.sharpness ? ' selected' : ''}>${sharpCn[k] || k}</option>`).join('')}</select></label>
         </div>
-        <div class="calc-cond-bar">
-          <button id="calc-cond-open" class="calc-btn ghost">状态与条件</button>
-          <span class="calc-cond-summary" id="calc-cond-summary"></span>
-        </div>
+
         <div class="calc-cond-bar">
           <button id="calc-item-open" class="calc-btn ghost">道具 / 餐点</button>
           <span class="calc-cond-summary" id="calc-item-summary"></span>
@@ -2841,17 +2823,7 @@
         </div>
       </aside>
 
-      <div class="drawer-backdrop" id="calc-cond-backdrop" hidden></div>
-      <aside class="drawer" id="calc-cond-drawer" hidden>
-        <div class="drawer-head">
-          <span class="drawer-title">状态与条件</span>
-          <button class="drawer-close" id="calc-cond-close">✕</button>
-        </div>
-        <div class="drawer-body">
-          <p class="calc-drawer-note">勾选后对应技能才会生效（如「挑战者」需要怪物愤怒、「辟兽之力」需要角力成功）</p>
-          <div class="calc-cond-list">${condHtml}</div>
-        </div>
-      </aside>
+
       ${melodyDrawerHtml}
 
       <div class="drawer-backdrop" id="calc-item-backdrop" hidden></div>
@@ -2903,7 +2875,6 @@
     $('input#calc-status').addEventListener('input', (e) => { state.status = Number(e.target.value) || 0; recalc(); });
     $('input#calc-affinity').addEventListener('input', (e) => { state.affinity = Number(e.target.value) || 0; recalc(); });
     $('select#calc-sharp').addEventListener('change', (e) => { state.sharpness = e.target.value; recalc(); });
-    $('select#calc-absorb').addEventListener('change', (e) => { state.absorbHits = Number(e.target.value); recalc(); });
 
     // 换武器：招式表/连段/技能池/专属选项全部跟着换
     //  - 连段必须清空（招式 id 属于旧武器）
@@ -3086,7 +3057,7 @@
             if (p.weaponId !== state.weaponId || !Array.isArray(saved) || !saved.every(it => it && currentMoves().some(m => m.id === it.moveId))) {
               presetMessage(kind, '该连段含当前版本不支持的招式，无法读取'); return;
             }
-            state.combo = clonePreset(saved); state.deriveMode = p.data.deriveMode !== false;
+            state.combo = clonePreset(saved).map(it=>({...it,mantleMode:it.mantleMode||(state.mantle?'after':'none')})); state.deriveMode = p.data.deriveMode !== false;
             $('input#calc-derive-toggle').checked = state.deriveMode; refreshComboUI();
           }
           close(); presetMessage(kind, '已读取：' + p.name);
@@ -3201,11 +3172,11 @@
       const list = melodyAvailable();
       if (!list.length) return '<div class="empty">当前武器没有可选旋律。</div>';
       return list.map((m) => `<label class="calc-check calc-melody-item"><input type="checkbox" data-melody="${m.id}"${state.melodyIds.indexOf(m.id) >= 0 ? ' checked' : ''}>${m.name}`
-        + '</label>').join('');
+        + (state.melodyIds.includes(m.id)&&m.note?' · '+m.note:'') + '</label>').join('');
     }
     function updateMelodySummary() {
       const list = melodyAvailable();
-      const on = list.filter((m) => state.melodyIds.indexOf(m.id) >= 0).map((m) => m.name);
+      const on = list.filter((m) => state.melodyIds.indexOf(m.id) >= 0).map((m) => m.name + (m.note ? "（" + m.note + "）" : ""));
       const span = $('span#calc-melody-summary');
       if (span) {
         span.textContent = on.length ? on.join(' · ') : '未演奏旋律';
@@ -3275,34 +3246,7 @@
     $('button#calc-skill-close').addEventListener('click', closeSkillDrawer);
     backdrop.addEventListener('click', closeSkillDrawer);
 
-    // 状态与条件抽屉（右侧抽拉式：原来平铺在「基础数值」卡片里，条件变多后太占地方）
-    const condDrawer = $('aside#calc-cond-drawer');
-    const condBackdrop = $('div#calc-cond-backdrop');
-    const condBtn = $('button#calc-cond-open');
-    function openCondDrawer() {
-      condDrawer.hidden = false; condBackdrop.hidden = false;
-      requestAnimationFrame(() => { condDrawer.classList.add('open'); condBackdrop.classList.add('open'); });
-    }
-    function closeCondDrawer() {
-      condDrawer.classList.remove('open'); condBackdrop.classList.remove('open');
-      setTimeout(() => { condDrawer.hidden = true; condBackdrop.hidden = true; }, 260);
-    }
-    // 抽屉关着也要看得出当前生效的条件（不然用户不知道伤害是怎么算出来的）
-    function updateCondSummary() {
-      const span = $('span#calc-cond-summary');
-      if (!span) return;
-      const linked={apexSoulReady:'custom_apex_soul',encouragement:'HunterSkill_170',ailmentCleared:'HunterSkill_113',ailment:'HunterSkill_171'};
-      const on = COND_LABELS.filter((x) => !!state[x[0]]&&(!linked[x[0]]||state.skillLevels[linked[x[0]]]>0)).map((x) => x[1]+(x[0]==='overcomeFrenzy'?' '+skillCoverage('HunterSkill_183')+'%':''));
-      span.textContent = on.length ? on.join(' · ') : '未设置条件';
-      span.classList.toggle('on', on.length > 0);
-      const btn = $('button#calc-cond-open');
-      if (btn) btn.textContent = on.length ? `状态与条件（${on.length}）` : '状态与条件';
-    }
-    condBtn.addEventListener('click', openCondDrawer);
-    $('button#calc-cond-close').addEventListener('click', closeCondDrawer);
-    condBackdrop.addEventListener('click', closeCondDrawer);
-    updateCondSummary();
-
+    function updateCondSummary() {}
     // 旋律抽屉（右侧抽拉式：用户 2026-09-30「开始的旋律不是单选，可以多选，做成右侧抽拉式」）
     const melDrawer = $('aside#calc-melody-drawer');
     const melBackdrop = $('div#calc-melody-backdrop');
@@ -3346,7 +3290,6 @@
     enhanceSelect($('select#calc-eltype'), '属性类型');
     enhanceSelect($('select#calc-sttype'), '异常类型');
     enhanceSelect($('select#calc-sharp'), '斩味');
-    enhanceSelect($('select#calc-absorb'), '属性吸收受击次数');
     enhanceSelect($('select#calc-monster'), '选择怪物');
     enhanceSelect($('select#calc-quest'), '选择任务');
     enhanceSelect($('select#calc-players'), '选择人数');
@@ -3460,7 +3403,7 @@
       const move = moveOf(moveId);
       const lvs = move ? levelsOf(move) : null;
       state.combo.push({
-        moveId,
+        moveId, mantleMode:state.combo.at(-1)?.mantleMode||'none',
         ...(move?.skipPrefixAfter && state.combo.at(-1)?.moveId === move.skipPrefixAfter && state.combo.at(-1)?.wound ? {wound:true} : {}),
         ...(state.weaponId === 'dual_blades' ? { dbMode: dbModeOf(state.combo.at(-1), move) } : {}),
         charge: lvs ? defaultLevelOf(move) : ((move && move.chargeable) ? 2 : null),

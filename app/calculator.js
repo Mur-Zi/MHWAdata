@@ -98,6 +98,7 @@
   function conditionActive(cond, ctx) {
     if (!cond || cond === 'ALWAYS') return true;
     const c = ctx || {};
+    if (c.autoSkillConditions && ['enraged','MONSTER_ENRAGED','full_hp','FULL_HEALTH','guard','ailment','ailment_cleared','apex_soul_ready','encouragement','low_hp','LOW_HEALTH','clash','overcome_frenzy','chain','ate_meat','dodge_evade','festival','war_cry'].indexOf(cond) >= 0) return true;
     switch (cond) {
       case 'weak_spot': case 'WEAK_SPOT': return !!c.weakSpot;
       case 'wound': return !!c.wound;
@@ -140,7 +141,7 @@
   }
   // 上面这些「没有对应输入」的条件：供界面提示用（选了这些技能时会注明未计入）
   const UNSUPPORTED_CONDITIONS = ['draw_attack', 'quest_time_10', 'quest_time_20', 'quest_time_30',
-    'wet', 'bubble', 'meat_raw', 'meat_cooked', 'meat_burnt', 'ore_input', 'resist_input',
+    'meat_raw', 'meat_cooked', 'meat_burnt', 'ore_input', 'resist_input',
     'baked_corn', 'extra_proc', 'value_unconfirmed', 'gunlance_only', 'charge_axe_only'];
   const CONDITION_LABEL = {
     draw_attack: '只对拔刀攻击生效', quest_time_10: '需要任务经过 10 分钟',
@@ -164,6 +165,7 @@
       if (i >= 0) return i;
     }
     if (sharp.raw != null) {
+      if (n(sharp.raw) >= 1.32) return SHARPNESS_ORDER.indexOf('white');
       for (let i = 0; i < SHARPNESS_ORDER.length; i++) {
         const s = DEFAULT_SHARPNESS[SHARPNESS_ORDER[i]];
         if (s && Math.abs(n(s.raw) - n(sharp.raw)) < 1e-9) return i;
@@ -186,6 +188,7 @@
       weakSpotAffinity: 0,                  // 弱点特效：仅肉质≥45 的 hit 生效（逐刀判定）
       woundAffinity: 0,                     // 弱点特效：命中伤口时生效
       critMult: CRIT_BASE,                  // 超会心
+      finalPhysicalMult: 1,
       elementCritMult: 1.0,                 // 会心击【属性】
       statusCritMult: 1.0,                  // 会心击【特殊】
       airborneMult: 1.0,                    // 飞燕
@@ -304,6 +307,7 @@
             if (isBase) st.baseAttackFlat += covFlat(e.value); else st.attackFlat += covFlat(e.value);
             break;
           case 'atkPct':
+            if (skill.id === 'HunterSkill_018' || skill.id === 'HunterSkill_020') { st.finalPhysicalMult *= covMult(e.value, 1); break; }
             if (isBase) st.baseAttackPct *= covMult(e.value, 1); else st.attackPct *= covMult(e.value, 1);
             break;
           case 'affinity':  st.affinity += covFlat(e.value); break;
@@ -760,7 +764,7 @@
     // 最低保底：正物理伤害 <1 时按 1（在会心补正前；hasmine 公式确认）
     if (raw > 0 && raw < 1) raw = 1;
     // 会心补正
-    raw *= rawCrit;
+    raw *= rawCrit * n(st.finalPhysicalMult, 1);
 
     // 属性伤害：0.1 × 属性值 × 属补 × (属性肉质/100) × 属性会心 × 斩味属性 × 技能乘区
     // 狩猎笛属性周波：自带属性值独立参与（属性周波 = 物理固伤 + 属性伤害 + 自带属性的属性伤害）
@@ -860,6 +864,7 @@
     activeMelodies.forEach(function (m) {
       if (m.attackPct) state.baseAttackPct *= (1 + n(m.attackPct));
       if (m.elementPct) state.elementPct *= (1 + n(m.elementPct));
+      if (m.statusPct) state.statusPct *= (1 + n(m.statusPct));
       if (m.affinity) state.affinity += n(m.affinity);
     });
     const melody = activeMelodies.length ? activeMelodies[0] : null;
@@ -883,8 +888,8 @@
     // 基础攻击力 = 面板 × 基础攻击力乘算 + 基础攻击力加算，再**向下取整**（用户拍板：攻击力舍弃小数点）
     // 只有文案写明「基础攻击力」的效果进这里（攻击 Lv1~5 的加值）；「攻击力变为X倍」类乘算进最终攻击力
     // 双刀蓝鬼（×1.15）挂在这一层：state.baseAttackPct 里 —— 与「攻击」技能/力量护符同层
-    if(params.mantle){state.baseAttackBonusPct+=.05;state.affinity=clamp(state.affinity+10,-100,100);}
-    const baseAttack = floorAtk(n(params.attack) * (state.baseAttackPct+state.baseAttackBonusPct) + state.baseAttackFlat);
+    const unmantled = { bonus: state.baseAttackBonusPct, flat: state.attackFlat, affinity: state.affinity };
+    let baseAttack = floorAtk(n(params.attack) * (state.baseAttackPct+state.baseAttackBonusPct) + state.baseAttackFlat);
 
     // 操虫棍三灯（红+白+橙）：攻击力获得「基础攻击力 ×0.15」的**加值**（加算），
     // 并让 移动斩 / 移动连斩 用三灯动作值（hit.mvLamp）
@@ -899,10 +904,20 @@
     const lampRate = threeLamp && n(lamp.threeAtkRate, 1) > 0 ? n(lamp.threeAtkRate, 1) - 1 : 0;
     const soulFlat = floorAtk(baseAttack * state.attackFromBasePct);
     // 同源百分比先相加再取整，避免两次取整丢失1点攻击力。
-    const lampFlat = floorAtk(baseAttack * (lampRate + state.attackFromBasePct)) - soulFlat;
+    let lampFlat = floorAtk(baseAttack * (lampRate + state.attackFromBasePct)) - soulFlat;
     state.attackFlat += soulFlat;
     // 最终攻击力同样向下取整（技能乘算/加算、道具、三灯加值全部算完之后）
-    const attackFinal = floorAtk((baseAttack * state.attackPct + state.attackFlat + lampFlat) * state.finalAttackPct);
+    let attackFinal = floorAtk((baseAttack * state.attackPct + state.attackFlat + lampFlat) * state.finalAttackPct);
+    const setMantle = function(mode) {
+      state.baseAttackBonusPct = unmantled.bonus + (mode === 'after' ? .05 : 0);
+      state.affinity = clamp(unmantled.affinity + (mode === 'after' ? 10 : mode === 'before' ? 5 : 0), -100, 100);
+      baseAttack = floorAtk(n(params.attack) * (state.baseAttackPct + state.baseAttackBonusPct) + state.baseAttackFlat);
+      const soul = floorAtk(baseAttack * state.attackFromBasePct);
+      lampFlat = floorAtk(baseAttack * (lampRate + state.attackFromBasePct)) - soul;
+      state.attackFlat = unmantled.flat + soul + (mode === 'evasion' ? baseAttack * .2 : 0);
+      attackFinal = floorAtk((baseAttack * state.attackPct + state.attackFlat + lampFlat) * state.finalAttackPct);
+    };
+    setMantle(params.mantle ? 'after' : 'none');
 
     // 面板类型：「无」属性 / 「无」异常 → 整条链路归零（含猎虫属性）
     const noElemType = params.elementType === 'None'
@@ -1025,6 +1040,8 @@
     const forceGuardUsed = [];   // 连段里实际吃到力防加成的位置（界面标注 + 闸门断言用）
     for (let comboIdx = 0; comboIdx < comboList.length; comboIdx++) {
       const item = comboList[comboIdx];
+      const mantleMode = item.mantleMode || (params.mantle ? 'after' : 'none');
+      setMantle(mantleMode);
       let move = moveById.get(item.moveId || item.id);
       if (!move) continue;
       if (move.rangedVariants || move.rangedStages) move = rangedWholeMove(move,item);
@@ -1092,7 +1109,7 @@
 
       // 蚀攻衣装（狂化装衣）加段：用户拍板「加段不单独当招式，界面最上面给开关，开启后并进原招式」。
       // 表内已按招式挂好（move.mantleHits；档位招式挂在具体档位上，如大剑普蓄的第 2 个加段「3 蓄才有」）。
-      const mantleOn = !!params.mantle;
+      const mantleOn = mantleMode === 'after';
       const mantleList = mantleOn
         ? [].concat(move.mantleHits || [], lvPick ? (lvPick.mantleHits || []) : [])
         : [];
@@ -1776,6 +1793,8 @@
       affinityTargetIsWeak: targetIsWeak,
       affinityTargetType: targetRawType,
       critMult: state.critMult,
+      elementCritMult: state.elementCritMult,
+      statusCritMult: state.statusCritMult,
       weakSpotAffinity: state.weakSpotAffinity,
       woundAffinity: state.woundAffinity
     };
