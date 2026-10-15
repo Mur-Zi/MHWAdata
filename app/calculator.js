@@ -385,8 +385,9 @@
             st.frenzyAffinity += level*5*frenzyCov;
             break;
           }
-          case 'charge_boost': // 大锤指定五招的最终物理伤害+3%，属性和晕厥不变。
+          case 'charge_boost': // 大锤指定五招物理伤害+3%、昏厥×1.3，属性不变。
             st.hammerChargeDamageMult = covMult(1.03, 1);
+            st.hammerChargeStunMult = covMult(1.3, 1);
             break;
         }
       }
@@ -801,7 +802,7 @@
         * chargeStatus;
 
     // 晕厥：只有命中头部才累计（其他部位不涨）
-    const stun = (p.isHead ? n(hit.stun) : 0) * st.stunMult;
+    const stun = (p.isHead ? n(hit.stun) : 0) * st.stunMult * n(p.hammerChargeStunMult, 1);
 
     return {
       raw: Math.max(0, raw),
@@ -1541,6 +1542,7 @@
           forceGuardMul: fgThis,
           chargeable: usesCharge,
           hammerChargeDamageMult: params.weaponId === 'hammer' && ['hammer_007','hammer_023','hammer_010','hammer_032','hammer_053'].indexOf(move.id) >= 0 ? n(state.hammerChargeDamageMult, 1) : 1,
+          hammerChargeStunMult: params.weaponId === 'hammer' && ['hammer_007','hammer_023','hammer_010','hammer_032','hammer_053'].indexOf(move.id) >= 0 ? n(state.hammerChargeStunMult, 1) : 1,
           hien: !!hit.hien,   // 飞燕适用（表列39 IsSkillHien）
           // 高速变形适用：**打这一刀时剑斧形态变了**（上一招打完的形态 ≠ 这一招打完的形态）；
           //   蚀攻衣装加段是「由主命中派生的附加命中」，用自己的动作值 → 不吃（与蓄力倍率同口径）
