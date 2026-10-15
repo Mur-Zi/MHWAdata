@@ -1820,6 +1820,7 @@
       state.forceGuardUsed = r.forceGuardUsed || [];
       renderResults(r);
       renderPanel(r.panel, r.skillNotes);
+      updateItemSummary();
       renderComboSum(r);
       // 蓝鬼等效值提示（开了才写「A → B」，关了回到倍率说明）
       if (isDB) updateBlueDemonNote();
@@ -2259,7 +2260,7 @@
     function renderSkillChips() {
       const box = el.querySelector('#calc-skill-chips');
       const count = el.querySelector('#calc-skill-count');
-      const picked = Object.keys(state.skillLevels).filter((id) => state.skillLevels[id] > 0);
+      const picked = Object.keys(state.skillLevels).filter((id) => state.skillLevels[id] > 0 && id !== 'custom_overcome_frenzy');
       count.textContent = picked.length ? `已选 ${picked.length} 个` : '未选技能';
       box.innerHTML = picked.map((id) => {
         const s = skills.find((x) => x.id === id);
@@ -2334,7 +2335,7 @@
     };
     function syncFrenzyCoverage() {
       delete state.skillCoverage.HunterSkill_195;
-      const cov=skillCoverage('HunterSkill_183');state.overcomeFrenzy=cov>0;
+      const cov=skillCoverage('HunterSkill_183');state.overcomeFrenzy=cov>0&&(state.overcomeFrenzy||['HunterSkill_183','HunterSkill_195','custom_overcome_frenzy'].some(id=>state.skillLevels[id]>0));
       el.querySelectorAll('[data-cond="overcomeFrenzy"]').forEach(cb=>{cb.checked=state.overcomeFrenzy;});
       el.querySelectorAll('[data-frenzy-range]').forEach(r=>{r.value=String(cov);});
       el.querySelectorAll('[data-frenzy-val]').forEach(s=>{s.textContent=cov+'%';});
@@ -2345,6 +2346,7 @@
       el.querySelectorAll('[data-cov-first="HunterSkill_183"]').forEach(s=>{s.textContent='狂龙症状态 '+(100-cov)+'%';});
     }
     function setFrenzyCoverage(v) {
+      state.overcomeFrenzy=Number(v)>0;
       state.skillCoverage.HunterSkill_183=Math.max(0,Math.min(100,Math.round(Number(v)||0)));
       delete state.skillCoverage.HunterSkill_195;
       syncFrenzyCoverage();renderSkillChips();recalc();
@@ -2566,7 +2568,7 @@
       box.innerHTML = html;
     }
 
-    // 道具 / 餐点（同组互斥，单选）：走右侧抽拉式抽屉（用户 2026-09-30）
+    // 其他加成（同组互斥，单选）：走右侧抽拉式抽屉（用户 2026-09-30）
     function itemLabel(g) {
       const pick = state.itemPicks[g.key];
       const o = pick ? (g.options || []).find((x) => x.id === pick) : null;
@@ -2576,10 +2578,14 @@
       const span = $('span#calc-item-summary');
       if (!span) return;
       const on = itemGroups.map((g) => itemLabel(g)).filter(Boolean);
-      span.textContent = on.length ? on.join(' · ') : '未使用道具/餐点';
+      const active=skillCoverage('HunterSkill_183')>0&&['HunterSkill_183','HunterSkill_195','custom_overcome_frenzy'].some(id=>state.skillLevels[id]>0);
+      if(active)on.push('克服狂龙症 '+skillCoverage('HunterSkill_183')+'%');
+      const cb=$('input#calc-other-frenzy');if(cb)cb.checked=active;
+      const row=$('div#calc-other-frenzy-coverage');if(row)row.hidden=!active;
+      span.textContent = on.length ? on.join(' · ') : '未使用其他加成';
       span.classList.toggle('on', on.length > 0);
       const btn = $('button#calc-item-open');
-      if (btn) btn.textContent = on.length ? `道具 / 餐点（${on.length}）` : '道具 / 餐点';
+      if (btn) btn.textContent = on.length ? `其他加成（${on.length}）` : '其他加成';
     }
     function buildItemSelectors() {
       const box = el.querySelector('#calc-item-list');
@@ -2594,6 +2600,10 @@
         ).join('');
         return `<label class="calc-field"><span>${g.name}</span><select data-item-group="${g.key}">${opts}</select></label>`;
       }).join('');
+      box.insertAdjacentHTML('afterbegin', '<div style="grid-column:1 / -1"><label class="calc-check"><input type="checkbox" id="calc-other-frenzy">克服狂龙症（会心率 +10%）</label><div class="calc-skill-cov" id="calc-other-frenzy-coverage"><span class="calc-cov-label">克服覆盖率</span><button type="button" class="step-btn" data-other-frenzy-step="-1">−</button><input type="range" data-frenzy-range min="0" max="100" step="1" value="'+skillCoverage('HunterSkill_183')+'" aria-label="克服狂龙症覆盖率"><span data-frenzy-val>'+skillCoverage('HunterSkill_183')+'%</span><button type="button" class="step-btn" data-other-frenzy-step="1">+</button></div></div>');
+      box.querySelector('#calc-other-frenzy').addEventListener('change',e=>{state.skillLevels.custom_overcome_frenzy=e.target.checked?1:0;setFrenzyCoverage(e.target.checked?(skillCoverage('HunterSkill_183')||100):0);buildSkillList();});
+      box.querySelector('[data-frenzy-range]').addEventListener('input',e=>setFrenzyCoverage(e.target.value));
+      box.querySelectorAll('[data-other-frenzy-step]').forEach(b=>b.addEventListener('click',()=>setFrenzyCoverage(skillCoverage('HunterSkill_183')+Number(b.dataset.otherFrenzyStep))));
       box.querySelectorAll('[data-item-group]').forEach((sel) => {
         sel.addEventListener('change', () => {
           state.itemPicks[sel.dataset.itemGroup] = sel.value;
@@ -2753,7 +2763,7 @@
         </div>
 
         <div class="calc-cond-bar">
-          <button id="calc-item-open" class="calc-btn ghost">道具 / 餐点</button>
+          <button id="calc-item-open" class="calc-btn ghost">其他加成</button>
           <span class="calc-cond-summary" id="calc-item-summary"></span>
         </div>
       </section>
@@ -2829,12 +2839,12 @@
       <div class="drawer-backdrop" id="calc-item-backdrop" hidden></div>
       <aside class="drawer" id="calc-item-drawer" hidden>
         <div class="drawer-head">
-          <span class="drawer-title">道具 / 餐点</span>
+          <span class="drawer-title">其他加成</span>
           <button class="drawer-close" id="calc-item-close">✕</button>
         </div>
         <div class="drawer-body">
           <p class="calc-drawer-note">同组互斥（游戏内不可叠加）</p>
-          <button id="calc-item-clear" class="calc-btn ghost calc-drawer-clear">清空道具 / 餐点</button>
+          <button id="calc-item-clear" class="calc-btn ghost calc-drawer-clear">清空其他加成</button>
           <div class="calc-grid calc-item-grid" id="calc-item-list"></div>
         </div>
       </aside>
@@ -3262,7 +3272,7 @@
     $('button#calc-melody-close').addEventListener('click', closeMelodyDrawer);
     melBackdrop.addEventListener('click', closeMelodyDrawer);
 
-    // 道具 / 餐点抽屉（右侧抽拉式：原来折在卡片里，条数多了太占地方）
+    // 其他加成抽屉（右侧抽拉式：原来折在卡片里，条数多了太占地方）
     const itemDrawer = $('aside#calc-item-drawer');
     const itemBackdrop = $('div#calc-item-backdrop');
     function openItemDrawer() {
@@ -3277,7 +3287,7 @@
     $('button#calc-item-close').addEventListener('click', closeItemDrawer);
     itemBackdrop.addEventListener('click', closeItemDrawer);
     $('button#calc-item-clear').addEventListener('click', () => {
-      state.itemPicks = {};
+      state.itemPicks = {};state.skillLevels.custom_overcome_frenzy=0;setFrenzyCoverage(0);
       buildItemSelectors();   // 重画（下拉回到「不使用」）
       recalc();
     });
