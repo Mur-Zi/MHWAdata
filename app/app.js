@@ -2932,7 +2932,7 @@
       if (dt) dt.checked = state.deriveMode;
       // 旋律：按武器过滤（自我强化只有笛子）→ 换武器后重建清单并清掉失效项（定点更新，不重渲染整页）
       const melList = melodyAvailable();
-      state.melodyIds = state.melodyIds.filter((id) => melList.some((m) => m.id === id));
+      state.melodyIds = [...new Set(state.melodyIds.map(id=>id==='mel_status'?'mel_status_encore':id))].filter((id) => melList.some((m) => m.id === id));
       buildMelodyList();
       refreshMoveOptions();     // 招式下拉换成新武器的表
       pruneSkillLevels();       // 武器专属技能：换武器后清掉不能再触发的
