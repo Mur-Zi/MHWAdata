@@ -2060,11 +2060,12 @@ function calculateBowgunCombo(p) {
   function rangedNextFlat(weapon,moves,combo){
     const by=new Map(moves.map(m=>[m.id,m])),items=(combo||[]).filter(it=>by.has(it.moveId));
     const lastItem=items.at(-1),last=lastItem&&by.get(lastItem.moveId);
-    let mode=false,guided=false,primary=null,secondary=null;
+    let mode=false,guided=false,primary=null,secondary=null,lightSpecial=null;
     for(const it of items){const m=by.get(it.moveId);if(m.rangedRole==='mode')mode=!mode;
       if(m.rangedRole==='guide')guided=true;
       if(m.rangedHeatGroup==='primary')primary=m.rangedHeatType;
       if(m.rangedHeatGroup==='secondary')secondary=m.rangedHeatType;
+      if(weapon==='light_bowgun'&&m.rangedRole==='special')lightSpecial=/圧着/.test(m.rangedAmmo||m.nameJa||'')?'adhesive':'blast';
     }
     return moves.filter(m=>{
       const r=m.rangedRole,lr=last?.rangedRole;
@@ -2092,8 +2093,10 @@ function calculateBowgunCombo(p) {
         if(r==='stepShot')return lr==='shot'&&mode&&m.rangedAmmo===last.rangedAmmo;
         if(r==='chase')return lr==='shot'&&m.rangedAmmo===last.rangedAmmo;
         if(r==='specialFollow')return lr==='special'&&/圧着/.test(last.nameJa||'');
+        if(r==='special'&&lightSpecial&&lightSpecial!==(/圧着/.test(m.rangedAmmo||m.nameJa||'')?'adhesive':'blast'))return false;
         return ['shot','focus','special'].includes(r);
       }
+      if(r==='shot'&&mode)return false;
       if(m.requiresHeat&&!mode)return false;
       if(r==='heatSpecial'||r==='specialFollow'){
         if(!mode)return false;

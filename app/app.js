@@ -849,6 +849,26 @@
       return currentMoves().filter(m => m.rangedAmmo === move.rangedAmmo && ['shot', 'chase', 'stepShot'].includes(m.rangedRole))
         .sort((a, b) => order(a) - order(b));
     }
+    function bowgunMode(prefix) {
+      return prefix.filter(it=>moveOf(it.moveId)?.rangedRole==='mode').length%2===1;
+    }
+    function bowgunModeName(heat) {
+      return heat?(state.weaponId==='light_bowgun'?'速射模式':'龙热模式'):'通常模式';
+    }
+    function bowgunDeriveIssue(move,item,prefix) {
+      if(!state.deriveMode||!['light_bowgun','heavy_bowgun'].includes(state.weaponId)||!move)return '';
+      const allowed=window.MHCalculator.rangedNextMoves(state.weaponId,currentMoves(),prefix);
+      if(!allowed.some(m=>m.id===move.id)){
+        const mode=bowgunMode(prefix);
+        if(state.weaponId==='heavy_bowgun'&&move.rangedRole==='heatSpecial'&&!mode)return '需要先切换至龙热模式';
+        if(state.weaponId==='heavy_bowgun'&&move.rangedRole==='shot'&&mode)return '需要先切换至通常模式';
+        if(state.weaponId==='light_bowgun'&&['shot','chase','stepShot'].includes(move.rangedRole)&&!!move.rangedRapid!==mode)return '需要先切换至'+bowgunModeName(!!move.rangedRapid);
+        if(['chase','stepShot'].includes(move.rangedRole))return '需要接在同弹种'+(move.rangedRapid?'速射':'射击')+'之后';
+        return '与当前模式或特殊弹配置不符';
+      }
+      if(move.rangedVariants&&!window.MHCalculator.rangedVariantChoices(state.weaponId,currentMoves(),prefix,move.id).includes(item.rangedVariant??0))return '当前档位需要先切换至龙热模式';
+      return '';
+    }
     // 蓄力/等级档位（大剑/大锤/狩猎笛）：表内逐档给了动作值，档位由用户选（用户拍板：0 蓄也存在）
     const levelsOf = (move) => (move && move.chargeLevels && move.chargeLevels.length ? move.chargeLevels : null);
     const levelUnitOf = (move) => (move && move.levelUnit) || '蓄';
@@ -1263,10 +1283,12 @@
       const mv = currentMoves();
       const meta = WEAPON_META[state.weaponId] || {};
       if (['light_bowgun', 'heavy_bowgun'].includes(state.weaponId)) {
-        return { list: mv.filter(m => {
-          if (state.weaponId === 'light_bowgun' && m.rangedRole === 'mode') return false;
-          const choices = bowgunShotChoices(m); return !choices.length || choices[0].id === m.id;
-        }), tags: {}, hint: '' };
+        const allowed=state.deriveMode?window.MHCalculator.rangedNextMoves(state.weaponId,mv,state.combo):mv,seen=new Set();
+        return {list:allowed.filter(m=>{
+          if(!bowgunShotChoices(m).length)return true;
+          if(seen.has(m.rangedAmmo))return false;
+          seen.add(m.rangedAmmo);return true;
+        }),tags:{},hint:state.deriveMode?'当前：'+bowgunModeName(bowgunMode(state.combo)):''};
       }
       if(meta.rangedDerive){
         const allowed=window.MHCalculator.rangedNextMoves(state.weaponId,mv,state.combo),tags={};
@@ -1962,6 +1984,10 @@
       const close=document.createElement('button');close.type='button';close.textContent='完成';close.className='calc-move-settings-done';close.addEventListener('click',()=>closeMoveSettings(index));
       panelHead.append(title,close);panel.appendChild(panelHead);
       const body=document.createElement('div');body.className='calc-move-settings-body';
+      if(row.dataset.deriveIssue){
+        const warning=document.createElement('button');warning.type='button';warning.className='calc-derive-warning';warning.textContent='派生不符 · '+row.dataset.deriveIssue;warning.addEventListener('click',()=>openMoveSettings(item,index));row.appendChild(warning);
+        const note=document.createElement('p');note.className='calc-move-derive-note';note.textContent=row.dataset.deriveIssue+'。可调整前面的模式或招式，也可关闭“遵循派生逻辑”。';body.appendChild(note);
+      }
       advanced.forEach(c=>{
         c.wrapper.classList.add('calc-move-advanced-control');
         if(!c.node.matches('label')){const label=document.createElement('span');label.className='calc-move-option-label';label.textContent=labels[c.field]||c.field;c.wrapper.prepend(label);}
@@ -2011,13 +2037,16 @@
         if (forcedChargeRule) item.charge = forcedChargeRule.charge;
         const row = document.createElement('div');
         row.className = 'calc-combo-item';
+        const prefix=state.combo.slice(0,i),deriveIssue=bowgunDeriveIssue(move,item,prefix);
+        if(deriveIssue){row.classList.add('calc-combo-invalid');row.dataset.deriveIssue=deriveIssue;}
         const name = document.createElement('span');
         name.className = 'calc-move-name';
         // 吃飞燕的招式在连段里直接标出来（部分吃飞燕的显示 x/y hit）
         // 铳枪「加速」：这一招是经由上一条边（branchTags）派生出来的 → 连段行里也标出来（用户 2026-10-01）
         const prevMove = i > 0 ? moveOf(state.combo[i - 1].moveId) : null;
         const edgeLabel = (prevMove && prevMove.branchTags && move) ? prevMove.branchTags[move.id] : null;
-        name.innerHTML = `${i + 1}. ${levelNameOf(move, item) || bowgunShotChoices(move)[0]?.name || (move ? move.name : item.moveId)}`
+        const modeName=move?.rangedRole==='mode'?'切换至'+bowgunModeName(!bowgunMode(prefix)):null;
+        name.innerHTML = `${i + 1}. ${modeName || levelNameOf(move, item) || bowgunShotChoices(move)[0]?.name || (move ? move.name : item.moveId)}`
           + (edgeLabel ? '<i class="calc-branch-tag">' + edgeLabel + '</i>' : '')
           + (move ? hienTag(move) : '')
           + (morphSkillOn() && morphChangesAt(i) ? '<i class="calc-morph-tag">高速变形</i>' : '')
@@ -2166,6 +2195,7 @@
             const el = document.createElement('option');
             el.value = String(o.value ?? idx);
             el.textContent = o.label;
+            el.disabled=!!o.disabled;
             if ((o.value ?? idx) === cur) el.selected = true;
             sel.appendChild(el);
           });
@@ -2202,14 +2232,17 @@
         };
         const shotChoices = bowgunShotChoices(move);
         if (shotChoices.length > 1) {
+          const allowed=state.deriveMode?new Set(window.MHCalculator.rangedNextMoves(state.weaponId,currentMoves(),prefix).map(m=>m.id)):null;
           const sel = document.createElement('select');
           sel.className = 'calc-native-select calc-hitselect';
           sel.dataset.bowgunShot = '';
           sel.dataset.moveField='bowgunShot';
-          shotChoices.forEach(m => {
+          shotChoices.filter(m=>!allowed||allowed.has(m.id)||m.id===item.moveId).forEach(m => {
             const option = document.createElement('option');
             option.value = m.id;
             option.textContent = m.rangedRole === 'stepShot' ? '速射垫步射击' : m.rangedRapid ? (m.rangedRole === 'chase' ? '速射追射' : '速射') : (m.rangedRole === 'chase' ? '追射' : '普通射击');
+            option.disabled=!!allowed&&!allowed.has(m.id);
+            if(option.disabled)option.textContent+='（当前不可用）';
             sel.appendChild(option);
           });
           sel.value = item.moveId;
@@ -2235,8 +2268,9 @@
             item.rangedWholeVersion=1;
             if(move.rangedVariants){
               const choices=state.deriveMode?window.MHCalculator.rangedVariantChoices(state.weaponId,currentMoves(),state.combo.slice(0,i),move.id):move.rangedVariants.map((_,j)=>j);
-              if(choices.length&&!choices.includes(item.rangedVariant??0))item.rangedVariant=choices[0];
-              const opts=move.rangedVariants.map((v,j)=>({label:v.label,value:j})).filter(v=>!state.deriveMode||choices.includes(v.value));
+              const bowgun=['light_bowgun','heavy_bowgun'].includes(state.weaponId);
+              if(!bowgun&&choices.length&&!choices.includes(item.rangedVariant??0))item.rangedVariant=choices[0];
+              const opts=move.rangedVariants.map((v,j)=>({label:v.label,value:j,disabled:state.deriveMode&&!choices.includes(j)})).filter(v=>!state.deriveMode||choices.includes(v.value)||bowgun&&v.value===(item.rangedVariant??0));
               if(opts.length>1)cbPick(opts,item.rangedVariant??0,'rangedVariant',move.name+' · 类型');
             }
             const v=move.rangedVariants?.[item.rangedVariant??0]||move;
@@ -2382,7 +2416,7 @@
       const et = edgeTags || {};
       // 招式名就是招式名（用户 2026-10-08）：不在名字后面拼「· 0~3蓄 / · 可蓄」这类档位说明，
       //   档位由连段行上的档位按钮选（大剑 0~3 蓄、太刀无/白/黄/红刃），名字与行内都不再出现「蓄」字样
-      sel.innerHTML = list.map((m) => `<option value="${m.id}">${levelNameOf(m, null) || m.name}${et[m.id] ? '［' + et[m.id] + '］' : ''}${tags[m.id] && tags[m.id] !== '派生' && tags[m.id] !== '空中' ? '（' + tags[m.id] + '）' : ''}</option>`).join('');
+      sel.innerHTML = list.map((m) => `<option value="${m.id}">${m.rangedRole==='mode'?'切换至'+bowgunModeName(!bowgunMode(state.combo)):levelNameOf(m, null) || bowgunShotChoices(m)[0]?.name || m.name}${et[m.id] ? '［' + et[m.id] + '］' : ''}${tags[m.id] && tags[m.id] !== '派生' && tags[m.id] !== '空中' ? '（' + tags[m.id] + '）' : ''}</option>`).join('');
       sel.disabled = !list.length;
       el.querySelector('#calc-add').disabled = !list.length;
       hintEl.textContent = hint;
@@ -2419,12 +2453,12 @@
       const isMoveSel = sel.id === 'calc-move';
       list.innerHTML = Array.from(sel.options).map((o, i) => {
         const m = isMoveSel ? moveOf(o.value) : null;
-        return `<button type="button" class="picker-item${o.selected ? ' active' : ''}" data-idx="${i}"><span>${o.textContent}${m ? hienTag(m) + morphTagInList(m) : ''}</span>${o.selected ? '<span class="picker-check">✓</span>' : ''}</button>`;
+        return `<button type="button" class="picker-item${o.selected ? ' active' : ''}" data-idx="${i}"${o.disabled?' disabled':''}><span>${o.textContent}${m ? hienTag(m) + morphTagInList(m) : ''}</span>${o.selected ? '<span class="picker-check">✓</span>' : ''}</button>`;
       }).join('');
       list.querySelectorAll('.picker-item').forEach((b) => {
         b.addEventListener('click', () => {
           const opt = sel.options[Number(b.dataset.idx)];
-          if (opt) { sel.value = opt.value; sel.dispatchEvent(new Event('change')); }
+          if (opt&&!opt.disabled) { sel.value = opt.value; sel.dispatchEvent(new Event('change')); }
           closePicker();
         });
       });
@@ -3051,7 +3085,7 @@
       const bowgun=['light_bowgun','heavy_bowgun'].includes(state.weaponId);
       ['calc-eltype','calc-element','calc-sttype','calc-status','calc-sharp'].forEach(id=>{const field=el.querySelector('#'+id)?.closest('label');if(field)field.hidden=bowgun||(id==='calc-sharp'&&isRangedWeapon());});
       el.querySelector('#calc-bg-spec-row').hidden=state.weaponId!=='heavy_bowgun';
-      const derive=el.querySelector('#calc-derive-toggle');if(derive?.closest('label'))derive.closest('label').hidden=bowgun;if(bowgun){derive.checked=false;state.deriveMode=false;}
+      const derive=el.querySelector('#calc-derive-toggle');if(derive?.closest('label'))derive.closest('label').hidden=false;
       const noteEl = $('div#calc-weapon-note');
       if (noteEl) {
         const noteTxt = '';   // 用户 2026-10-07：武器页不放说明文字
@@ -3224,7 +3258,7 @@
             if (p.weaponId !== state.weaponId || !Array.isArray(saved) || !saved.every(it => it && currentMoves().some(m => m.id === it.moveId))) {
               presetMessage(kind, '该连段含当前版本不支持的招式，无法读取'); return;
             }
-            state.combo = clonePreset(saved).map(it=>({...it,mantleMode:it.mantleMode||(state.mantle?'after':'none')})); state.deriveMode = !['light_bowgun','heavy_bowgun'].includes(state.weaponId) && p.data.deriveMode !== false;
+            state.combo = clonePreset(saved).map(it=>({...it,mantleMode:it.mantleMode||(state.mantle?'after':'none')})); state.deriveMode = p.data.deriveMode !== false;
             $('input#calc-derive-toggle').checked = state.deriveMode; refreshComboUI();
           }
           close(); presetMessage(kind, '已读取：' + p.name);
