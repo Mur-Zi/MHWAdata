@@ -114,14 +114,12 @@ th.fz1, th.fz2 { top: 0; z-index: 3; background: var(--bg3); }
 td.fz1, td.fz2 { z-index: 2; background: var(--card); }
 td.fz1, th.fz1 { min-width: 86px; }
 
-/* HZV 数值着色：越高越红/亮 */
-.hzv-0 { color: #6b6557; }
-.hzv-1 { color: #b8a878; }
-.hzv-2 { color: #c9bc94; }
+/* Meat values use text colors only; physical and elemental thresholds are selected in hzvClass. */
+.hzv-0, .hzv-1 { color: var(--text); }
+.hzv-2 { color: #f2d47a; }
 .hzv-3 { color: #ffa657; }
-.hzv-3, .hzv-4, .hzv-5 { font-weight: 600; }
-.hzv-4 { color: #e07650; }
-.hzv-5 { color: #e05a4a; }
+.hzv-4, .hzv-5 { color: #ff7070; }
+.hzv-2, .hzv-3, .hzv-4, .hzv-5 { font-weight: 600; }
 
 .toggle-group { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
 .toggle-btn { font-size: 13px; padding: 5px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg3); color: var(--text-dim); cursor: pointer; }
@@ -280,7 +278,7 @@ th .ic { display: block; margin: 0 auto; }
   #view-calculator { max-width: 1500px; margin: auto; }
 }
 
-/* 怪物资料工作台：所有数据保留，按用途分页，任务选择收纳于详情。 */
+/* 怪物资料工作台：肉质优先，连续展示资料，任务与倍率放在末尾。 */
 .monster-workspace { display: grid; grid-template-columns: 190px minmax(0,1fr); gap: 22px; align-items: start; }
 .monster-sidebar { position: sticky; top: 64px; padding: 14px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; min-width: 0; }
 .monster-sidebar label, .monster-task-filters label { display: flex; flex-direction: column; gap: 6px; color: var(--text-dim); font-size: 12px; min-width: 0; }
@@ -825,4 +823,55 @@ th .ic { display: block; margin: 0 auto; }
   .topbar .bottom-nav .nav-btn:focus-visible { outline: 2px solid var(--accent2); outline-offset: 3px; }
   .monster-sidebar { top: 78px; }
   .topbar .bottom-nav .nav-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+}
+
+/* Meat-first linked index and continuous monster reference. */
+#view-monster-detail { max-width: 1500px; margin: auto; }
+.monster-workspace { grid-template-columns: 242px minmax(0,1fr); gap: 16px; }
+.monster-sidebar { padding: 10px; }
+.monster-sidebar-caption { margin-top: 9px; color: var(--text-dim); font-size: 11px; }
+.monster-sidebar-list { gap: 6px; margin-top: 6px; max-height: min(590px,calc(100dvh - 360px)); min-height: 150px; }
+.monster-sidebar-item { display: grid; grid-template-columns: 36px minmax(0,1fr); gap: 2px 8px; padding: 8px; }
+.monster-sidebar-item img { width: 36px; height: 36px; object-fit: contain; grid-row: span 2; }
+.monster-sidebar-name { min-width: 0; overflow-wrap: anywhere; }
+.monster-sidebar-name small { display: block; font-size: 11px; }
+.monster-sidebar-values { grid-column: 2; display: flex; gap: 9px; flex-wrap: wrap; font-size: 11px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.monster-sidebar-values b { font-weight: 500; }
+.monster-detail-links { display: grid; gap: 3px; margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--line); }
+.monster-detail-links .toggle-btn { text-align: left; border: 0; background: none; padding: 6px 2px; }
+.monster-detail-links .toggle-btn:hover { color: var(--accent); }
+.monster-detail-body .detail-hero { gap: 10px; margin-bottom: 0; padding-bottom: 9px; border-bottom: 1px solid var(--line); }
+.monster-detail-body .detail-hero img { width: 46px; height: 46px; }
+.monster-detail-body .detail-hero .zh { font-size: 19px; }
+.monster-detail-body .detail-hero .en { font-size: 12px; }
+.monster-detail-body .meta-chips { margin-top: 3px; }
+.monster-detail-body .meta-chips .chip { padding: 0; border: 0; background: none; font-size: 12px; }
+.monster-current-context { margin-left: auto; max-width: 45%; color: var(--text-dim); text-align: right; font-size: 12px; overflow-wrap: anywhere; }
+.monster-detail-body .section { padding: 12px 0; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: none; margin-bottom: 0; scroll-margin-top: 82px; }
+.monster-detail-body .section h2, .monster-vital-section > h2 { font-size: 15px; margin-bottom: 9px; color: var(--accent); border-left: 0; padding-left: 0; }
+.monster-detail-body th, .monster-detail-body td { padding: 6px 7px; font-size: 13px; }
+.monster-vital-section { padding: 12px 0; border-bottom: 1px solid var(--line); scroll-margin-top: 82px; }
+.monster-detail-body .monster-vital-section > .section { padding: 0; border: 0; }
+.monster-vital-section > .section > h2 { display: none; }
+.monster-hp-strip { display: flex; gap: 8px 18px; flex-wrap: wrap; margin-bottom: 9px; font-size: 13px; }
+.monster-hp-strip b { color: var(--accent); font-size: 15px; }
+.monster-extra-data { margin-top: 9px; }
+.monster-extra-data > summary, #scale-factors > summary { color: var(--accent2); cursor: pointer; padding: 4px 0; font-size: 13px; }
+.monster-extra-data > .section { border: 0; padding: 7px 0 0; }
+.monster-extra-data > .tbl-wrap { margin-top: 7px; }
+#scale-factors { margin-top: 10px; }
+#scale-factor-data .section { padding-top: 8px; border: 0; }
+#scale-factor-data .tbl-wrap + .tbl-wrap { margin-top: 10px; }
+@media (max-width: 899px) {
+  .monster-workspace { display: block; }
+  .monster-sidebar { margin-bottom: 10px; }
+  .monster-sidebar-list { max-height: 210px; min-height: 0; }
+  .monster-detail-links { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; }
+  .monster-detail-links .toggle-btn { font-size: 12px; }
+  .monster-sidebar-item small { display: none; }
+  .monster-detail-body .detail-hero { flex-wrap: wrap; }
+  .monster-current-context { max-width: 100%; margin-left: 0; text-align: left; }
+  .monster-detail-body th, .monster-detail-body td { font-size: 12px; }
+  .monster-sidebar-item { grid-template-columns: 30px minmax(0,1fr); }
+  .monster-sidebar-item img { width: 30px; height: 30px; }
 }

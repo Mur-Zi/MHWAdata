@@ -190,7 +190,7 @@
     navMonsters.classList.toggle('active', name === 'monsters' || name === 'monster-detail');
     navQuests.classList.toggle('active', name === 'quests');
     navCalculator.classList.toggle('active', name === 'calculator');
-    navBack.style.display = (name === 'monster-detail' || name === 'quest-detail') ? '' : 'none';
+    navBack.style.display = (name === 'monster-detail'&&!navigationMedia.matches || name === 'quest-detail') ? '' : 'none';
     // 底部搜索栏：怪物页显示怪物搜索，任务页显示任务搜索，详情页/计算器隐藏
     monsterSearchEl.hidden = (name !== 'monsters');
     questSearchEl.hidden = (name !== 'quests');
@@ -200,7 +200,7 @@
     // 返回怪物列表时按最新查看次数实时重排（无需重进 app）
     if (name === 'monsters') renderMonsterList(monsterSearchEl.value);
   }
-  navMonsters.addEventListener('click', () => { titleEl.textContent = 'MHWA数据库'; showView('monsters'); });
+  navMonsters.addEventListener('click', () => { if(navigationMedia.matches){openMonster(lastDetailMonster||preferredMonsterName(),false);return;}titleEl.textContent = 'MHWA数据库'; showView('monsters'); });
   navQuests.addEventListener('click', () => { titleEl.textContent = '任务列表'; showView('quests'); });
   navCalculator.addEventListener('click', () => { titleEl.textContent = '伤害计算器'; showView('calculator'); renderCalculatorView(); });
   navBack.addEventListener('click', () => { titleEl.textContent = 'MHWA数据库'; showView('monsters'); });
@@ -212,14 +212,10 @@
     if (typeof v === 'number') return (Number.isInteger(v) ? String(v) : String(Math.round(v * 100) / 100));
     return String(v);
   }
-  function hzvClass(v) {
-    if (typeof v !== 'number') return '';
-    if (v >= 80) return 'hzv-5';
-    if (v >= 60) return 'hzv-4';
-    if (v >= 45) return 'hzv-3';
-    if (v >= 20) return 'hzv-2';
-    if (v > 0) return 'hzv-1';
-    return 'hzv-0';
+  function hzvClass(v, element=false) {
+    if(typeof v!=='number')return 'hzv-0';
+    if(element)return v>=25?'hzv-4':v>=10?'hzv-2':'hzv-1';
+    return v>=65?'hzv-4':v>=45?'hzv-3':v>=32?'hzv-2':'hzv-1';
   }
 
   // ---- 怪物列表 ----
@@ -349,9 +345,11 @@
   renderQuestList();
 
   // ---- 打开详情 ----
-  function openMonster(name) {
+  function openMonster(name,record=true) {
     const m = monsters.find((x) => x.name === name);
-    bumpViewCount(name);
+    if(!m)return;
+    lastDetailMonster=name;
+    if(record)bumpViewCount(name);
     titleEl.textContent = m.zh;
     showView('monster-detail');
     renderMonsterDetail(m);
@@ -364,39 +362,74 @@
   }
 
   let detailMonsterSearch='';
-  function syncMonsterTabs(el){
-    const active=el.dataset.detailTab||'meat';
-    el.querySelectorAll('[data-detail-panel]').forEach(panel=>panel.hidden=panel.dataset.detailPanel!==active);
-    el.querySelectorAll('#data-groups > [data-detail-group]').forEach(panel=>panel.hidden=panel.dataset.detailGroup!==active);
+  let lastDetailMonster=null;
+  const monsterMeatSummaries=new Map();
+  function monsterMeatSummary(m){
+    if(monsterMeatSummaries.has(m.id))return monsterMeatSummaries.get(m.id);
+    const kuro=window.MHWILD_KURO_HZV?.[m.name];
+    const meats=kuro?Object.values(kuro).flatMap(p=>(p.groups?.['普通']||[]).map(x=>x.m)):(m.data.Hitzones?.Rows||[]).filter(r=>!r.State&&r.Part!=='HIDE').map(r=>r.Meat).filter(Boolean);
+    const summary=['Slash','Blow','Shot'].map(key=>meats.length?Math.max(...meats.map(meat=>Number(meat[key])||0)):null);
+    monsterMeatSummaries.set(m.id,summary);return summary;
+  }
+  function syncMonsterLinks(el){
     el.querySelectorAll('[data-detail-tab]').forEach(button=>{
       const key=button.dataset.detailTab;
-      button.hidden=key!=='meat'&&!el.querySelector('#data-groups > [data-detail-group="'+key+'"]');
-      button.classList.toggle('active',key===active);button.setAttribute('aria-pressed',String(key===active));
+      button.hidden=!el.querySelector('[data-detail-panel="'+key+'"],[data-detail-group="'+key+'"]');
     });
   }
+  function layoutMonsterGroups(el,openStates={}){
+    const groups=el.querySelector('#data-groups');
+    const vital=document.createElement('section');vital.className='monster-vital-section';vital.dataset.detailPanel='vital';
+    const heading=document.createElement('h2');heading.textContent='血量 / 部位 / 伤口';vital.append(heading);
+    const wrap=(node,key,title)=>{
+      const details=document.createElement('details');details.className='monster-extra-data';details.dataset.groupCollapse=key;details.open=!!openStates[key];
+      const summary=document.createElement('summary');summary.textContent=title;details.append(summary,node);return details;
+    };
+    groups.querySelectorAll(':scope > [data-detail-group="vital"]').forEach((node,index)=>{
+      const title=node.querySelector('h2')?.textContent;
+      const scar=node.querySelector('.sub-title');
+      if(scar){const table=scar.nextElementSibling;scar.remove();if(table)node.append(wrap(table,'legendary','历战伤口'));}
+      if(node.hasAttribute('data-vital-extra')){node.querySelector('h2')?.remove();vital.append(wrap(node,'vital-'+index,title));}
+      else vital.append(node);
+    });
+    groups.prepend(vital);
+    groups.querySelectorAll(':scope > [data-detail-group="tools"],:scope > [data-detail-group="other"]').forEach(node=>{
+      const title=node.querySelector('h2')?.textContent;node.querySelector('h2')?.remove();const marker=document.createComment('extra-data');node.before(marker);const details=wrap(node,node.dataset.detailGroup,title);marker.replaceWith(details);
+    });
+    const scaling=groups.querySelector('[data-detail-group="scaling"]'),target=el.querySelector('#scale-factor-data');
+    target.replaceChildren();if(scaling)target.append(scaling);
+    syncMonsterLinks(el);
+  }
   function layoutMonsterDetail(el,m){
-    el.dataset.detailTab='meat';
     const workspace=document.createElement('div');workspace.className='monster-workspace';
     const side=document.createElement('aside');side.className='monster-sidebar';side.setAttribute('aria-label','切换怪物');
     const label=document.createElement('label');label.textContent='查找怪物';
     const input=document.createElement('input');input.type='search';input.placeholder='名称 / 英文名';input.value=detailMonsterSearch;label.appendChild(input);
-    const list=document.createElement('nav');list.className='monster-sidebar-list';list.setAttribute('aria-label','怪物列表');side.append(label,list);
+    const caption=document.createElement('div');caption.className='monster-sidebar-caption';caption.textContent='普通肉质 · 各类最高值';
+    const list=document.createElement('nav');list.className='monster-sidebar-list';list.setAttribute('aria-label','怪物列表');side.append(label,caption,list);
     function renderSide(){
       const query=input.value.trim().toLowerCase();list.replaceChildren();
       monsters.filter(x=>!query||(x.zh+' '+x.name).toLowerCase().includes(query)).forEach(x=>{
         const button=document.createElement('button');button.type='button';button.className='monster-sidebar-item';button.setAttribute('aria-pressed',String(x.id===m.id));button.dataset.monsterId=x.id;
-        const name=document.createElement('span');name.textContent=x.zh;const english=document.createElement('small');english.textContent=x.name;button.append(name,english);list.appendChild(button);
+        const image=document.createElement('img');image.src=META.imageMap[x.name]?.icon||'';image.alt='';image.loading='lazy';
+        const name=document.createElement('span');name.className='monster-sidebar-name';name.textContent=x.zh;
+        const english=document.createElement('small');english.textContent=x.name;
+        const values=document.createElement('span');values.className='monster-sidebar-values';
+        monsterMeatSummary(x).forEach((value,i)=>{const item=document.createElement('span');item.append(['斩 ','打 ','弹 '][i]);const num=document.createElement('b');num.className=hzvClass(value);num.textContent=fmt(value);item.append(num);values.append(item);});
+        name.append(english);button.append(image,name,values);list.appendChild(button);
       });
       if(!list.children.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='没有匹配的怪物';list.appendChild(empty);}
     }
     input.addEventListener('input',()=>{detailMonsterSearch=input.value;renderSide();});
     list.addEventListener('click',event=>{const button=event.target.closest('[data-monster-id]');if(button){const next=monsters.find(x=>x.id===button.dataset.monsterId);if(next)openMonster(next.name);}});
     const body=document.createElement('div');body.className='monster-detail-body';
-    const hero=el.querySelector('.detail-hero'),context=el.querySelector('.monster-task-context');
-    const tabs=document.createElement('nav');tabs.className='monster-detail-tabs';tabs.setAttribute('aria-label','怪物资料分类');
-    [['meat','部位肉质'],['vital','血量 / 部位 / 伤口'],['status','异常状态'],['tools','道具效果'],['other','疲劳 / 发怒']].forEach(([key,text])=>{const button=document.createElement('button');button.type='button';button.className='toggle-btn';button.dataset.detailTab=key;button.textContent=text;button.addEventListener('click',()=>{el.dataset.detailTab=key;syncMonsterTabs(el);});tabs.appendChild(button);});
+    const hero=el.querySelector('.detail-hero'),context=el.querySelector('.monster-task-context');context.dataset.detailPanel='tasks';
+    const links=document.createElement('nav');links.className='monster-detail-links';links.setAttribute('aria-label','资料目录');
+    [['meat','肉质'],['vital','血量 / 部位 / 伤口'],['status','异常状态'],['tasks','血量与任务倍率']].forEach(([key,text])=>{const button=document.createElement('button');button.type='button';button.className='toggle-btn';button.dataset.detailTab=key;button.textContent=text;button.addEventListener('click',()=>{el.querySelector('[data-detail-panel="'+key+'"],[data-detail-group="'+key+'"]')?.scrollIntoView({block:'start'});});links.appendChild(button);});side.append(links);
     const meat=el.querySelector('.section');meat.dataset.detailPanel='meat';
-    body.append(hero,context,tabs,meat,el.querySelector('#data-groups'));workspace.append(side,body);el.replaceChildren(workspace);renderSide();
+    body.append(hero,meat,el.querySelector('#data-groups'),context);workspace.append(side,body);el.replaceChildren(workspace);renderSide();
+    const selected=list.querySelector('[aria-pressed="true"]');
+    if(selected){const row=selected.getBoundingClientRect(),bounds=list.getBoundingClientRect();if(row.bottom>bounds.bottom)list.scrollTop+=row.bottom-bounds.bottom;}
   }
 
   // ---- 怪物详情 ----
@@ -405,7 +438,6 @@
     const img = META.imageMap[m.name];
     const d = m.data;
     const chips = [];
-    chips.push('血量 ' + fmt(d.BHP));
     chips.push(d.CantCap ? '不可捕获' : '可捕获');
     if (d.Zako) chips.push('小型怪物');
     const hzRows = d.Hitzones ? (d.Hitzones.Rows || []) : [];
@@ -417,6 +449,7 @@
       <img src="${img.icon}" alt="${m.zh}">
       <div><div class="zh">${m.zh}</div><div class="en">${m.name}</div>
       <div class="meta-chips">${chips.map((c) => '<span class="chip">' + c + '</span>').join('')}</div></div>
+      <div class="monster-current-context">基础数据 · 1人</div>
     </div>`;
 
     // 肉质表 HZV：以 kuroyonhon 为主；普通/历战王 tab 分「状态」列（普通/伤痕/附油/带电等）
@@ -440,7 +473,7 @@
       const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
       const meatCell = (meat) => activeElements.map((e) => {
         const v = meat ? meat[e] : undefined;
-        return `<td class="num ${hzvClass(v)}">${fmt(v)}</td>`;
+        return `<td class="num ${e==='Stun'?'hzv-1':hzvClass(v, !['Slash','Blow','Shot'].includes(e))}">${fmt(v)}</td>`;
       }).join('');
       const makeRow = (pn, s, meat, g, note) => {
         const hidden = g === '普通' ? '' : ' hidden';
@@ -480,15 +513,16 @@
         <div class="tbl-wrap"><table><thead><tr><th class="fz1">部位</th>${activeElements.map((e) => `<th title="${zh(TR.element, e)}">${elementIcon(e)}</th>`).join('')}</tr></thead>
         <tbody>${baseRows.map((r) => {
           const part = partName(m.name, r.Part);
-          const mCell = (src) => activeElements.map((e) => `<td class="num ${hzvClass(src ? src[e] : undefined)}">${fmt(src ? src[e] : undefined)}</td>`).join('');
+          const mCell = (src) => activeElements.map((e) => `<td class="num ${e==='Stun'?'hzv-1':hzvClass(src ? src[e] : undefined, !['Slash','Blow','Shot'].includes(e))}">${fmt(src ? src[e] : undefined)}</td>`).join('');
           return `<tr data-hzv-row="normal"><td class="part-name fz1">${part}</td>${mCell(r.Meat)}</tr>
                   ${r.ScarMeat ? `<tr data-hzv-row="scar" hidden><td class="part-name fz1">${part}</td>${mCell(r.ScarMeat)}</tr>` : ''}`;
         }).join('')}</tbody></table></div></section>`;
     }
 
     html += `<section class="section monster-task-context" aria-label="任务与人数">
+      <h2>血量与任务倍率</h2>
       <div class="monster-task-bar">
-        <div class="monster-task-label"><span class="monster-task-caption">任务与人数</span><span id="scale-current-task">基础数据</span></div>
+        <div class="monster-task-label"><span class="monster-task-caption">当前任务</span><span id="scale-current-task">基础数据</span></div>
         <div class="monster-task-actions"><span id="scale-current-players" hidden></span>
           <button type="button" class="toggle-btn" id="scale-toggle" aria-expanded="false" aria-controls="scale-task-editor">选择任务</button>
           <button type="button" class="toggle-btn" id="scale-clear" hidden>清除</button>
@@ -504,6 +538,7 @@
         <div class="scale-quest-picker" id="scale-quest-picker"></div>
         <div class="monster-task-picker-foot"><span id="scale-task-count"></span><button type="button" class="toggle-btn" id="scale-task-more" hidden>显示更多任务</button><button type="button" class="toggle-btn" id="scale-task-done">完成</button></div>
       </div>
+      <details id="scale-factors"><summary>血量与倍率明细</summary><div id="scale-factor-data"></div></details>
     </section>`;
     // 四组数据（基础 / 换算，动态渲染）
     html += `<div id="data-groups"></div>`;
@@ -579,9 +614,7 @@
       const hpLo = Math.round(hpBase * fHealthMin);
       const hpHi = Math.round(hpBase * fHealthMax);
       const hpRange = fStrength > 0 ? (hpLo + '~' + hpHi) : '固定';
-      html += `<section class="section" data-detail-group="vital"><h2>血量浮动</h2>
-        <div class="tbl-wrap"><table><thead><tr><th>基础血量</th><th>任务倍率</th><th>血量</th><th>浮动范围</th></tr></thead>
-        <tbody><tr><td class="num">${fmt(d.BHP)}</td><td class="num">×${fmt(fHealth)}</td><td class="num">${hpBase}</td><td class="num">${hpRange}</td></tr></tbody></table></div></section>`;
+      html += `<section class="section monster-health-summary" data-detail-group="vital"><div class="monster-hp-strip"><span>${f?'任务血量':'基础血量'} <b>${hpBase}</b></span>${fStrength>0?'<span>浮动 '+hpRange+'</span>':''}<span>${d.CantCap?'不可捕获':'可捕获'}</span></div></section>`;
     }
 
     // 部位硬直/破坏/伤口
@@ -659,7 +692,7 @@
     const blowout = BLOWOUT[m.name];
     if (blowout && blowout.length) {
       const maxN = Math.max(...blowout.map((r) => r.vitals.length));
-      html += `<section class="section" data-detail-group="vital"><h2>炸膛</h2>
+      html += `<section class="section" data-detail-group="vital" data-vital-extra><h2>炸膛</h2>
         <div class="tbl-wrap"><table><thead><tr><th class="fz1">部位</th>${Array.from({ length: maxN }, (_, i) => `<th>炸膛${i + 1}</th>`).join('')}</tr></thead>
         <tbody>${blowout.map((r) => {
           const v = scaleArr(r.vitals, fParts);
@@ -731,6 +764,10 @@
       html += `</section>`;
     }
 
+    if(typeof d.BHP==='number'){
+      const hp=Math.round(d.BHP*fHealth);
+      html+=`<section class="section" data-detail-group="scaling"><div class="tbl-wrap"><table><thead><tr><th>基础血量</th><th>任务倍率</th><th>血量</th><th>浮动范围</th></tr></thead><tbody><tr><td class="num">${fmt(d.BHP)}</td><td class="num">×${fmt(fHealth)}</td><td class="num">${hp}</td><td class="num">${fStrength>0?Math.round(hp*fHealthMin)+'~'+Math.round(hp*fHealthMax):'固定'}</td></tr></tbody></table></div><div class="tbl-wrap"><table><thead><tr><th>部位倍率</th><th>打出绽伤</th><th>普通绽伤</th><th>历战绽伤</th><th>Scar Raw</th></tr></thead><tbody><tr>${[fParts,fScarNT,fTear,fScarTear,fScarRaw].map(n=>'<td class="num">×'+fmt(n)+'</td>').join('')}</tr></tbody></table></div></section>`;
+    }
     return html;
   }
 
@@ -821,14 +858,16 @@
       const q=questsWithMonster.find(q=>q.id===selectedId)||null;
       renderPlayerBtns(q?.maxPlayer||4);
       const factors=q?computeFactors(q):null;
+      const openStates=Object.fromEntries(Array.from(groupsEl.querySelectorAll('[data-group-collapse]')).map(n=>[n.dataset.groupCollapse,n.open]));
       groupsEl.innerHTML=renderDataGroups(m,factors);
+      layoutMonsterGroups(el,openStates);
       el.querySelector('#scale-current-task').textContent=q?questLevelLabel(q)+' '+questName(q):'基础数据';
       const people=el.querySelector('#scale-current-players');people.hidden=!q;people.textContent=players+'人';
       el.querySelector('#scale-clear').hidden=!q;
       toggle.textContent=editor.hidden?(q?'更换':'选择任务'):'收起';
-      const health=el.querySelector('.detail-hero .meta-chips .chip');
-      if(health)health.textContent=(q?'任务血量 ':'基础血量 ')+fmt(typeof m.data.BHP==='number'?Math.round(m.data.BHP*(factors?.fHealth||1)):null);
-      syncMonsterTabs(el);
+      const context=el.querySelector('.detail-hero .monster-current-context');
+      if(context)context.textContent=(q?questLevelLabel(q)+' '+questName(q):'基础数据')+' · '+players+'人';
+      syncMonsterLinks(el);
     }
     pickerEl.addEventListener('click',event=>{
       const button=event.target.closest('[data-qid]');if(!button)return;
@@ -3919,8 +3958,17 @@
     footerBtn.addEventListener('click', () => { footerInfo.hidden = !footerInfo.hidden; });
   }
 
-  // 初始视图
-  showView('monsters');
+  // Desktop opens the linked index and detail directly; mobile retains the monster grid.
+  function preferredMonsterName(){
+    const counts=getViewCounts();
+    const frequent=monsters.slice().sort((a,b)=>(counts[b.name]||0)-(counts[a.name]||0))[0];
+    return frequent&&counts[frequent.name]?frequent.name:monsters.find(m=>m.name==='Arkveld')?.name||monsters[0]?.name;
+  }
+  navigationMedia.addEventListener('change',()=>{
+    if(navigationMedia.matches&&!document.getElementById('view-monsters').hidden)openMonster(lastDetailMonster||preferredMonsterName(),false);
+    navBack.style.display=(!navigationMedia.matches&&!document.getElementById('view-monster-detail').hidden||!document.getElementById('view-quest-detail').hidden)?'':'none';
+  });
+  if(navigationMedia.matches)openMonster(preferredMonsterName(),false);else showView('monsters');
 
   // 测试/诊断句柄（不影响正常使用）
   window.__MHWILD_DEBUG__ = { monsters, quests, questScarRawOf, renderMonsterDetail, renderQuestDetail, renderCalculatorView, openMonster, openQuest, fmt, hzvClass };
