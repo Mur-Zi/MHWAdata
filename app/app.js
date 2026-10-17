@@ -996,7 +996,7 @@
       mode: 'expected',
       weakSpot: false, monsterEnraged: false, fullHealth: true, wound: false, overcomeFrenzy: false, clash: false,
       ateMeat: false, festival: false, warCry: false,   // 套装技能条件：食用烤熟的肉 / 祭典期间 / 咆哮后
-      absorbHits: 1, wet:false, bubble:false,
+      absorbHits: 1, wet:false, bubble:false, bowgunSpec:'basic',
       threeLamp: true,    // 操虫棍三灯（红+白+橙）：攻击力加算 基础×0.15，移动斩/移动连斩 用三灯动作值
       mantle: false,      // 蚀攻衣装（狂化装衣）：开启后把衣装给各招补的加段并入原招式
       // 盾斧（charge_blade）：开局选的四项状态 —— 瓶种 / 瓶状态 / 红盾 / 红剑
@@ -1030,7 +1030,7 @@
     const itemGroups = (CALC.items && CALC.items.groups) || [];
     const PRESET_KEY = 'mhwa_calculator_presets_v1';
     const CONFIG_KEYS = ['weaponId', 'attack', 'affinity', 'element', 'elementType', 'status', 'statusType', 'sharpness',
-      'fullHealth', 'overcomeFrenzy', 'clash', 'ateMeat', 'festival', 'warCry', 'absorbHits', 'wet', 'bubble',
+      'fullHealth', 'overcomeFrenzy', 'clash', 'ateMeat', 'festival', 'warCry', 'absorbHits', 'wet', 'bubble', 'bowgunSpec',
       'threeLamp', 'mantle', 'cbPhial', 'cbReinforced', 'cbRedShield', 'cbRedSword', 'swaxAwakened', 'swaxPhial','apexSoulReady','encouragement','ailmentCleared','ailment',
       'swaxRedAxe', 'balladCount', 'blueDemon', 'dbMode', 'glType', 'glLevel', 'melodyIds', 'kinsectId', 'kinsectLevel',
       'itemPicks', 'skillLevels', 'skillCoverage'];
@@ -1498,7 +1498,7 @@
         stat('固伤', (r.totalFixed||0).toFixed(2)),
         stat('连招总动作值', (r.totalMotionValue||0).toFixed(2)),
         stat('连招总属补', (r.totalElementRate||0).toFixed(2)),
-        stat('异常累计(期望)', r.totalStatus.toFixed(2)),
+        stat('异常累计(期望)', r.bowgunStatusPending?'待补数据':r.totalStatus.toFixed(2)),
         stat('晕厥累计', r.totalStun.toFixed(2)),
         stat('最终会心率', (r.affinityVsTarget != null ? r.affinityVsTarget : r.affinity).toFixed(1) + '%')
       ].join('');
@@ -1603,6 +1603,10 @@
         //     结果卡里仍然单列一条炮击系汇总（那是用户更早要求的口径，保留）
         // 蚀攻衣装加段：并进本招，但单独标出来（用户拍板：加段归到原招式里，不单独成招）
         // 加段是表内的独立 hit 行 —— 动作值 / 属补 / 自定义耗斩都是它自己的，这里一并显示出来
+        if(g.hits.some(h=>h.bowgun)){
+          const b=g.hits.find(h=>h.bowgun).bowgun;tags.push('第'+b.sequence+'次射击 · 按每发独立衰减');
+          if(g.hits.some(h=>h.bowgun?.elementCapped))tags.push('属性已达上限');
+        }
         const mantleHits = blade.filter((h) => h.mantle);
         if (mantleHits.length) {
           const mmv = mantleHits.reduce((a, h) => a + (Number(h.mv) || 0), 0);
@@ -1676,6 +1680,7 @@
             : `<b class="calc-mv-raw${hienOn ? ' calc-mv-hien' : ''}${morphOn ? ' calc-mv-morph' : ''}">${rd2(effMv)}</b>`
               + (mvChanged ? `<i class="calc-mv-after">表内 ${h.mv}${h.tickDecay != null ? ' ×' + (Math.round(h.tickDecay * 1000) / 1000) : ''}</i>` : '')
               + sharpNote
+              + (h.bowgun ? `<i class="calc-mv-after">第${h.bowgun.projectile}发·第${h.bowgun.tick}跳 · 射击×${rd2(h.bowgun.correction)} · 衰减×${rd2(h.bowgun.decay)} · 距离×${rd2(h.bowgun.distance)}${h.fixed?' · 固伤':''}</i>` : '')
               + forceNote;
           body += `<tr${cancelled ? ' class="calc-row-cancelled"' : ''}><td class="num">${hi + 1}</td>`
             + `<td class="num${hienOn ? ' calc-hien-cell' : ''}${morphOn ? ' calc-morph-cell' : ''}">${hm}`
@@ -1749,7 +1754,7 @@
           return item;
         });
       const r = window.MHCalculator.calculateCombo({
-        moves: currentMoves(),
+        moves: currentMoves(), bowgunSpec:state.bowgunSpec,
         weaponId: state.weaponId,
         weaponGroups,
         danceMultiplier, chargeMultiplier,
@@ -2102,6 +2107,16 @@
           row.appendChild(lab);
         };
         cbPick([{label:'无衣装',value:0},{label:'蚀攻衣装·克服前',value:1},{label:'蚀攻衣装·克服后',value:2},{label:'回避衣装',value:3}],['none','before','after','evasion'].indexOf(item.mantleMode||'none'),'mantlePick','衣装');
+        if(move?.bowgunPreview&&!['reload','mode'].includes(move.rangedRole)){
+          if(move.bgDistance)cbPick([{label:'适正距离'},{label:'过近'},{label:'过远'}],item.bgDistance??0,'bgDistance','射击距离');
+          if(move.bgPellets)cbSel('颗／发',1,move.bgPellets,item.bgPellets??move.bgPellets,move.bgPellets,'bgPellets');
+          if(move.bgSpecial){const max=move.rangedHeatType==='machine'?40:move.rangedHeatType==='grenade'?6:30,def=move.rangedHeatType==='machine'?40:move.rangedHeatType==='grenade'?6:12;cbSel('hit',1,max,item.bgSpecialHits??def,def,'bgSpecialHits');}
+          if(move.rangedRole==='focus'&&item.wound)cbSel('处伤口',1,3,item.woundCount??1,1,'woundCount');
+          if(move.rangedHeatType==='pierce')cbPick([{label:'阶段随命中变化',value:0},{label:'阶段1',value:1},{label:'阶段2',value:2},{label:'阶段3',value:3}],item.bgHeatStage??0,'bgHeatStage','龙热穿甲阶段');
+          cbCheck({label:'满弹仓开始'},!!item.bgFullClip,'bgFullClip');
+          const lab=document.createElement('label');lab.className='calc-check';lab.textContent='射击序号 ';
+          const input=document.createElement('input');input.type='number';input.min='1';input.max='999';input.placeholder='自动';input.value=item.bgSequence??'';input.style.width='64px';input.addEventListener('change',()=>{if(input.value)state.combo[i].bgSequence=Math.max(1,Math.min(999,Number(input.value)||1));else delete state.combo[i].bgSequence;refreshComboUI();});lab.appendChild(input);row.appendChild(lab);
+        }
         const MOVE_OPTION_RENDERERS = [
           {key:'ranged',has:m=>!!(m.rangedVariants||m.rangedStages),render:()=>{
             item.rangedWholeVersion=1;
@@ -2538,9 +2553,9 @@
       if (p.attackFinalPct && Math.abs(p.attackFinalPct - 1) > 1e-6) atkParts.push('攻击守势：最终 ×' + num(p.attackFinalPct));
       html += `<div class="calc-panel-row"><span>最终攻击力</span><b class="${Math.abs(p.attackAfter - baseAtk) > 1e-6 ? 'up' : ''}">${num(p.attackAfter)}`
         + (atkParts.length ? `　<i class="calc-panel-note">${atkParts.join(' · ')}</i>` : '') + '</b></div>';
-      html += row('面板属性值', p.elementBase, p.elementAfter);
+      if(!['light_bowgun','heavy_bowgun'].includes(state.weaponId))html += row('面板属性值', p.elementBase, p.elementAfter);
       if (p.elementCapped) html += '<div class="calc-panel-row"><span>属性上限</span><b class="cap">已触上限（基础×2.3 或 400 取高）</b></div>';
-      html += row('面板异常值', p.statusBase, p.statusAfter);
+      if(!['light_bowgun','heavy_bowgun'].includes(state.weaponId))html += row('面板异常值', p.statusBase, p.statusAfter);
       // 会心率：含技能加成，并按当前所选部位自动应用弱点特效 / 伤口（弱电 = 该武器物理类型肉质 ≥ 45）
       const aff = p.affinityVsTarget != null ? p.affinityVsTarget : p.affinityAfter;
       html += row('会心率', p.affinityBase, aff, '%');
@@ -2614,6 +2629,7 @@
     //   2) 需要面板有属性/有异常才生效的技能（会心击【属性】/属性吸收要属性、会心击【特殊】要异常）
     //   3) 武器专属技能只在支持的武器下出现（攻击守势要格挡、蓄击强化只有大锤）
     function skillVisible(s) {
+      if(['light_bowgun','heavy_bowgun'].includes(state.weaponId))return !s.poolHidden&&(!s.weapons||s.weapons.includes(state.weaponId))&&!['HunterSkill_018','HunterSkill_020','HunterSkill_056'].includes(s.id);
       if (s.elementType && s.elementType !== state.elementType) return false;
       if (s.statusType && s.statusType !== state.statusType) return false;
       if (s.requireElement && state.elementType === 'None') return false;
@@ -2739,6 +2755,7 @@
             </select>
           </label>
         </div>
+        <label class="calc-field" id="calc-bg-spec-row" hidden><span>重弩性能类型</span><select id="calc-bg-spec"><option value="basic">基本型</option><option value="normal1">通常模式特化Ⅰ</option><option value="normal2">通常模式特化Ⅱ</option><option value="heat1">龙热模式特化Ⅰ</option><option value="heat2">龙热模式特化Ⅱ</option></select></label>
         <div class="calc-hint" id="calc-weapon-note"${weaponNote ? '' : ' hidden'}>${weaponNote}</div>
       </section>
 
@@ -2876,6 +2893,7 @@
     });
     $('input#calc-status').addEventListener('input', (e) => { state.status = Number(e.target.value) || 0; recalc(); });
     $('input#calc-affinity').addEventListener('input', (e) => { state.affinity = Number(e.target.value) || 0; recalc(); });
+    $('select#calc-bg-spec').addEventListener('change',e=>{state.bowgunSpec=e.target.value;recalc();});enhanceSelect($('select#calc-bg-spec'),'重弩性能类型');
     $('select#calc-sharp').addEventListener('change', (e) => { state.sharpness = e.target.value; recalc(); });
 
     // 换武器：招式表/连段/技能池/专属选项全部跟着换
@@ -2887,6 +2905,10 @@
       const isIG = state.weaponId === 'insect_glaive';
       const isCB = state.weaponId === 'charge_blade';
       const isHH = state.weaponId === 'hunting_horn';
+      const bowgun=['light_bowgun','heavy_bowgun'].includes(state.weaponId);
+      ['calc-eltype','calc-element','calc-sttype','calc-status','calc-sharp'].forEach(id=>{const field=el.querySelector('#'+id)?.closest('label');if(field)field.hidden=bowgun;});
+      el.querySelector('#calc-bg-spec-row').hidden=state.weaponId!=='heavy_bowgun';
+      const derive=el.querySelector('#calc-derive-toggle');if(derive?.closest('label'))derive.closest('label').hidden=bowgun;if(bowgun){derive.checked=false;state.deriveMode=false;}
       const noteEl = $('div#calc-weapon-note');
       if (noteEl) {
         const noteTxt = '';   // 用户 2026-10-07：武器页不放说明文字
@@ -2987,7 +3009,7 @@
       const controls = { weapon: 'weaponId', attack: 'attack', affinity: 'affinity', element: 'element', eltype: 'elementType',
         status: 'status', sttype: 'statusType', sharp: 'sharpness', kinsect: 'kinsectId', 'kinsect-level': 'kinsectLevel',
         'cb-phial': 'cbPhial', 'cb-reinforced': 'cbReinforced', 'swax-phial': 'swaxPhial', 'horn-ballad': 'balladCount',
-        'gl-type': 'glType', 'gl-level': 'glLevel', 'db-mode': 'dbMode', absorb: 'absorbHits' };
+        'bg-spec':'bowgunSpec', 'gl-type': 'glType', 'gl-level': 'glLevel', 'db-mode': 'dbMode', absorb: 'absorbHits' };
       Object.entries(controls).forEach(([id, key]) => {
         const control = el.querySelector('#calc-' + id);
         if (!control) return;

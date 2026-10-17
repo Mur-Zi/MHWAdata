@@ -837,7 +837,108 @@
   }
 
   // ===================== 连段计算 =====================
+
+function calculateBowgunCombo(p) {
+    const isLight=p.weaponId==='light_bowgun',specialIds=['HunterSkill_019','HunterSkill_035','HunterSkill_037','HunterSkill_038','HunterSkill_039','HunterSkill_040','HunterSkill_045','HunterSkill_197','HunterSkill_198','custom_bladescale_loading'];
+    const selected=p.skills||[],level=id=>n(selected.find(x=>(x.skill||x).id===id)?.level,0);
+    const coverage=id=>{const x=selected.find(x=>(x.skill||x).id===id);return x?(x.skill||x).coverage?clamp(n(x.coverage,100),0,100)/100:1:0;};
+    const factor=(id,v)=>1+(v-1)*coverage(id),baseSkills=selected.filter(x=>!specialIds.includes((x.skill||x).id));
+    const cache=new Map(),baseFor=(type,mode)=>{
+      const key=type+'|'+mode;if(cache.has(key))return cache.get(key);
+      const r=calculateCombo({...p,_bowgunInternal:true,combo:[],skills:baseSkills,elementType:type,element:0,statusType:'None',status:0,mantle:mode==='after'});
+      if(mode==='before')r.state.affinity=clamp(r.state.affinity+5,-100,100);
+      if(mode==='evasion')r.state.attackFlat+=r.panel.baseAttackAfter*.2;
+      r.panel.attackAfter=Math.floor((r.panel.baseAttackAfter*r.state.attackPct+r.state.attackFlat)*r.state.finalAttackPct+1e-8);
+      r.panel.affinityAfter=r.state.affinity;
+      cache.set(key,r);return r;
+    };
+    const base=baseFor('None','none'),hits=[],moves=p.moves||[],contributions=[];
+    let sequence=0,lastAmmo='',totalMv=0,totalElemRate=0,totalStun=0,lastBase=base;
+    const round=v=>Math.round((v+1e-10)*10)/10,clampCount=(v,def,max=99)=>Math.floor(clamp(n(v,def),1,max));
+    const addHit=(m,it,ci,h,ctx)=>{
+      const r=ctx.base,s=r.state,zone=h.fixed?100:n(p.hitzones?.[h.type==='SLASH'?'Slash':h.type==='BLOW'?'Blow':'Shot'],0);
+      const aff=clamp(s.affinity+(zone>=45&&!h.fixed?s.weakSpotAffinity:0)+(it.wound||p.context?.wound?s.woundAffinity:0)+ctx.tetradAffinity,-100,100);
+      const attack=Math.floor((r.panel.baseAttackAfter*s.attackPct+s.attackFlat)*s.finalAttackPct+1e-8);
+      const physicalAttack=attack+ctx.physicalAdd,crit=h.fixed?1:rawCritMultiplier(aff,s.critMult,p.mode);
+      let damageMul=h.mult??1;
+      if(h.ammoFamily==='normal')damageMul*=factor('HunterSkill_038',1.05);
+      if(h.ammoFamily==='pierce')damageMul*=factor('HunterSkill_039',1.05);
+      if(h.ammoFamily==='spread')damageMul*=factor('HunterSkill_040',1.05);
+      if(ctx.rapid)damageMul*=factor('HunterSkill_045',1.05);
+      if(h.special)damageMul*=factor('HunterSkill_037',1+.1*level('HunterSkill_037'));
+      if(h.artillery)damageMul*=factor('HunterSkill_035',1+.1*level('HunterSkill_035'));
+      if(!h.fixed)damageMul*=factor('custom_bladescale_loading',1.4);
+      const spec=p.bowgunSpec||'basic';
+      if(!isLight&&['normal','pierce','spread'].includes(h.ammoFamily))damageMul*=spec==='normal1'?1.1:spec==='normal2'?1.2:1;
+      if(!isLight&&h.heatBoost)damageMul*=spec==='heat1'?1.15:spec==='heat2'?1.3:1;
+      const distance=h.distance===false?1:it.bgDistance===1?(isLight?(h.ammoFamily==='normal'?1:h.ammoFamily==='pierce'?.6:.1):(h.ammoFamily==='spread'?.1:.5)):it.bgDistance===2?.1:1;
+      let raw=physicalAttack/100*h.mv*zone/100*crit*damageMul*distance*(h.decay??1);
+      if(h.fixedExtra)raw+=h.fixedExtra;
+      const eType=h.elementType||'None',eZone=n(p.hitzones?.[eType],0),b=attack/100*n(h.elementMotion,0)*n(h.elementCorrection,1);
+      const flat=(s.elementFlat+s.absorbElemFlat+s.dragonElemFlat)/10;
+      const elemBefore=b*s.elementPct*s.convertElemMult+flat,elemCap=b*2.3;
+      const ecrit=h.fixed?1:elementCritMultiplier(aff,s.elementCritMult,p.mode);
+      let element=h.fixedFire!=null?h.fixedFire*eZone/100:Math.min(elemBefore,elemCap)*eZone/100*ecrit*ctx.elementDamageMul;
+      const enrage=n(p.enrageMul,1);raw=round(Math.max(0,raw*enrage));element=round(Math.max(0,element*enrage));
+      const stun=p.isHead?n(h.stun,0)*s.stunMult:0;
+      const out={moveId:m.id,moveName:m.name,comboIndex:ci,index:hits.length+1,fixedExtraDamage:round(n(h.fixedExtra)*enrage),raw,element,total:round(raw+element),status:0,stun,mv:h.mv,effectiveMv:h.mv*(h.mult??1)*(h.decay??1),elemRate:h.elementMotion?1:0,statusRate:0,type:h.type||'SHOT',fixed:!!h.fixed,noSharp:true,sharpCost:0,isWeak:zone>=45,affinityUsed:h.fixed?0:aff,charge:null,chargeUnit:null,mantle:!!h.mantle,wound:!!h.wound,hien:false,airborneMult:1,morphMult:1,projectile:h.projectile||1,bowgun:{sequence:ctx.sequence,projectile:h.projectile||1,tick:h.tick||1,decay:h.decay??1,distance,correction:h.mult??1,elementCorrection:h.elementCorrection??1,elementBase:b,elementBefore:elemBefore,elementCap:elemCap,elementCapped:elemBefore>elemCap+1e-8,elementType:eType,physicalAttack}};
+      hits.push(out);totalMv+=h.mv;totalElemRate+=out.elemRate;totalStun+=stun;
+    };
+    for(let ci=0;ci<(p.combo||[]).length;ci++){
+      const it=p.combo[ci],m=moves.find(x=>x.id===(it.moveId||it.id));if(!m)continue;
+      if(m.rangedRole==='reload'){sequence=0;lastAmmo='';continue;}
+      if(m.rangedRole==='mode')continue;
+      const name=m.rangedAmmo||m.nameJa||m.name,lv=Number(name.match(/LV([123])/i)?.[1]||1),rapid=!!m.rangedRapid,chase=m.rangedRole==='chase';
+      const family=/通常/.test(name)?'normal':/貫通/.test(name)?'pierce':/散弾/.test(name)?'spread':/徹甲/.test(name)?'sticky':/拡散/.test(name)?'cluster':/斬裂/.test(name)?'slice':/滅龍/.test(name)?'dragon':/火炎|水冷|電撃|氷結/.test(name)?'element':'special';
+      const elementType=/火炎/.test(name)?'Fire':/水冷/.test(name)?'Water':/電撃/.test(name)?'Thunder':/氷結/.test(name)?'Ice':family==='dragon'?'Dragon':'None';
+      if(it.bgFullClip||lastAmmo!==name)sequence=0;
+      sequence=it.bgSequence!=null?clampCount(it.bgSequence,1,999):sequence+1;lastAmmo=name;
+      const baseR=baseFor(elementType,it.mantleMode||'none');lastBase=baseR;
+      const opening=sequence===1&&level('HunterSkill_198')>0,tetrad=level('HunterSkill_197'),boost=[4,6].includes(sequence)&&tetrad>0;
+      const ctx={base:baseR,sequence,rapid,physicalAdd:(level('HunterSkill_019')===3?5*coverage('HunterSkill_019'):0)+(opening?5*level('HunterSkill_198')*coverage('HunterSkill_198'):0)+(boost?[3,6,10][tetrad-1]*coverage('HunterSkill_197'):0),tetradAffinity:sequence>=4&&tetrad?[8,10,12][tetrad-1]*coverage('HunterSkill_197'):0,elementDamageMul:(opening?factor('HunterSkill_198',1.1):1)*(boost?factor('HunterSkill_197',1.05):1)};
+      const begin=hits.length,emit=h=>addHit(m,it,ci,h,ctx);
+      if(['normal','pierce','spread','element','dragon'].includes(family)){
+        const count=family==='normal'?(isLight&&chase&&!rapid?2:isLight&&rapid?5:3):family==='spread'?(isLight&&chase&&rapid?3:isLight&&(rapid||chase)?2:1):isLight?(family==='dragon'?(rapid&&chase?2:1):chase?(rapid?3:2):rapid?(family==='pierce'?3:2):1):1;
+        const width=family==='spread'?[5,6,7][lv-1]:1,ticks=['pierce','element','dragon'].includes(family)?clampCount(it.rangedHits,m.rangedStages?.default||6):family==='spread'?clampCount(it.bgPellets,width,width):1;
+        const mv=family==='normal'?(isLight?[17,23.8,30.6]:[17,23.8,32.3])[lv-1]:family==='pierce'?[11,12,12][lv-1]:family==='spread'?[13,15.6,18.2][lv-1]:family==='dragon'?20:lv===1?8:10;
+        const corr=!isLight?1:rapid?({normal:.7,pierce:.65,spread:.6,element:.6,dragon:.7}[family]):chase?({normal:1.9,pierce:1.2,spread:.85,element:.75,dragon:1.1}[family]):({normal:.8,pierce:.8,spread:.7,element:.7,dragon:.8}[family]);
+        for(let shot=0;shot<count;shot++)for(let tick=1;tick<=ticks;tick++){
+          const last=isLight&&rapid&&chase&&shot===count-1,boostP=last?({normal:5,pierce:3,spread:2,element:2.7,dragon:1.5}[family]):1,boostE=last?(family==='dragon'?1.4:2.7):1;
+          const decay=family==='pierce'?Math.max(.5,1-Math.max(0,tick-2)*.1):['element','dragon'].includes(family)?[1,1,.9,.8,.5,.5][tick-1]??.5:1;
+          emit({mv,type:'SHOT',ammoFamily:family,mult:corr*boostP,decay,elementType,elementMotion:family==='element'?(lv===1?20:25):family==='dragon'?44:0,elementCorrection:(!isLight?1:rapid?.6:chase?.75:.7)*(family==='dragon'?(!isLight?1:rapid?.7:chase?1.2:.8)/(!isLight?1:rapid?.6:chase?.75:.7):1)*boostE,projectile:shot+1,tick});
+        }
+      }else{
+        const vm=rangedWholeMove(m,it),hs=vm.hits||[],isFocus=m.rangedRole==='focus',heat=m.rangedRole==='heatSpecial',machine=m.rangedHeatType==='machine',heatPierce=m.rangedHeatType==='pierce';
+        let list=hs;
+        if(machine)list=Array.from({length:clampCount(it.bgSpecialHits,hs.length,40)},()=>({mv:10}));
+        if(heatPierce)list=Array.from({length:clampCount(it.bgSpecialHits,12,30)},()=>({mv:8}));
+        if(m.rangedHeatType==='grenade')list=hs.slice(0,clampCount(it.bgSpecialHits,6,6));
+        for(let hi=0;hi<list.length;hi++){
+          const h=list[hi];let fixed=false,type='SHOT',mult=1,fixedFire=0,artillery=false,element='None',extra=0;
+          if(family==='sticky'&&h.mv!==1){fixed=true;artillery=true;mult=isLight?(rapid?.35:chase?1:.5):1;if(isLight&&rapid&&chase&&hi===list.length-1)mult*=2.5;fixedFire=5;element='Fire';}
+          if(family==='cluster'&&hi>0){fixed=true;fixedFire=5;element='Fire';}
+          if(family==='slice'&&hi>0){type='SLASH';mult=isLight?(chase?1:.7):1;}
+          if(/竜撃/.test(name)){fixed=true;artillery=true;fixedFire=hi===0?40:20;element='Fire';}
+          if(isFocus&&isLight)fixed=true;
+          if(/起爆/.test(name))fixed=true;
+          if(/圧着/.test(name)){fixed=hi===list.length-1;type=hi>0&&!fixed?'SLASH':'SHOT';}
+          if(machine)mult=Math.pow(1.2,Math.min(4,Math.floor(hi/2)));
+          if(heatPierce){const stage=it.bgHeatStage||Math.min(3,1+Math.floor(hi/4));mult=stage;extra=2*stage;}
+          if(heat&&['offset','grenade'].includes(m.rangedHeatType)){fixed=true;artillery=true;if(m.rangedHeatType==='grenade'){fixedFire=10;element='Fire';}}
+          emit({mv:h.mv,type,fixed,mult,special:isFocus||heat||/竜弾/.test(name),heatBoost:heat||isFocus&&(it.rangedVariant??0)>0,artillery,fixedFire:fixedFire||undefined,elementType:element,elementMotion:0,distance:false,fixedExtra:extra,stun:family==='sticky'&&fixed?40:0,tick:hi+1});
+        }
+        if(isFocus&&it.wound&&n(p.scarRaw)>0){const wounds=clampCount(it.woundCount,1,3),coef=[0,30,50,80][wounds],raw=round(coef*p.scarRaw*n(baseR.state.woundBurstPct,1));hits.push({moveId:m.id,moveName:m.name,comboIndex:ci,raw,element:0,total:raw,status:0,stun:0,mv:0,effectiveMv:0,elemRate:0,type:'FIXED',fixed:true,woundBurst:true,woundCount:wounds,woundCoeff:coef,woundScarRaw:p.scarRaw,noSharp:true,sharpCost:0});}
+      }
+      const own=hits.slice(begin);contributions.push({comboIndex:ci,moveId:m.id,damage:own.reduce((a,h)=>a+h.total,0),physical:own.filter(h=>!h.fixed).reduce((a,h)=>a+h.raw-n(h.fixedExtraDamage),0),fixed:own.reduce((a,h)=>a+(h.fixed?h.raw:n(h.fixedExtraDamage)),0),element:own.reduce((a,h)=>a+h.element,0)});
+    }
+    const sum=k=>hits.reduce((a,h)=>a+n(h[k]),0),totalRaw=sum('raw'),totalElement=sum('element'),totalDamage=round(totalRaw+totalElement),fixed=hits.reduce((a,h)=>a+(h.fixed?h.raw:n(h.fixedExtraDamage)),0);
+    contributions.forEach(c=>c.share=totalDamage?c.damage/totalDamage*100:0);
+    const panel={...lastBase.panel,elementBase:0,elementAfter:0,statusBase:0,statusAfter:0,elementCapped:hits.some(h=>h.bowgun?.elementCapped),affinityAfter:lastBase.state.affinity,affinityVsTarget:hits.findLast(h=>h.affinityUsed!=null)?.affinityUsed??lastBase.state.affinity};
+    return {...base,totalRaw,totalElement,totalDamage,totalPhysical:totalRaw-fixed,totalFixed:fixed,totalStatus:0,totalStun,totalMotionValue:totalMv,totalElementRate:totalElemRate,totalMv,totalMvAfterHien:totalMv,totalMvEffective:sum('effectiveMv'),totalSharpCost:0,sharpKnives:0,moveContributions:contributions,hits,panel,state:lastBase.state,noElement:!hits.some(h=>h.element>0),noStatus:true,affinityVsTarget:panel.affinityVsTarget,attackFinal:panel.attackAfter,bowgun:true,bowgunStatusPending:(p.combo||[]).some(it=>/毒弾|麻痺弾|睡眠弾/.test(moves.find(m=>m.id===it.moveId)?.rangedAmmo||''))};
+  }
+
   function calculateCombo(params) {
+    if(!params._bowgunInternal && ["light_bowgun","heavy_bowgun"].includes(params.weaponId)) return calculateBowgunCombo(params);
     const moves = params.moves || [];
     const moveById = new Map(moves.map(function (m) { return [m.id, m]; }));
     const state = applySkills({
