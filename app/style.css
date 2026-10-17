@@ -768,7 +768,7 @@ th .ic { display: block; margin: 0 auto; }
 
 /* Bounded combo workspace: per-move output shares the editor with conditions. */
 .calc-combo-workspace { --combo-pane-height: clamp(320px, 58dvh, 560px); }
-.calc-combo-list { max-height: var(--combo-pane-height); overflow-y: auto; overscroll-behavior-y: contain; scrollbar-gutter: stable; }
+.calc-combo-list { max-height: var(--combo-pane-height); overflow-y: auto; overscroll-behavior-y: auto; scrollbar-gutter: stable; }
 .calc-move-header { flex-wrap: wrap; column-gap: 12px; row-gap: 2px; }
 .calc-move-select { flex: 0 1 auto; max-width: 100%; }
 .calc-move-select .calc-move-name { white-space: normal; }
@@ -793,7 +793,7 @@ th .ic { display: block; margin: 0 auto; }
 
 .calc-move-shares { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
 .calc-move-shares h3 { margin: 0 0 8px; font-size: 13px; color: var(--text-dim); }
-.calc-move-share-list { max-height: 220px; overflow-y: auto; overscroll-behavior-y: contain; }
+.calc-move-share-list { max-height: 220px; overflow-y: auto; overscroll-behavior-y: auto; }
 .calc-move-share-row { display: grid; grid-template-columns: minmax(0,1fr) auto 64px; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 12px; }
 .calc-move-share-row > span:first-child { overflow-wrap: anywhere; }
 .calc-move-share-row strong, .calc-move-share-percent { text-align: right; font-variant-numeric: tabular-nums; }
