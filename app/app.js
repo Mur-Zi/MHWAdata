@@ -841,6 +841,7 @@
       const all = CALC.weaponMoves || {};
       return all[state.weaponId] || CALC.moves || [];
     }
+    const isRangedWeapon = () => ['bow', 'light_bowgun', 'heavy_bowgun'].includes(state.weaponId);
     // 射击方式留在招式行内；保留各方式原有 ID，兼容已保存连段和计算数据。
     function bowgunShotChoices(move) {
       if (state.weaponId !== 'light_bowgun' || !move?.rangedAmmo || !['shot', 'chase', 'stepShot'].includes(move.rangedRole)) return [];
@@ -1580,7 +1581,7 @@
           ? '（' + noSharpBlade.length + ' hit 不耗斩味' + (noSharpNoBonus === noSharpBlade.length ? '且不吃斩味补正' : '') + '）'
           : '';
         // 耗斩单位是「刀」（斩味刀数），与 hit 数是两回事
-        if (sharpCt) tags.push('耗斩 ' + rd2(sharpCt / 10) + '刀' + noSharpNote);
+        if (!isRangedWeapon() && sharpCt) tags.push('耗斩 ' + rd2(sharpCt / 10) + '刀' + noSharpNote);
         // 猎虫 hit：伤害照算（hasmine 模型），但不进棍子的动作值/耗斩口径
         let insectTag = '';
         if (insects.length) {
@@ -1626,7 +1627,7 @@
           const mer = mantleHits.reduce((a, h) => a + (Number(h.elemRate) || 0), 0) / mantleHits.length;
           const msh = mantleHits.reduce((a, h) => a + (Number(h.sharpCost) || 0), 0);
           tags.push('蚀攻衣装加段 ' + mantleHits.length + ' hit（动作值 ' + rd2(mmv)
-            + ' · 属补 ' + rd2(mer) + ' · 耗斩 ' + rd2(msh / 10) + '刀）');
+            + ' · 属补 ' + rd2(mer) + (isRangedWeapon() ? '' : ' · 耗斩 ' + rd2(msh / 10) + '刀') + '）');
         }
         // 命中伤口/绽伤时的追加 hit（大锤集中殴打）：选中「伤口」肉质时自动并入，标出来
         const woundHits = blade.filter((h) => h.wound);
@@ -1674,7 +1675,7 @@
           // 耗斩：表内逐 hit 的「自定义耗斩」（10 = 面板 1 刀）；不是 10 的 hit（如蚀攻衣装加段、上捞类）单独标出来
           const effMv = h.effectiveMv != null ? h.effectiveMv : h.mv;
           const mvChanged = Math.abs(effMv - (Number(h.mv) || 0)) > 0.005;
-          const sharpNote = (!h.phial && !h.noSharp && h.sharpCost != null && h.sharpCost !== 10)
+          const sharpNote = (!isRangedWeapon() && !h.phial && !h.noSharp && h.sharpCost != null && h.sharpCost !== 10)
             ? `<i class="calc-mv-after">耗斩 ${Math.round(h.sharpCost) / 10}刀</i>` : '';
           // 飞燕：**勾了技能才亮标** —— 让这一刀的动作值自身发绿，不写多余的字
           const hienOn = h.hien && airMult !== 1;
@@ -1781,7 +1782,7 @@
         items: currentItems(),          // 道具/餐点
         attack: state.attack, element: state.element, elementType: state.elementType,
         status: state.status, statusType: state.statusType, affinity: state.affinity,
-        sharpness: sharpness[state.sharpness] || { raw: 1, element: 1 },
+        sharpness: isRangedWeapon() ? { raw: 1, element: 1 } : sharpness[state.sharpness] || { raw: 1, element: 1 },
         sharpGreen: sharpness.green || null,   // 狩猎笛响周波：斩味固定绿斩（用户拍板）
         hitzones: meat,
         isHead: currentIsHead(),        // 只有头部累计晕厥
@@ -1882,10 +1883,10 @@
         + (hasElem ? `<span>总属补 <b>${rd(er)}</b></span>` : '')
         + (hasStatus ? `<span>总异常补 <b>${rd(sr)}</b></span>` : '')
         + `<span>${blade.length} hit</span>`
-        + `<span class="calc-combo-sum-sharp">耗斩 <b>${rd(knives)}</b> 刀</span>`
+        + (isRangedWeapon() ? '' : `<span class="calc-combo-sum-sharp">耗斩 <b>${rd(knives)}</b> 刀</span>`)
         // 飞燕：勾了技能才亮标（只一个词）；选了技能但这段连段吃不到，才给一句提示
         + (hienHits && airMult !== 1 ? `<span class="calc-combo-sum-hien">飞燕</span>` : '')
-        + (noSharpHits ? `<span class="calc-combo-sum-note">其中 ${noSharpHits} hit 不耗斩味` + (noSharpNoBonus === noSharpHits ? '且不吃斩味补正' : '') + '</span>' : '')
+        + (!isRangedWeapon() && noSharpHits ? `<span class="calc-combo-sum-note">其中 ${noSharpHits} hit 不耗斩味` + (noSharpNoBonus === noSharpHits ? '且不吃斩味补正' : '') + '</span>' : '')
         // 猎虫：动作值与伤害单独列出（伤害已计入总伤害，但不进棍子的动作值/耗斩）
         + (insect.hits
           ? `<span class="calc-combo-sum-insect">猎虫 ${insect.hits} hit · 动作值 <b>${rd(insect.mv)}</b>`
@@ -1922,7 +1923,7 @@
           : '')
         + (airMult !== 1 && !hienHits && blade.length
           ? `<span class="calc-combo-sum-note">飞燕未生效</span>` : '')
-        + `<span class="calc-combo-sum-note">耗斩的「刀」= 武器面板 1 斩味（历代 1 刀）</span>`;
+        + (isRangedWeapon() ? '' : `<span class="calc-combo-sum-note">耗斩的「刀」= 武器面板 1 斩味（历代 1 刀）</span>`);
     }
 
     // 连段列表渲染
@@ -2935,7 +2936,7 @@
       const isCB = state.weaponId === 'charge_blade';
       const isHH = state.weaponId === 'hunting_horn';
       const bowgun=['light_bowgun','heavy_bowgun'].includes(state.weaponId);
-      ['calc-eltype','calc-element','calc-sttype','calc-status','calc-sharp'].forEach(id=>{const field=el.querySelector('#'+id)?.closest('label');if(field)field.hidden=bowgun;});
+      ['calc-eltype','calc-element','calc-sttype','calc-status','calc-sharp'].forEach(id=>{const field=el.querySelector('#'+id)?.closest('label');if(field)field.hidden=bowgun||(id==='calc-sharp'&&isRangedWeapon());});
       el.querySelector('#calc-bg-spec-row').hidden=state.weaponId!=='heavy_bowgun';
       const derive=el.querySelector('#calc-derive-toggle');if(derive?.closest('label'))derive.closest('label').hidden=bowgun;if(bowgun){derive.checked=false;state.deriveMode=false;}
       const noteEl = $('div#calc-weapon-note');
