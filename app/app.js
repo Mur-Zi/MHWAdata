@@ -841,6 +841,13 @@
       const all = CALC.weaponMoves || {};
       return all[state.weaponId] || CALC.moves || [];
     }
+    // 射击方式留在招式行内；保留各方式原有 ID，兼容已保存连段和计算数据。
+    function bowgunShotChoices(move) {
+      if (state.weaponId !== 'light_bowgun' || !move?.rangedAmmo || !['shot', 'chase', 'stepShot'].includes(move.rangedRole)) return [];
+      const order = m => m.rangedRole === 'stepShot' ? 4 : Number(!!m.rangedRapid) * 2 + Number(m.rangedRole === 'chase');
+      return currentMoves().filter(m => m.rangedAmmo === move.rangedAmmo && ['shot', 'chase', 'stepShot'].includes(m.rangedRole))
+        .sort((a, b) => order(a) - order(b));
+    }
     // 蓄力/等级档位（大剑/大锤/狩猎笛）：表内逐档给了动作值，档位由用户选（用户拍板：0 蓄也存在）
     const levelsOf = (move) => (move && move.chargeLevels && move.chargeLevels.length ? move.chargeLevels : null);
     const levelUnitOf = (move) => (move && move.levelUnit) || '蓄';
@@ -1253,6 +1260,12 @@
     function nextMoveOptions() {
       const mv = currentMoves();
       const meta = WEAPON_META[state.weaponId] || {};
+      if (['light_bowgun', 'heavy_bowgun'].includes(state.weaponId)) {
+        return { list: mv.filter(m => {
+          if (state.weaponId === 'light_bowgun' && m.rangedRole === 'mode') return false;
+          const choices = bowgunShotChoices(m); return !choices.length || choices[0].id === m.id;
+        }), tags: {}, hint: '' };
+      }
       if(meta.rangedDerive){
         const allowed=window.MHCalculator.rangedNextMoves(state.weaponId,mv,state.combo),tags={};
         allowed.forEach(m=>tags[m.id]='派生');
@@ -1930,7 +1943,7 @@
         // 铳枪「加速」：这一招是经由上一条边（branchTags）派生出来的 → 连段行里也标出来（用户 2026-10-01）
         const prevMove = i > 0 ? moveOf(state.combo[i - 1].moveId) : null;
         const edgeLabel = (prevMove && prevMove.branchTags && move) ? prevMove.branchTags[move.id] : null;
-        name.innerHTML = `${i + 1}. ${levelNameOf(move, item) || (move ? move.name : item.moveId)}`
+        name.innerHTML = `${i + 1}. ${levelNameOf(move, item) || bowgunShotChoices(move)[0]?.name || (move ? move.name : item.moveId)}`
           + (edgeLabel ? '<i class="calc-branch-tag">' + edgeLabel + '</i>' : '')
           + (move ? hienTag(move) : '')
           + (morphSkillOn() && morphChangesAt(i) ? '<i class="calc-morph-tag">高速变形</i>' : '')
@@ -2106,6 +2119,22 @@
           lab.appendChild(sp);
           row.appendChild(lab);
         };
+        const shotChoices = bowgunShotChoices(move);
+        if (shotChoices.length > 1) {
+          const sel = document.createElement('select');
+          sel.className = 'calc-native-select calc-hitselect';
+          sel.dataset.bowgunShot = '';
+          shotChoices.forEach(m => {
+            const option = document.createElement('option');
+            option.value = m.id;
+            option.textContent = m.rangedRole === 'stepShot' ? '速射垫步射击' : m.rangedRapid ? (m.rangedRole === 'chase' ? '速射追射' : '速射') : (m.rangedRole === 'chase' ? '追射' : '普通射击');
+            sel.appendChild(option);
+          });
+          sel.value = item.moveId;
+          sel.addEventListener('change', () => { state.combo[i].moveId = sel.value; refreshComboUI(); });
+          row.appendChild(sel);
+          enhanceSelect(sel, '射击方式');
+        }
         cbPick([{label:'无衣装',value:0},{label:'蚀攻衣装·克服前',value:1},{label:'蚀攻衣装·克服后',value:2},{label:'回避衣装',value:3}],['none','before','after','evasion'].indexOf(item.mantleMode||'none'),'mantlePick','衣装');
         if(move?.bowgunPreview&&!['reload','mode'].includes(move.rangedRole)){
           if(move.bgDistance)cbPick([{label:'适正距离'},{label:'过近'},{label:'过远'}],item.bgDistance??0,'bgDistance','射击距离');
@@ -3081,7 +3110,7 @@
             if (p.weaponId !== state.weaponId || !Array.isArray(saved) || !saved.every(it => it && currentMoves().some(m => m.id === it.moveId))) {
               presetMessage(kind, '该连段含当前版本不支持的招式，无法读取'); return;
             }
-            state.combo = clonePreset(saved).map(it=>({...it,mantleMode:it.mantleMode||(state.mantle?'after':'none')})); state.deriveMode = p.data.deriveMode !== false;
+            state.combo = clonePreset(saved).map(it=>({...it,mantleMode:it.mantleMode||(state.mantle?'after':'none')})); state.deriveMode = !['light_bowgun','heavy_bowgun'].includes(state.weaponId) && p.data.deriveMode !== false;
             $('input#calc-derive-toggle').checked = state.deriveMode; refreshComboUI();
           }
           close(); presetMessage(kind, '已读取：' + p.name);
