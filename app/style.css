@@ -765,3 +765,28 @@ th .ic { display: block; margin: 0 auto; }
 .calc-cov-val { min-width: 44px; text-align: right; font-size: 13px; color: var(--accent); font-weight: 700; }
 .calc-cov-btn { width: 26px; height: 26px; font-size: 15px; flex: none; }
 .calc-chip-cov { font-style: normal; margin-left: 4px; color: var(--accent); font-weight: 700; }
+
+/* Bounded combo workspace: per-move output shares the editor with conditions. */
+.calc-combo-workspace { --combo-pane-height: clamp(320px, 58dvh, 560px); }
+.calc-combo-list { max-height: var(--combo-pane-height); overflow-y: auto; overscroll-behavior-y: contain; scrollbar-gutter: stable; }
+.calc-move-header { flex-wrap: wrap; column-gap: 12px; row-gap: 2px; }
+.calc-move-select { flex: 0 1 auto; max-width: 100%; }
+.calc-move-select .calc-move-name { white-space: normal; }
+.calc-move-header .calc-move-summary { flex: 1 1 100px; min-width: 0; margin: 0; gap: 2px 10px; }
+.calc-move-actions { margin-left: auto; }
+.calc-move-output { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; margin-top: 5px; font-size: 12px; }
+.calc-move-output-values { color: var(--accent); font-variant-numeric: tabular-nums; }
+.calc-move-damage-link { background: none; border: 0; padding: 3px 0; color: var(--accent2); cursor: pointer; font-size: 12px; }
+.calc-editor-tabs { display: flex; gap: 6px; margin: 12px 0; }
+.calc-editor-tabs button { flex: 1; padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg2); color: var(--text-dim); cursor: pointer; }
+.calc-editor-tabs button.active { border-color: var(--accent); color: var(--accent); }
+.calc-combo-desktop .calc-combo-list { margin-top: 0; }
+.calc-combo-desktop .calc-combo-editor { position: static; max-height: var(--combo-pane-height); overflow-y: auto; overscroll-behavior-y: contain; }
+.calc-editor-damage .calc-hit-head { flex-wrap: wrap; }
+.calc-editor-damage .calc-hit-name { flex-basis: 100%; }
+.calc-editor-damage .calc-hit-nums { text-align: left; }
+.calc-move-damage-link:focus-visible, .calc-editor-tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 899px) {
+  .calc-combo-workspace { --combo-pane-height: clamp(320px, 65dvh, 620px); }
+  .calc-move-header .calc-move-summary { flex-basis: 80px; }
+}

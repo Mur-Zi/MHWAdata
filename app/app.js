@@ -1110,6 +1110,8 @@
     const PRESET_KEY = 'mhwa_calculator_presets_v1';
     let openMoveItem = null;
     let selectedMoveItem = null;
+    let comboResult = null;
+    let moveEditorTab = 'options';
     const comboMedia = window.matchMedia('(min-width: 900px)');
     const CONFIG_KEYS = ['weaponId', 'attack', 'affinity', 'element', 'elementType', 'status', 'statusType', 'sharpness',
       'fullHealth', 'overcomeFrenzy', 'clash', 'ateMeat', 'festival', 'warCry', 'absorbHits', 'wet', 'bubble', 'bowgunSpec',
@@ -1579,6 +1581,7 @@
 
     // 结果渲染
     function renderResults(r) {
+      comboResult = r;
       const identity=el.querySelector('#calc-target-identity');
       const targetMonster=selectedMonster(),icon=targetMonster&&META.imageMap[targetMonster.name]?.icon;
       identity.replaceChildren();
@@ -1602,7 +1605,7 @@
         stat('最终会心率', (r.affinityVsTarget != null ? r.affinityVsTarget : r.affinity).toFixed(1) + '%')
       ].join('');
 
-      if (!r.hits.length) { tbl.innerHTML = '<div class="empty">请先添加招式。</div>'; return; }
+      if (!r.hits.length) { tbl.innerHTML = ''; updateComboOutputs(); return; }
 
       // 按招式分组：默认折叠，点招式行展开逐刀明细（十几刀的招式不会占一屏）
       const groups = [];
@@ -1815,7 +1818,7 @@
         });
         body += '</tbody></table>';
 
-        html += `<div class="calc-hit-group">
+        html += `<div class="calc-hit-group" data-combo-index="${g.comboIndex}">
           <button type="button" class="calc-hit-head" data-hit-group="${gi}">
             <span class="calc-hit-name">${g.moveName}${prevEdge ? '<i class="calc-branch-tag">' + prevEdge + '</i>' : ''}${tagStr}<em>${hitsLabel}</em></span>
             <span class="calc-hit-nums">总伤害 <b>${(contribution?.damage??sum.raw+sum.element).toFixed(2)}</b> · 占比 <b>${(contribution?.share??0).toFixed(2)}%</b><br>物理 <b>${(contribution?.physical??sum.raw).toFixed(2)}</b> · 属性 <b>${(contribution?.element??sum.element).toFixed(2)}</b> · 固伤 <b>${(contribution?.fixed??0).toFixed(2)}</b></span>
@@ -1825,6 +1828,7 @@
         </div>`;
       });
       tbl.innerHTML = html;
+      updateComboOutputs();
 
       tbl.querySelectorAll('[data-hit-group]').forEach((btn) => {
         btn.addEventListener('click', () => {
@@ -2012,6 +2016,30 @@
     }
 
     // 主行只留两个核心选项；其余控件沿用原事件和数据，移入招式设置面板。
+    function updateComboOutputs() {
+      const list=el.querySelector('#calc-combo-list');
+      list?.querySelectorAll('.calc-combo-item').forEach(row=>{
+        const c=comboResult?.moveContributions?.find(c=>c.comboIndex===Number(row.dataset.moveIndex));
+        const output=row.querySelector('.calc-move-output-values');
+        if(output)output.textContent=c?`伤害 ${c.damage.toFixed(2)} · 占比 ${c.share.toFixed(2)}%`:'伤害 0.00 · 占比 0.00%';
+      });
+      el.querySelectorAll('.calc-editor-damage').forEach(target=>{
+        target.replaceChildren();
+        const source=el.querySelector('#calc-hit-table [data-combo-index="'+target.dataset.moveIndex+'"]');
+        if(!source){const empty=document.createElement('p');empty.className='empty';empty.textContent='此招式没有伤害 hit。';target.append(empty);return;}
+        const detail=source.cloneNode(true),body=detail.querySelector('.calc-hit-body'),head=detail.querySelector('.calc-hit-head');
+        if(body)body.hidden=false;
+        if(head){head.classList.add('open');head.setAttribute('aria-expanded','true');head.addEventListener('click',()=>{body.hidden=!body.hidden;head.classList.toggle('open',!body.hidden);head.setAttribute('aria-expanded',String(!body.hidden));});}
+        target.append(detail);
+      });
+    }
+    function revealComboSelection() {
+      const list=el.querySelector('#calc-combo-list'),row=list?.children[state.combo.indexOf(selectedMoveItem)];
+      if(!row)return;
+      const bounds=list.getBoundingClientRect(),rect=row.getBoundingClientRect();
+      if(rect.top<bounds.top)list.scrollTop+=rect.top-bounds.top;
+      else if(rect.bottom>bounds.bottom)list.scrollTop+=Math.min(rect.bottom-bounds.bottom,rect.top-bounds.top);
+    }
     function layoutMoveOptions(row, item, index) {
       const labels = {charge:'档位',dbMode:'形态',bowgunShot:'射击方式',mantlePick:'衣装',bgDistance:'射击距离',bgPellets:'命中弹丸',bgSpecialHits:'命中数',bgHeatStage:'龙热穿甲阶段',bgFullClip:'满弹仓开始',bgSequence:'射击序号',rangedVariant:'招式类型',rangedHits:'每箭／发命中数',rangedFollowHits:'伤口追击命中数',rangedExtraHits:'追加命中数',sequence:'命中方式',recovery:'收招形态',sound:'旋律',soundCountPick:'旋律数量',precise:'精密命中',counter:'反击',completion:'完成段数',bloom:'命中绽伤',forceGuard:'力防层数',saw:'电锯跳数',phial:'瓶爆次数',shells:'发炮数',wound:'命中伤口',woundCount:'伤口数量',woundLegendary:'历战伤口',energy:'能量充足',gp:'当身成功',aim:'变化点',qi:'有气',finish:'打完',cancelPrev:'打断上一招',hits:'命中数',spin:'圈数'};
       const coreOrder = ['charge','dbMode','bowgunShot','rangedVariant','completion','sound','sequence','wound','bloom','hits','spin','rangedHits','shells','bgPellets','bgSpecialHits','soundCountPick'];
@@ -2054,7 +2082,7 @@
         editor.hidden=false;editor.dataset.moveIndex=String(index);
         const title=document.createElement('h3');title.tabIndex=-1;title.textContent=name.textContent;
         const nav=document.createElement('div');nav.className='calc-editor-nav';
-        [-1,1].forEach(delta=>{const button=document.createElement('button');button.type='button';button.textContent=delta<0?'上一招':'下一招';button.disabled=!state.combo[index+delta];button.addEventListener('click',()=>openMoveSettings(state.combo[index+delta],index+delta));nav.appendChild(button);});
+        [-1,1].forEach(delta=>{const button=document.createElement('button');button.type='button';button.textContent=delta<0?'上一招':'下一招';button.disabled=!state.combo[index+delta];button.addEventListener('click',()=>openMoveSettings(state.combo[index+delta],index+delta,null,false,moveEditorTab));nav.appendChild(button);});
         const header=document.createElement('div');header.className='calc-editor-head';header.append(title,nav);editor.appendChild(header);
         target=document.createElement('div');target.className='calc-editor-fields';editor.appendChild(target);
       }
@@ -2073,16 +2101,31 @@
         const node=c.node,select=node.matches('select')?node:node.querySelector('select'),checkbox=node.querySelector('input[type="checkbox"]');
         let value=select?select.options[select.selectedIndex]?.textContent:checkbox?(checkbox.checked?'是':'否'):node.querySelector('.seg-btn.active')?.textContent;
         if(!value&&c.field==='bgSequence')value=node.querySelector('input')?.value||'自动';
-        const link=document.createElement('button');link.type='button';link.textContent=(labels[c.field]||c.field)+(value?' · '+value:'');
+        const link=document.createElement('button');link.type='button';link.textContent=['charge','mantlePick'].includes(c.field)&&value?value:(labels[c.field]||c.field)+(value?' · '+value:'');
         link.addEventListener('click',()=>openMoveSettings(item,index,c.field));summary.appendChild(link);
       });
-      if(summary.childElementCount)row.appendChild(summary);
-      row.appendChild(body);
+      if(summary.childElementCount)head.insertBefore(summary,actions);
+      const output=document.createElement('div');output.className='calc-move-output';
+      const values=document.createElement('span');values.className='calc-move-output-values';
+      const details=document.createElement('button');details.type='button';details.textContent='伤害详情';details.className='calc-move-damage-link';
+      details.addEventListener('click',()=>openMoveSettings(item,index,null,false,'damage'));
+      output.append(values,details);row.append(output,body);
+      if(desktop&&selected||!desktop&&openMoveItem===item){
+        const host=desktop?editor:body;
+        const tabs=document.createElement('div');tabs.className='calc-editor-tabs';tabs.setAttribute('aria-label','招式编辑内容');
+        [['options','招式条件'],['damage','伤害详情']].forEach(([key,label])=>{const button=document.createElement('button');button.type='button';button.textContent=label;button.classList.toggle('active',moveEditorTab===key);button.setAttribute('aria-pressed',String(moveEditorTab===key));button.addEventListener('click',()=>openMoveSettings(item,index,null,false,key));tabs.append(button);});
+        if(desktop)editor.insertBefore(tabs,target);else body.prepend(tabs);
+        if(desktop)target.hidden=moveEditorTab==='damage';
+        else Array.from(body.children).filter(n=>n!==tabs).forEach(n=>n.hidden=moveEditorTab==='damage');
+        const damage=document.createElement('div');damage.className='calc-editor-damage calc-hit-table';damage.dataset.moveIndex=String(index);damage.hidden=moveEditorTab!=='damage';host.append(damage);
+      }
     }
-    function openMoveSettings(item,index,field=null,toggle=false) {
+    function openMoveSettings(item,index,field=null,toggle=false,view='options') {
+      moveEditorTab=view;
       selectedMoveItem=item;
       if(!comboMedia.matches)openMoveItem=toggle&&openMoveItem===item?null:item;
       renderCombo();
+      revealComboSelection();
       const scope=comboMedia.matches?el.querySelector('#calc-combo-editor'):el.querySelectorAll('.calc-combo-item')[index];
       if(field){const control=Array.from(scope?.querySelectorAll('[data-move-control]')||[]).find(n=>n.dataset.moveControl===field);control?.querySelector('button,input,select')?.focus({preventScroll:true});}
       else if(comboMedia.matches)scope?.querySelector('h3')?.focus({preventScroll:true});
@@ -2091,6 +2134,7 @@
     // 连段列表渲染
     function renderCombo() {
       const list = el.querySelector('#calc-combo-list');
+      const listScroll=list.scrollTop;
       const activeField=document.activeElement?.closest('[data-move-control]')?.dataset.moveControl;
       const activeIndex=document.activeElement?.closest('[data-move-index]')?.dataset.moveIndex;
       if(openMoveItem&&!state.combo.includes(openMoveItem))openMoveItem=null;
@@ -2473,7 +2517,9 @@
         layoutMoveOptions(row,item,i);
         list.appendChild(row);
       });
+      list.scrollTop=listScroll;
       editor.scrollTop=editorScroll;
+      updateComboOutputs();
       if(activeField){
         const scope=comboMedia.matches?editor:list.children[Number(activeIndex)];
         if(scope&&scope.dataset.moveIndex===activeIndex){const field=Array.from(scope.querySelectorAll('[data-move-control]')).find(n=>n.dataset.moveControl===activeField);field?.querySelector('button,input:not([type="hidden"])')?.focus({preventScroll:true});}
@@ -3163,7 +3209,7 @@
       <section class="calc-card calc-result">
         <h2>计算结果</h2>
         <div class="calc-result-grid" id="calc-result-grid"></div>
-        <div class="calc-hit-table" id="calc-hit-table"></div>
+        <div class="calc-hit-table" id="calc-hit-table" hidden></div>
       </section>
 
       <div class="drawer-backdrop" id="calc-skill-backdrop" hidden></div>
@@ -3811,7 +3857,9 @@
         ...(move && move.forceGuardBuff ? { forceGuard: Number(move.forceGuardBuff['default'] || 0) } : {})
       });
       selectedMoveItem=state.combo.at(-1);
+      moveEditorTab='options';
       refreshComboUI();
+      revealComboSelection();
     });
     $('button#calc-combo-clear').addEventListener('click', () => { state.combo = []; refreshComboUI(); });
 
