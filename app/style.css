@@ -781,7 +781,7 @@ th .ic { display: block; margin: 0 auto; }
 .calc-editor-tabs button { flex: 1; padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg2); color: var(--text-dim); cursor: pointer; }
 .calc-editor-tabs button.active { border-color: var(--accent); color: var(--accent); }
 .calc-combo-desktop .calc-combo-list { margin-top: 0; }
-.calc-combo-desktop .calc-combo-editor { position: static; max-height: var(--combo-pane-height); overflow-y: auto; overscroll-behavior-y: contain; }
+.calc-combo-desktop .calc-combo-editor { position: static; max-height: var(--combo-pane-height); overflow-y: auto; overscroll-behavior-y: auto; }
 .calc-editor-damage .calc-hit-head { flex-wrap: wrap; }
 .calc-editor-damage .calc-hit-name { flex-basis: 100%; }
 .calc-editor-damage .calc-hit-nums { text-align: left; }
@@ -798,3 +798,15 @@ th .ic { display: block; margin: 0 auto; }
 .calc-move-share-row > span:first-child { overflow-wrap: anywhere; }
 .calc-move-share-row strong, .calc-move-share-percent { text-align: right; font-variant-numeric: tabular-nums; }
 .calc-move-share-percent { color: var(--accent); }
+
+/* Match native scrollbars to the dark palette; retain mouse, touch and keyboard scrolling. */
+* { scrollbar-width: thin; scrollbar-color: #806639 var(--bg2); }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: #806639; border: 2px solid var(--bg2); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+::-webkit-scrollbar-button { display: none; }
+.calc-combo-item { cursor: pointer; }
+.calc-combo-item:hover { border-color: #806639; }
+.calc-combo-selected:hover { border-color: var(--accent); }
+.calc-move-options, .calc-move-primary { cursor: auto; }

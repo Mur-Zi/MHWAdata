@@ -2079,6 +2079,12 @@
       const name = row.querySelector('.calc-move-name'), remove = row.querySelector('.calc-rm');
       row.dataset.moveIndex=String(index);
       row.classList.toggle('calc-combo-selected',desktop&&selected);
+      row.addEventListener('click',event=>{
+        if(event.target.closest('button,a,input,select,textarea,label,[data-move-control],.calc-move-options'))return;
+        if(!window.getSelection()?.isCollapsed)return;
+        if(desktop&&selectedMoveItem===item)return;
+        openMoveSettings(item,index,null,!desktop,desktop?moveEditorTab:'options');
+      });
       const head=document.createElement('div');head.className='calc-move-header';
       const choose=document.createElement('button');choose.type='button';choose.className='calc-move-select';
       choose.appendChild(name);choose.setAttribute('aria-label','编辑第'+(index+1)+'招：'+name.textContent);
