@@ -1037,6 +1037,7 @@
     // 道具/餐点分组（同组互斥，单选）
     const itemGroups = (CALC.items && CALC.items.groups) || [];
     const PRESET_KEY = 'mhwa_calculator_presets_v1';
+    let openMoveItem = null;
     const CONFIG_KEYS = ['weaponId', 'attack', 'affinity', 'element', 'elementType', 'status', 'statusType', 'sharpness',
       'fullHealth', 'overcomeFrenzy', 'clash', 'ateMeat', 'festival', 'warCry', 'absorbHits', 'wet', 'bubble', 'bowgunSpec',
       'threeLamp', 'mantle', 'cbPhial', 'cbReinforced', 'cbRedShield', 'cbRedSword', 'swaxAwakened', 'swaxPhial','apexSoulReady','encouragement','ailmentCleared','ailment',
@@ -1926,9 +1927,81 @@
         + (isRangedWeapon() ? '' : `<span class="calc-combo-sum-note">耗斩的「刀」= 武器面板 1 斩味（历代 1 刀）</span>`);
     }
 
+    // 主行只留两个核心选项；其余控件沿用原事件和数据，移入招式设置面板。
+    function layoutMoveOptions(row, item, index) {
+      const labels = {charge:'档位',dbMode:'形态',bowgunShot:'射击方式',mantlePick:'衣装',bgDistance:'射击距离',bgPellets:'命中弹丸',bgSpecialHits:'命中数',bgHeatStage:'龙热穿甲阶段',bgFullClip:'满弹仓开始',bgSequence:'射击序号',rangedVariant:'招式类型',rangedHits:'每箭／发命中数',rangedFollowHits:'伤口追击命中数',rangedExtraHits:'追加命中数',sequence:'命中方式',recovery:'收招形态',sound:'旋律',soundCountPick:'旋律数量',precise:'精密命中',counter:'反击',completion:'完成段数',bloom:'命中绽伤',forceGuard:'力防层数',saw:'电锯跳数',phial:'瓶爆次数',shells:'发炮数',wound:'命中伤口',woundCount:'伤口数量',woundLegendary:'历战伤口',energy:'能量充足',gp:'当身成功',aim:'变化点',qi:'有气',finish:'打完',cancelPrev:'打断上一招',hits:'命中数',spin:'圈数'};
+      const coreOrder = ['charge','dbMode','bowgunShot','rangedVariant','completion','sound','sequence','wound','bloom','hits','spin','rangedHits','shells','bgPellets','bgSpecialHits','soundCountPick'];
+      const controls = Array.from(row.children).filter(n => n.dataset.moveField).map((node, order) => {
+        const field = node.dataset.moveField, wrapper = document.createElement('div');
+        wrapper.className = 'calc-move-control'; wrapper.dataset.moveControl = field;
+        const picker = node.matches('select') && node.previousElementSibling?.classList.contains('picker-btn') ? node.previousElementSibling : null;
+        if (picker) wrapper.appendChild(picker);
+        wrapper.appendChild(node);
+        const priority = coreOrder.indexOf(field);
+        return {field,node,wrapper,order,priority:priority<0?100:priority};
+      });
+      const primary = controls.filter(c=>c.priority<100).sort((a,b)=>a.priority-b.priority||a.order-b.order).slice(0,2);
+      const advanced = controls.filter(c=>!primary.includes(c));
+      const name = row.querySelector('.calc-move-name'), remove = row.querySelector('.calc-rm');
+      const head = document.createElement('div'); head.className = 'calc-move-header'; head.appendChild(name);
+      const actions = document.createElement('div'); actions.className = 'calc-move-actions';
+      const settings = document.createElement('button'); settings.type='button'; settings.className='calc-move-settings'; settings.textContent='设置';
+      settings.setAttribute('aria-label', '第'+(index+1)+'招设置'); settings.setAttribute('aria-expanded',String(openMoveItem===item));
+      settings.setAttribute('aria-controls','calc-move-settings-panel-'+index);
+      actions.appendChild(settings); actions.appendChild(remove); head.appendChild(actions);row.prepend(head);
+      remove.setAttribute('aria-label','删除第'+(index+1)+'招');
+      const main = document.createElement('div'); main.className='calc-move-primary';
+      primary.forEach(c=>main.appendChild(c.wrapper)); if(primary.length)head.after(main);
+      const backdrop=document.createElement('div');backdrop.className='calc-move-settings-backdrop';backdrop.hidden=openMoveItem!==item;
+      backdrop.addEventListener('click',()=>closeMoveSettings(index));backdrop.addEventListener('wheel',e=>e.preventDefault(),{passive:false});
+      const panel=document.createElement('section');panel.className='calc-move-settings-panel';panel.hidden=openMoveItem!==item;
+      panel.id='calc-move-settings-panel-'+index;
+      panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-labelledby','calc-move-settings-title-'+index);
+      const panelHead=document.createElement('div');panelHead.className='calc-move-settings-head';
+      const title=document.createElement('span');title.id='calc-move-settings-title-'+index;title.textContent=name.textContent+' · 设置';
+      const close=document.createElement('button');close.type='button';close.textContent='完成';close.className='calc-move-settings-done';close.addEventListener('click',()=>closeMoveSettings(index));
+      panelHead.append(title,close);panel.appendChild(panelHead);
+      const body=document.createElement('div');body.className='calc-move-settings-body';
+      advanced.forEach(c=>{
+        c.wrapper.classList.add('calc-move-advanced-control');
+        if(!c.node.matches('label')){const label=document.createElement('span');label.className='calc-move-option-label';label.textContent=labels[c.field]||c.field;c.wrapper.prepend(label);}
+        body.appendChild(c.wrapper);
+      });panel.appendChild(body);
+      const summary=[];
+      advanced.forEach(c=>{
+        const field=c.field,node=c.node;
+        if(field==='mantlePick'){
+          const mode=item.mantleMode||'none',prev=index?state.combo[index-1].mantleMode||'none':'none';
+          if(mode!==prev)summary.push(node.options[node.selectedIndex]?.textContent||'衣装已变更');
+        }else if(field==='bgDistance'){
+          const previous=index?state.combo[index-1].bgDistance??0:0;
+          if((item.bgDistance??0)!==previous)summary.push(node.options[node.selectedIndex]?.textContent||'');
+        }else if(node.matches('label')){
+          const checkbox=node.querySelector('input[type="checkbox"]');
+          if(checkbox?.checked)summary.push(node.textContent.trim());
+          if(field==='bgSequence'&&item.bgSequence!=null)summary.push('第'+item.bgSequence+'次射击');
+        }else if(node.matches('select')&&node.value!==node.dataset.moveDefault){
+          summary.push(node.options[node.selectedIndex]?.textContent||'');
+        }
+      });
+      if(summary.length){const button=document.createElement('button');button.type='button';button.className='calc-move-summary';button.textContent=summary.join(' · ');button.setAttribute('aria-label','修改条件：'+button.textContent);button.addEventListener('click',()=>openMoveSettings(item,index));row.appendChild(button);}
+      row.append(backdrop,panel);
+      settings.addEventListener('click',()=>openMoveSettings(item,index));
+    }
+    function openMoveSettings(item,index) {
+      openMoveItem=item;renderCombo();
+      el.querySelectorAll('.calc-combo-item')[index]?.querySelector('.calc-move-settings-done')?.focus({preventScroll:true});
+    }
+    function closeMoveSettings(index) {
+      openMoveItem=null;renderCombo();
+      el.querySelectorAll('.calc-combo-item')[index]?.querySelector('.calc-move-settings')?.focus({preventScroll:true});
+    }
     // 连段列表渲染
     function renderCombo() {
       const list = el.querySelector('#calc-combo-list');
+      const activeField=document.activeElement?.closest('[data-move-control]')?.dataset.moveControl;
+      const panelScroll=list.querySelector('.calc-move-settings-panel:not([hidden]) .calc-move-settings-body')?.scrollTop||0;
+      if(openMoveItem&&!state.combo.includes(openMoveItem))openMoveItem=null;
       list.innerHTML = '';
       state.combo.forEach((item, i) => {
         const move = moveOf(item.moveId);
@@ -1955,7 +2028,7 @@
           item.dbMode = dbModeOf(item, move);
           if (move.id === 'db_up') item.charge = item.dbMode === 'demon' ? 2 : 1;
           if (move.dbModes.length > 1) {
-            const label = document.createElement('label'); label.className = 'calc-field calc-field-inline';
+            const label = document.createElement('label'); label.className = 'calc-field calc-field-inline';label.dataset.moveField='dbMode';
             const select = document.createElement('select'); select.className = 'calc-db-mode';
             move.dbModes.forEach(mode => { const option = document.createElement('option'); option.value = mode; option.textContent = DB_MODE_NAMES[mode]; select.appendChild(option); });
             select.value = item.dbMode;
@@ -1971,6 +2044,7 @@
           const cur = chargeOf(item, move);
           const seg = document.createElement('div');
           seg.className = 'seg-group';
+          seg.dataset.moveField='charge';
           lvs.forEach((l) => {
             const b = document.createElement('button');
             b.type = 'button';
@@ -1990,6 +2064,7 @@
           // 蓄力等级：分段按钮（比原生下拉直观、也更贴合深色主题）
           const seg = document.createElement('div');
           seg.className = 'seg-group';
+          seg.dataset.moveField='charge';
           [0, 1, 2].forEach((c) => {
             const b = document.createElement('button');
             b.type = 'button';
@@ -2022,6 +2097,7 @@
           const unit = hs.unit || 'hit';
           const sel = document.createElement('select');
           sel.className = 'calc-native-select calc-hitselect';
+          sel.dataset.moveField='hits';sel.dataset.moveDefault=String(hs.default);
           for (let v = hs.min; v <= hs.max; v++) {
             const o = document.createElement('option');
             o.value = String(v);
@@ -2044,6 +2120,7 @@
           const cur = item.spin != null ? item.spin : sp['default'];
           const sel = document.createElement('select');
           sel.className = 'calc-native-select calc-hitselect';
+          sel.dataset.moveField='spin';sel.dataset.moveDefault=String(sp.default);
           for (let v = sp.min; v <= sp.max; v++) {
             const o = document.createElement('option');
             o.value = String(v);
@@ -2066,6 +2143,7 @@
         const cbSel = (unit, min, max, cur, def, field, tip) => {
           const sel = document.createElement('select');
           sel.className = 'calc-native-select calc-hitselect';
+          sel.dataset.moveField=field;sel.dataset.moveDefault=String(def);
           for (let v = min; v <= max; v++) {
             const o = document.createElement('option');
             o.value = String(v);
@@ -2083,6 +2161,7 @@
         const cbPick = (opts, cur, field, tip) => {
           const sel = document.createElement('select');
           sel.className = 'calc-native-select calc-hitselect';
+          sel.dataset.moveField=field;sel.dataset.moveDefault=String(opts[0]?.value??0);
           (opts || []).forEach((o, idx) => {
             const el = document.createElement('option');
             el.value = String(o.value ?? idx);
@@ -2098,6 +2177,7 @@
         const cbCheck = (opt, cur, field, title) => {
           const lab = document.createElement('label');
           lab.className = 'calc-check calc-inline-check';
+          lab.dataset.moveField=field;
           const cb = document.createElement('input');
           cb.type = 'checkbox';
           cb.checked = !!cur;
@@ -2125,6 +2205,7 @@
           const sel = document.createElement('select');
           sel.className = 'calc-native-select calc-hitselect';
           sel.dataset.bowgunShot = '';
+          sel.dataset.moveField='bowgunShot';
           shotChoices.forEach(m => {
             const option = document.createElement('option');
             option.value = m.id;
@@ -2143,9 +2224,11 @@
           if(move.bgSpecial){const max=move.rangedHeatType==='machine'?40:move.rangedHeatType==='grenade'?6:30,def=move.rangedHeatType==='machine'?40:move.rangedHeatType==='grenade'?6:12;cbSel('hit',1,max,item.bgSpecialHits??def,def,'bgSpecialHits');}
           if(move.rangedRole==='focus'&&item.wound)cbSel('处伤口',1,3,item.woundCount??1,1,'woundCount');
           if(move.rangedHeatType==='pierce')cbPick([{label:'阶段随命中变化',value:0},{label:'阶段1',value:1},{label:'阶段2',value:2},{label:'阶段3',value:3}],item.bgHeatStage??0,'bgHeatStage','龙热穿甲阶段');
+          if(state.skillLevels.HunterSkill_197>0||state.skillLevels.HunterSkill_198>0){
           cbCheck({label:'满弹仓开始'},!!item.bgFullClip,'bgFullClip');
-          const lab=document.createElement('label');lab.className='calc-check';lab.textContent='射击序号 ';
+          const lab=document.createElement('label');lab.className='calc-check';lab.textContent='射击序号 ';lab.dataset.moveField='bgSequence';
           const input=document.createElement('input');input.type='number';input.min='1';input.max='999';input.placeholder='自动';input.value=item.bgSequence??'';input.style.width='64px';input.addEventListener('change',()=>{if(input.value)state.combo[i].bgSequence=Math.max(1,Math.min(999,Number(input.value)||1));else delete state.combo[i].bgSequence;refreshComboUI();});lab.appendChild(input);row.appendChild(lab);
+          }
         }
         const MOVE_OPTION_RENDERERS = [
           {key:'ranged',has:m=>!!(m.rangedVariants||m.rangedStages),render:()=>{
@@ -2159,7 +2242,8 @@
             const v=move.rangedVariants?.[item.rangedVariant??0]||move;
             for(const [model,field]of [[v.rangedStages,'rangedHits'],[item.wound&&v.rangedFollow,'rangedFollowHits'],[v.rangedExtra,'rangedExtraHits']])if(model){
               item[field]=Math.min(Math.max(item[field]??model.default,model.min),model.max);
-              cbSel(model.label,model.min,model.max,item[field],model.default,field);
+              const unit=field==='rangedHits'?(move.bowgunPreview?'跳／发':model.label.includes('每箭')?'跳／箭':'hit'):model.label;
+              cbSel(unit,model.min,model.max,item[field],model.default,field);
             }
           }},
           { key:'sequence', has:m=>!!(m.sequenceOptions || m.chargeLevels?.some(lv=>lv.sequenceOptions)), render:()=>{
@@ -2281,8 +2365,13 @@
             row.appendChild(tag);
           }
         }
+        layoutMoveOptions(row,item,i);
         list.appendChild(row);
       });
+      const panel=list.querySelector('.calc-move-settings-panel:not([hidden])');
+      if(panel){panel.querySelector('.calc-move-settings-body').scrollTop=panelScroll;
+        if(activeField){const field=Array.from(panel.querySelectorAll('[data-move-control]')).find(n=>n.dataset.moveControl===activeField);field?.querySelector('button,input:not([type="hidden"])')?.focus({preventScroll:true});}
+      }
     }
 
     // 按派生约束刷新「可添加招式」下拉 + 提示
@@ -2313,11 +2402,14 @@
         return s ? `<span class="calc-skill-chip">${s.name}<b>Lv${state.skillLevels[id]}</b>${(s.coverage && (paired||skillCoverage(id) < 100)) ? `<i class="calc-chip-cov">${paired?(id==='HunterSkill_114'?'二段 ':'克服 '):''}${skillCoverage(id)}%</i>` : ''}</span>` : '';
       }).join('');
       updateCondSummary();
+      if(state.combo.length)renderCombo();
     }
 
     // ===== 自绘选择器（系统原生 select 弹窗是白底直角，与深色主题割裂，全部替换） =====
     let pickerOpen = false;
+    let pickerSource = null;
     function openPicker(sel, title) {
+      pickerSource=sel;
       const sheet = el.querySelector('#calc-picker-sheet');
       const backdrop = el.querySelector('#calc-picker-backdrop');
       const list = el.querySelector('#calc-picker-list');
@@ -2346,7 +2438,15 @@
       if (!sheet) return;
       pickerOpen = false;
       sheet.classList.remove('open'); backdrop.classList.remove('open');
-      setTimeout(() => { sheet.hidden = true; backdrop.hidden = true; }, 240);
+      const source=pickerSource,field=source?.closest('[data-move-control]')?.dataset.moveControl;
+      setTimeout(() => {
+        if(pickerOpen)return;
+        sheet.hidden = true; backdrop.hidden = true;
+        const panel=el.querySelector('.calc-move-settings-panel:not([hidden])');
+        const wrapper=field&&panel&&Array.from(panel.querySelectorAll('[data-move-control]')).find(n=>n.dataset.moveControl===field);
+        if(wrapper)wrapper.querySelector('button,input')?.focus({preventScroll:true});
+        else if(source?.isConnected)source.previousElementSibling?.focus({preventScroll:true});
+      }, 240);
     }
     // 把原生 select 藏起来，前面插入「深色按钮」，点击开自绘选择器
     function enhanceSelect(sel, title) {
@@ -2899,6 +2999,19 @@
 
     // ===== 事件绑定 =====
     const $ = (id) => el.querySelector(id);
+    el.onkeydown = event => {
+      const panel=el.querySelector('.calc-move-settings-panel:not([hidden])');
+      if(!panel)return;
+      if(event.key==='Escape'){
+        event.preventDefault();event.stopPropagation();
+        if(pickerOpen)closePicker();else closeMoveSettings(state.combo.indexOf(openMoveItem));
+      }else if(event.key==='Tab'&&!pickerOpen){
+        const controls=Array.from(panel.querySelectorAll('button,input,select,[tabindex]')).filter(n=>!n.disabled&&n.tabIndex>=0&&n.getClientRects().length);
+        const first=controls[0],last=controls.at(-1);
+        if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}
+        else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
+      }
+    };
     // 「无」属性 / 「无」异常：输入框置灰并显示 0（原值留在 state 里，切回来还在）
     function syncTypeInputs() {
       const noEl = state.elementType === 'None';
@@ -3458,6 +3571,7 @@
       const lvs = move ? levelsOf(move) : null;
       state.combo.push({
         moveId, mantleMode:state.combo.at(-1)?.mantleMode||'none',
+        ...(move?.bowgunPreview?{bgDistance:state.combo.at(-1)?.bgDistance??0}:{}),
         ...(move?.skipPrefixAfter && state.combo.at(-1)?.moveId === move.skipPrefixAfter && state.combo.at(-1)?.wound ? {wound:true} : {}),
         ...(state.weaponId === 'dual_blades' ? { dbMode: dbModeOf(state.combo.at(-1), move) } : {}),
         charge: lvs ? defaultLevelOf(move) : ((move && move.chargeable) ? 2 : null),
