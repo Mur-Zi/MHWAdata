@@ -3214,8 +3214,6 @@
     const baseTitle=baseCard.querySelector('h2');baseTitle.textContent='基础数值';baseTitle.className='calc-subheading';
     while(baseCard.firstChild)weaponCard.appendChild(baseCard.firstChild);
     baseCard.remove();weaponCard.querySelector('h2').textContent='武器与基础数值';
-    const settingsPresets=weaponCard.querySelector('[data-preset-kind="settings"]');
-    el.querySelector('.calc-header').appendChild(settingsPresets);
     configColumn.append(weaponCard,el.querySelector('.calc-skills-card'));
     resultColumn.append(el.querySelector('.calc-target-card'),el.querySelector('.calc-result'));
     calcLayout.append(configColumn,resultColumn,el.querySelector('.calc-combo-card'));

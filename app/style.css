@@ -252,8 +252,7 @@ th .ic { display: block; margin: 0 auto; }
    导致 1fr 轨道不等宽、窄屏横向溢出；统一允许收缩，超长文本交给自绘按钮做省略号 */
 .calc-grid > *, .calc-item-grid > * { min-width: 0; }
 /* 配置与结果并排：窄屏保留配置、目标、连段、结果的阅读顺序。 */
-.calc-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-.calc-header > .calc-presets { flex: 0 1 620px; width: 100%; margin: 0; border: 0; padding: 0; }
+.calc-header { display: block; }
 .calc-page-layout { display: grid; grid-template-columns: minmax(0,1fr); gap: 14px; align-items: start; }
 .calc-page-layout .calc-card { margin-bottom: 0; padding: 16px; }
 .calc-config-column, .calc-observe-column { display: contents; }
