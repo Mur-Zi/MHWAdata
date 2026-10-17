@@ -825,6 +825,7 @@
   // ---- 伤害计算器 ----
   function renderCalculatorView() {
     const el = document.getElementById('view-calculator');
+    el._comboMediaCleanup?.();
     const CALC = window.MHWCALC;
     const KURO = window.MHWILD_KURO_HZV || {};
     if (!CALC || !window.MHCalculator) {
@@ -1058,6 +1059,8 @@
     const itemGroups = (CALC.items && CALC.items.groups) || [];
     const PRESET_KEY = 'mhwa_calculator_presets_v1';
     let openMoveItem = null;
+    let selectedMoveItem = null;
+    const comboMedia = window.matchMedia('(min-width: 900px)');
     const CONFIG_KEYS = ['weaponId', 'attack', 'affinity', 'element', 'elementType', 'status', 'statusType', 'sharpness',
       'fullHealth', 'overcomeFrenzy', 'clash', 'ateMeat', 'festival', 'warCry', 'absorbHits', 'wet', 'bubble', 'bowgunSpec',
       'threeLamp', 'mantle', 'cbPhial', 'cbReinforced', 'cbRedShield', 'cbRedSword', 'swaxAwakened', 'swaxPhial','apexSoulReady','encouragement','ailmentCleared','ailment',
@@ -1962,72 +1965,81 @@
         const priority = coreOrder.indexOf(field);
         return {field,node,wrapper,order,priority:priority<0?100:priority};
       });
+      const desktop = comboMedia.matches;
       const primary = controls.filter(c=>c.priority<100).sort((a,b)=>a.priority-b.priority||a.order-b.order).slice(0,2);
       const advanced = controls.filter(c=>!primary.includes(c));
+      const selected = selectedMoveItem===item;
       const name = row.querySelector('.calc-move-name'), remove = row.querySelector('.calc-rm');
-      const head = document.createElement('div'); head.className = 'calc-move-header'; head.appendChild(name);
-      const actions = document.createElement('div'); actions.className = 'calc-move-actions';
-      const settings = document.createElement('button'); settings.type='button'; settings.className='calc-move-settings'; settings.textContent='设置';
-      settings.setAttribute('aria-label', '第'+(index+1)+'招设置'); settings.setAttribute('aria-expanded',String(openMoveItem===item));
-      settings.setAttribute('aria-controls','calc-move-settings-panel-'+index);
-      actions.appendChild(settings); actions.appendChild(remove); head.appendChild(actions);row.prepend(head);
-      remove.setAttribute('aria-label','删除第'+(index+1)+'招');
-      const main = document.createElement('div'); main.className='calc-move-primary';
-      primary.forEach(c=>main.appendChild(c.wrapper)); if(primary.length)head.after(main);
-      const backdrop=document.createElement('div');backdrop.className='calc-move-settings-backdrop';backdrop.hidden=openMoveItem!==item;
-      backdrop.addEventListener('click',()=>closeMoveSettings(index));backdrop.addEventListener('wheel',e=>e.preventDefault(),{passive:false});
-      const panel=document.createElement('section');panel.className='calc-move-settings-panel';panel.hidden=openMoveItem!==item;
-      panel.id='calc-move-settings-panel-'+index;
-      panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-labelledby','calc-move-settings-title-'+index);
-      const panelHead=document.createElement('div');panelHead.className='calc-move-settings-head';
-      const title=document.createElement('span');title.id='calc-move-settings-title-'+index;title.textContent=name.textContent+' · 设置';
-      const close=document.createElement('button');close.type='button';close.textContent='完成';close.className='calc-move-settings-done';close.addEventListener('click',()=>closeMoveSettings(index));
-      panelHead.append(title,close);panel.appendChild(panelHead);
-      const body=document.createElement('div');body.className='calc-move-settings-body';
+      row.dataset.moveIndex=String(index);
+      row.classList.toggle('calc-combo-selected',desktop&&selected);
+      const head=document.createElement('div');head.className='calc-move-header';
+      const choose=document.createElement('button');choose.type='button';choose.className='calc-move-select';
+      choose.appendChild(name);choose.setAttribute('aria-label','编辑第'+(index+1)+'招：'+name.textContent);
+      if(desktop)choose.setAttribute('aria-pressed',String(selected));
+      else {choose.setAttribute('aria-expanded',String(openMoveItem===item));choose.setAttribute('aria-controls','calc-move-options-'+index);}
+      choose.addEventListener('click',()=>openMoveSettings(item,index,null,!desktop));
+      const actions=document.createElement('div');actions.className='calc-move-actions';
+      const expand=document.createElement('button');expand.type='button';expand.className='calc-move-expand';
+      expand.textContent=openMoveItem===item?'收起条件 ▴':'展开条件 ▾';expand.hidden=desktop;
+      expand.setAttribute('aria-expanded',String(openMoveItem===item));expand.setAttribute('aria-controls','calc-move-options-'+index);
+      expand.addEventListener('click',()=>openMoveSettings(item,index,null,true));
+      remove.setAttribute('aria-label','删除第'+(index+1)+'招');actions.append(expand,remove);head.append(choose,actions);row.prepend(head);
+      const main=document.createElement('div');main.className='calc-move-primary';main.hidden=desktop;
+      primary.forEach(c=>main.appendChild(c.wrapper));row.appendChild(main);
+      const body=document.createElement('section');body.className='calc-move-options';body.id='calc-move-options-'+index;
+      body.hidden=desktop||openMoveItem!==item;
+      body.setAttribute('aria-label','第'+(index+1)+'招条件');
+      const editor=el.querySelector('#calc-combo-editor');
+      let target=body;
+      if(desktop&&selected){
+        editor.hidden=false;editor.dataset.moveIndex=String(index);
+        const title=document.createElement('h3');title.tabIndex=-1;title.textContent=name.textContent;
+        const nav=document.createElement('div');nav.className='calc-editor-nav';
+        [-1,1].forEach(delta=>{const button=document.createElement('button');button.type='button';button.textContent=delta<0?'上一招':'下一招';button.disabled=!state.combo[index+delta];button.addEventListener('click',()=>openMoveSettings(state.combo[index+delta],index+delta));nav.appendChild(button);});
+        const header=document.createElement('div');header.className='calc-editor-head';header.append(title,nav);editor.appendChild(header);
+        target=document.createElement('div');target.className='calc-editor-fields';editor.appendChild(target);
+      }
       if(row.dataset.deriveIssue){
         const warning=document.createElement('button');warning.type='button';warning.className='calc-derive-warning';warning.textContent='派生不符 · '+row.dataset.deriveIssue;warning.addEventListener('click',()=>openMoveSettings(item,index));row.appendChild(warning);
-        const note=document.createElement('p');note.className='calc-move-derive-note';note.textContent=row.dataset.deriveIssue+'。可调整前面的模式或招式，也可关闭“遵循派生逻辑”。';body.appendChild(note);
+        const note=document.createElement('p');note.className='calc-move-derive-note';note.textContent=row.dataset.deriveIssue+'。可调整前面的模式或招式，也可关闭“遵循派生逻辑”。';target.appendChild(note);
       }
-      advanced.forEach(c=>{
+      const editable=desktop&&selected?[...primary,...advanced]:advanced;
+      editable.forEach(c=>{
         c.wrapper.classList.add('calc-move-advanced-control');
         if(!c.node.matches('label')){const label=document.createElement('span');label.className='calc-move-option-label';label.textContent=labels[c.field]||c.field;c.wrapper.prepend(label);}
-        body.appendChild(c.wrapper);
-      });panel.appendChild(body);
-      const summary=[];
-      advanced.forEach(c=>{
-        const field=c.field,node=c.node;
-        if(field==='mantlePick'){
-          const mode=item.mantleMode||'none',prev=index?state.combo[index-1].mantleMode||'none':'none';
-          if(mode!==prev)summary.push(node.options[node.selectedIndex]?.textContent||'衣装已变更');
-        }else if(field==='bgDistance'){
-          const previous=index?state.combo[index-1].bgDistance??0:0;
-          if((item.bgDistance??0)!==previous)summary.push(node.options[node.selectedIndex]?.textContent||'');
-        }else if(node.matches('label')){
-          const checkbox=node.querySelector('input[type="checkbox"]');
-          if(checkbox?.checked)summary.push(node.textContent.trim());
-          if(field==='bgSequence'&&item.bgSequence!=null)summary.push('第'+item.bgSequence+'次射击');
-        }else if(node.matches('select')&&node.value!==node.dataset.moveDefault){
-          summary.push(node.options[node.selectedIndex]?.textContent||'');
-        }
+        target.appendChild(c.wrapper);
       });
-      if(summary.length){const button=document.createElement('button');button.type='button';button.className='calc-move-summary';button.textContent=summary.join(' · ');button.setAttribute('aria-label','修改条件：'+button.textContent);button.addEventListener('click',()=>openMoveSettings(item,index));row.appendChild(button);}
-      row.append(backdrop,panel);
-      settings.addEventListener('click',()=>openMoveSettings(item,index));
+      const summary=document.createElement('div');summary.className='calc-move-summary';
+      (desktop?[...primary,...advanced]:advanced).forEach(c=>{
+        const node=c.node,select=node.matches('select')?node:node.querySelector('select'),checkbox=node.querySelector('input[type="checkbox"]');
+        let value=select?select.options[select.selectedIndex]?.textContent:checkbox?(checkbox.checked?'是':'否'):node.querySelector('.seg-btn.active')?.textContent;
+        if(!value&&c.field==='bgSequence')value=node.querySelector('input')?.value||'自动';
+        const link=document.createElement('button');link.type='button';link.textContent=(labels[c.field]||c.field)+(value?' · '+value:'');
+        link.addEventListener('click',()=>openMoveSettings(item,index,c.field));summary.appendChild(link);
+      });
+      if(summary.childElementCount)row.appendChild(summary);
+      row.appendChild(body);
     }
-    function openMoveSettings(item,index) {
-      openMoveItem=item;renderCombo();
-      el.querySelectorAll('.calc-combo-item')[index]?.querySelector('.calc-move-settings-done')?.focus({preventScroll:true});
-    }
-    function closeMoveSettings(index) {
-      openMoveItem=null;renderCombo();
-      el.querySelectorAll('.calc-combo-item')[index]?.querySelector('.calc-move-settings')?.focus({preventScroll:true});
+    function openMoveSettings(item,index,field=null,toggle=false) {
+      selectedMoveItem=item;
+      if(!comboMedia.matches)openMoveItem=toggle&&openMoveItem===item?null:item;
+      renderCombo();
+      const scope=comboMedia.matches?el.querySelector('#calc-combo-editor'):el.querySelectorAll('.calc-combo-item')[index];
+      if(field){const control=Array.from(scope?.querySelectorAll('[data-move-control]')||[]).find(n=>n.dataset.moveControl===field);control?.querySelector('button,input,select')?.focus({preventScroll:true});}
+      else if(comboMedia.matches)scope?.querySelector('h3')?.focus({preventScroll:true});
+      else scope?.querySelector('.calc-move-expand')?.focus({preventScroll:true});
     }
     // 连段列表渲染
     function renderCombo() {
       const list = el.querySelector('#calc-combo-list');
       const activeField=document.activeElement?.closest('[data-move-control]')?.dataset.moveControl;
-      const panelScroll=list.querySelector('.calc-move-settings-panel:not([hidden]) .calc-move-settings-body')?.scrollTop||0;
+      const activeIndex=document.activeElement?.closest('[data-move-index]')?.dataset.moveIndex;
       if(openMoveItem&&!state.combo.includes(openMoveItem))openMoveItem=null;
+      if(!state.combo.includes(selectedMoveItem))selectedMoveItem=state.combo[0]||null;
+      const workspace=el.querySelector('#calc-combo-workspace'),editor=el.querySelector('#calc-combo-editor');
+      const editorScroll=Number(editor.dataset.moveIndex)===state.combo.indexOf(selectedMoveItem)?editor.scrollTop:0;
+      workspace.classList.toggle('calc-combo-desktop',comboMedia.matches);
+      editor.replaceChildren();editor.hidden=true;
       list.innerHTML = '';
       state.combo.forEach((item, i) => {
         const move = moveOf(item.moveId);
@@ -2402,9 +2414,10 @@
         layoutMoveOptions(row,item,i);
         list.appendChild(row);
       });
-      const panel=list.querySelector('.calc-move-settings-panel:not([hidden])');
-      if(panel){panel.querySelector('.calc-move-settings-body').scrollTop=panelScroll;
-        if(activeField){const field=Array.from(panel.querySelectorAll('[data-move-control]')).find(n=>n.dataset.moveControl===activeField);field?.querySelector('button,input:not([type="hidden"])')?.focus({preventScroll:true});}
+      editor.scrollTop=editorScroll;
+      if(activeField){
+        const scope=comboMedia.matches?editor:list.children[Number(activeIndex)];
+        if(scope&&scope.dataset.moveIndex===activeIndex){const field=Array.from(scope.querySelectorAll('[data-move-control]')).find(n=>n.dataset.moveControl===activeField);field?.querySelector('button,input:not([type="hidden"])')?.focus({preventScroll:true});}
       }
     }
 
@@ -2442,8 +2455,11 @@
     // ===== 自绘选择器（系统原生 select 弹窗是白底直角，与深色主题割裂，全部替换） =====
     let pickerOpen = false;
     let pickerSource = null;
+    let pickerMoveItem = null;
     function openPicker(sel, title) {
       pickerSource=sel;
+      const moveIndex=sel.closest('[data-move-index]')?.dataset.moveIndex;
+      pickerMoveItem=moveIndex==null?null:state.combo[Number(moveIndex)];
       const sheet = el.querySelector('#calc-picker-sheet');
       const backdrop = el.querySelector('#calc-picker-backdrop');
       const list = el.querySelector('#calc-picker-list');
@@ -2472,12 +2488,12 @@
       if (!sheet) return;
       pickerOpen = false;
       sheet.classList.remove('open'); backdrop.classList.remove('open');
-      const source=pickerSource,field=source?.closest('[data-move-control]')?.dataset.moveControl;
+      const source=pickerSource,field=source?.closest('[data-move-control]')?.dataset.moveControl,moveItem=pickerMoveItem;
       setTimeout(() => {
         if(pickerOpen)return;
         sheet.hidden = true; backdrop.hidden = true;
-        const panel=el.querySelector('.calc-move-settings-panel:not([hidden])');
-        const wrapper=field&&panel&&Array.from(panel.querySelectorAll('[data-move-control]')).find(n=>n.dataset.moveControl===field);
+        const scope=comboMedia.matches?(selectedMoveItem===moveItem?el.querySelector('#calc-combo-editor'):null):el.querySelectorAll('.calc-combo-item')[state.combo.indexOf(moveItem)];
+        const wrapper=field&&scope&&Array.from(scope.querySelectorAll('[data-move-control]')).find(n=>n.dataset.moveControl===field);
         if(wrapper)wrapper.querySelector('button,input')?.focus({preventScroll:true});
         else if(source?.isConnected)source.previousElementSibling?.focus({preventScroll:true});
       }, 240);
@@ -2983,7 +2999,10 @@
           <span class="calc-dance-note" id="calc-dance-note"></span>
           <button id="calc-combo-clear" class="calc-btn ghost">清空连段</button>
         </div>
-        <div class="calc-combo-list" id="calc-combo-list"></div>
+        <div class="calc-combo-workspace" id="calc-combo-workspace">
+          <div class="calc-combo-list" id="calc-combo-list"></div>
+          <aside class="calc-combo-editor" id="calc-combo-editor" aria-label="当前招式编辑" hidden></aside>
+        </div>
         <div class="calc-combo-sum" id="calc-combo-sum"></div>
       </section>
 
@@ -3033,17 +3052,14 @@
 
     // ===== 事件绑定 =====
     const $ = (id) => el.querySelector(id);
+    const onComboMediaChange=()=>{if(!comboMedia.matches)openMoveItem=selectedMoveItem;renderCombo();};
+    comboMedia.addEventListener('change',onComboMediaChange);
+    el._comboMediaCleanup=()=>comboMedia.removeEventListener('change',onComboMediaChange);
     el.onkeydown = event => {
-      const panel=el.querySelector('.calc-move-settings-panel:not([hidden])');
-      if(!panel)return;
-      if(event.key==='Escape'){
-        event.preventDefault();event.stopPropagation();
-        if(pickerOpen)closePicker();else closeMoveSettings(state.combo.indexOf(openMoveItem));
-      }else if(event.key==='Tab'&&!pickerOpen){
-        const controls=Array.from(panel.querySelectorAll('button,input,select,[tabindex]')).filter(n=>!n.disabled&&n.tabIndex>=0&&n.getClientRects().length);
-        const first=controls[0],last=controls.at(-1);
-        if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}
-        else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
+      if(event.key==='Escape'&&pickerOpen){event.preventDefault();event.stopPropagation();closePicker();}
+      else if(event.key==='Escape'&&!comboMedia.matches&&openMoveItem){
+        const index=state.combo.indexOf(openMoveItem);openMoveItem=null;renderCombo();
+        el.querySelectorAll('.calc-combo-item')[index]?.querySelector('.calc-move-expand')?.focus({preventScroll:true});
       }
     };
     // 「无」属性 / 「无」异常：输入框置灰并显示 0（原值留在 state 里，切回来还在）
@@ -3613,6 +3629,7 @@
         // 长枪力防：力量格挡插入时按数据层默认层数（默认 3）落一份，后续可在行内改
         ...(move && move.forceGuardBuff ? { forceGuard: Number(move.forceGuardBuff['default'] || 0) } : {})
       });
+      selectedMoveItem=state.combo.at(-1);
       refreshComboUI();
     });
     $('button#calc-combo-clear').addEventListener('click', () => { state.combo = []; refreshComboUI(); });
