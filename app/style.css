@@ -251,6 +251,82 @@ th .ic { display: block; margin: 0 auto; }
 /* 网格子项默认 min-width:auto 会被长文本（如「餐点基本效果（用餐券）」）顶宽，
    导致 1fr 轨道不等宽、窄屏横向溢出；统一允许收缩，超长文本交给自绘按钮做省略号 */
 .calc-grid > *, .calc-item-grid > * { min-width: 0; }
+/* 配置与结果并排：窄屏保留配置、目标、连段、结果的阅读顺序。 */
+.calc-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.calc-header > .calc-presets { flex: 0 1 620px; width: 100%; margin: 0; border: 0; padding: 0; }
+.calc-page-layout { display: grid; grid-template-columns: minmax(0,1fr); gap: 14px; align-items: start; }
+.calc-page-layout .calc-card { margin-bottom: 0; padding: 16px; }
+.calc-config-column, .calc-observe-column { display: contents; }
+.calc-page-layout > *, .calc-config-column > *, .calc-observe-column > * { min-width: 0; }
+.calc-page-layout .calc-combo-card { grid-row: 4; }
+.calc-page-layout .calc-result { grid-row: 5; }
+.calc-weapon-card .calc-subheading { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+.calc-target-identity { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 13px; }
+.calc-target-identity img { width: 44px; height: 44px; object-fit: contain; flex: 0 0 auto; }
+.calc-task-context { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+.calc-task-context summary { font-size: 12px; color: var(--accent2); cursor: pointer; overflow-wrap: anywhere; }
+.calc-preset-manage summary { padding: 7px 12px; border: 1px solid var(--line); border-radius: 7px; color: var(--accent2); font-size: 12px; cursor: pointer; }
+.calc-preset-manage .calc-preset-actions { padding: 8px 0; }
+.calc-page-layout .calc-result-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.calc-page-layout .calc-stat.primary { grid-column: 1 / -1; }
+.calc-page-layout .calc-stat.primary strong { font-size: 28px; }
+.calc-page-layout .calc-stat { min-width: 0; }
+.calc-page-layout .calc-stat strong { overflow-wrap: anywhere; }
+.calc-page-layout .calc-hit-table td.part-name { white-space: normal; min-width: 100px; }
+@media (min-width: 900px) {
+  .calc-page-layout { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 16px; }
+  .calc-config-column, .calc-observe-column { display: grid; gap: 14px; align-content: start; }
+  .calc-page-layout .calc-result { grid-row: auto; }
+  .calc-page-layout > .calc-combo-card { grid-column: 1 / -1; grid-row: auto; }
+  #view-calculator { max-width: 1500px; margin: auto; }
+}
+
+/* 怪物资料工作台：所有数据保留，按用途分页，任务选择收纳于详情。 */
+.monster-workspace { display: grid; grid-template-columns: 190px minmax(0,1fr); gap: 22px; align-items: start; }
+.monster-sidebar { position: sticky; top: 64px; padding: 14px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; min-width: 0; }
+.monster-sidebar label, .monster-task-filters label { display: flex; flex-direction: column; gap: 6px; color: var(--text-dim); font-size: 12px; min-width: 0; }
+.monster-sidebar input, .monster-task-filters input, .monster-task-filters select { width: 100%; min-width: 0; padding: 9px 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--bg2); color: var(--text); font: inherit; }
+.monster-sidebar-list { display: grid; gap: 8px; max-height: min(640px,calc(100dvh - 240px)); overflow-y: auto; margin-top: 14px; }
+.monster-sidebar-item { display: flex; flex-direction: column; gap: 4px; width: 100%; text-align: left; padding: 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--bg2); color: var(--text); font: inherit; cursor: pointer; }
+.monster-sidebar-item small { color: var(--text-dim); font-size: 12px; }
+.monster-sidebar-item[aria-pressed="true"] { border-color: var(--accent); background: var(--bg3); color: var(--accent); }
+.monster-detail-body { min-width: 0; }
+.monster-detail-body .detail-hero img { width: 68px; height: 68px; flex: 0 0 auto; }
+.monster-detail-tabs { display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 12px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
+.monster-detail-body .section { padding: 16px; }
+.monster-detail-body th, .monster-detail-body td { padding: 10px 9px; }
+.monster-detail-body .section h2 { border-left: 0; padding-left: 0; }
+.monster-task-context .monster-task-bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.monster-task-label { flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
+.monster-task-caption { display: block; color: var(--text-dim); font-size: 12px; margin-bottom: 3px; }
+.monster-task-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+#scale-current-players { background: var(--bg3); padding: 4px 8px; border-radius: 5px; white-space: nowrap; }
+#scale-task-editor { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 14px; }
+.monster-task-filters { display: grid; grid-template-columns: minmax(0,1fr) 100px 110px; gap: 10px; margin-bottom: 12px; }
+.monster-task-player-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; font-size: 13px; }
+.monster-task-player-row .player-btns { margin: 0; }
+.monster-task-context .scale-quest-picker { display: grid; gap: 8px; max-height: 420px; overflow-y: auto; }
+.monster-task-context .quest-chip { display: flex; width: 100%; align-items: center; text-align: left; gap: 10px; padding: 10px 12px; margin: 0; }
+.monster-task-context .chip-name { min-width: 0; flex: 1; overflow-wrap: anywhere; }
+.monster-task-context .monster-task-max { font-size: 12px; color: var(--text-dim); white-space: nowrap; }
+.monster-task-picker-foot { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; font-size: 12px; color: var(--text-dim); }
+#scale-task-done { margin-left: auto; }
+@media (max-width: 899px) {
+  .calc-combo-workspace.calc-combo-desktop { grid-template-columns: minmax(0,1fr); }
+  .monster-workspace { display: block; }
+  .monster-sidebar { position: static; margin-bottom: 16px; }
+  .monster-sidebar-list { grid-template-columns: repeat(2,minmax(0,1fr)); max-height: 210px; }
+}
+@media (max-width: 600px) {
+  .calc-page-layout .calc-card, .monster-detail-body .section { padding: 12px; }
+  .monster-task-filters { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+  .monster-task-filters label:first-child { grid-column: 1 / -1; }
+  .monster-task-actions { width: 100%; }
+  .monster-task-context .quest-chip { flex-wrap: wrap; }
+  .monster-task-context .chip-name { flex-basis: calc(100% - 90px); }
+  .monster-sidebar input, .monster-task-filters input, .monster-task-filters select { font-size: 16px; }
+  .monster-detail-tabs .toggle-btn, .monster-detail-body .toggle-group .toggle-btn, .monster-task-actions .toggle-btn, .monster-task-player-row .toggle-btn, .monster-task-picker-foot .toggle-btn { min-height: 44px; }
+}
 .calc-field { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--text-dim); min-width: 0; }
 .calc-field input, .calc-field select {
   background: var(--bg2); color: var(--text); border: 1px solid var(--line);

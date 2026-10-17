@@ -176,7 +176,7 @@
     views.forEach((v) => {
       document.getElementById('view-' + v).hidden = (v !== name);
     });
-    navMonsters.classList.toggle('active', name === 'monsters');
+    navMonsters.classList.toggle('active', name === 'monsters' || name === 'monster-detail');
     navQuests.classList.toggle('active', name === 'quests');
     navCalculator.classList.toggle('active', name === 'calculator');
     navBack.style.display = (name === 'monster-detail' || name === 'quest-detail') ? '' : 'none';
@@ -352,6 +352,42 @@
     renderQuestDetail(q);
   }
 
+  let detailMonsterSearch='';
+  function syncMonsterTabs(el){
+    const active=el.dataset.detailTab||'meat';
+    el.querySelectorAll('[data-detail-panel]').forEach(panel=>panel.hidden=panel.dataset.detailPanel!==active);
+    el.querySelectorAll('#data-groups > [data-detail-group]').forEach(panel=>panel.hidden=panel.dataset.detailGroup!==active);
+    el.querySelectorAll('[data-detail-tab]').forEach(button=>{
+      const key=button.dataset.detailTab;
+      button.hidden=key!=='meat'&&!el.querySelector('#data-groups > [data-detail-group="'+key+'"]');
+      button.classList.toggle('active',key===active);button.setAttribute('aria-pressed',String(key===active));
+    });
+  }
+  function layoutMonsterDetail(el,m){
+    el.dataset.detailTab='meat';
+    const workspace=document.createElement('div');workspace.className='monster-workspace';
+    const side=document.createElement('aside');side.className='monster-sidebar';side.setAttribute('aria-label','切换怪物');
+    const label=document.createElement('label');label.textContent='查找怪物';
+    const input=document.createElement('input');input.type='search';input.placeholder='名称 / 英文名';input.value=detailMonsterSearch;label.appendChild(input);
+    const list=document.createElement('nav');list.className='monster-sidebar-list';list.setAttribute('aria-label','怪物列表');side.append(label,list);
+    function renderSide(){
+      const query=input.value.trim().toLowerCase();list.replaceChildren();
+      monsters.filter(x=>!query||(x.zh+' '+x.name).toLowerCase().includes(query)).forEach(x=>{
+        const button=document.createElement('button');button.type='button';button.className='monster-sidebar-item';button.setAttribute('aria-pressed',String(x.id===m.id));button.dataset.monsterId=x.id;
+        const name=document.createElement('span');name.textContent=x.zh;const english=document.createElement('small');english.textContent=x.name;button.append(name,english);list.appendChild(button);
+      });
+      if(!list.children.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='没有匹配的怪物';list.appendChild(empty);}
+    }
+    input.addEventListener('input',()=>{detailMonsterSearch=input.value;renderSide();});
+    list.addEventListener('click',event=>{const button=event.target.closest('[data-monster-id]');if(button){const next=monsters.find(x=>x.id===button.dataset.monsterId);if(next)openMonster(next.name);}});
+    const body=document.createElement('div');body.className='monster-detail-body';
+    const hero=el.querySelector('.detail-hero'),context=el.querySelector('.monster-task-context');
+    const tabs=document.createElement('nav');tabs.className='monster-detail-tabs';tabs.setAttribute('aria-label','怪物资料分类');
+    [['meat','部位肉质'],['vital','血量 / 部位 / 伤口'],['status','异常状态'],['tools','道具效果'],['other','疲劳 / 发怒']].forEach(([key,text])=>{const button=document.createElement('button');button.type='button';button.className='toggle-btn';button.dataset.detailTab=key;button.textContent=text;button.addEventListener('click',()=>{el.dataset.detailTab=key;syncMonsterTabs(el);});tabs.appendChild(button);});
+    const meat=el.querySelector('.section');meat.dataset.detailPanel='meat';
+    body.append(hero,context,tabs,meat,el.querySelector('#data-groups'));workspace.append(side,body);el.replaceChildren(workspace);renderSide();
+  }
+
   // ---- 怪物详情 ----
   function renderMonsterDetail(m) {
     const el = document.getElementById('view-monster-detail');
@@ -439,15 +475,23 @@
         }).join('')}</tbody></table></div></section>`;
     }
 
-    // 任务难度换算（选择器前置，星级从高到低）
-    html += `<section class="section"><h2>任务难度换算</h2>
-      <div class="hint">选择任务与狩猎人数，下方四组数据自动按难度倍率换算；不选则显示基础数据。</div>
-      <div class="scale-quest-picker" id="scale-quest-picker"></div>
-      <div class="player-btns" id="scale-players">
-        <button class="toggle-btn" data-p="1">1人</button>
-        <button class="toggle-btn" data-p="2">2人</button>
-        <button class="toggle-btn" data-p="3">3人</button>
-        <button class="toggle-btn active" data-p="4">4人</button>
+    html += `<section class="section monster-task-context" aria-label="任务与人数">
+      <div class="monster-task-bar">
+        <div class="monster-task-label"><span class="monster-task-caption">任务与人数</span><span id="scale-current-task">基础数据</span></div>
+        <div class="monster-task-actions"><span id="scale-current-players" hidden></span>
+          <button type="button" class="toggle-btn" id="scale-toggle" aria-expanded="false" aria-controls="scale-task-editor">选择任务</button>
+          <button type="button" class="toggle-btn" id="scale-clear" hidden>清除</button>
+        </div>
+      </div>
+      <div id="scale-task-editor" hidden>
+        <div class="monster-task-filters">
+          <label>搜索任务<input type="search" id="scale-task-search" placeholder="输入任务名称"></label>
+          <label>星级<select id="scale-task-level"><option value="">全部星级</option></select></label>
+          <label>难度<select id="scale-task-difficulty"><option value="">全部难度</option><option value="0">普通</option><option value="1">历战</option><option value="2">历战王</option></select></label>
+        </div>
+        <div class="monster-task-player-row"><span>狩猎人数</span><div class="player-btns" id="scale-players"></div></div>
+        <div class="scale-quest-picker" id="scale-quest-picker"></div>
+        <div class="monster-task-picker-foot"><span id="scale-task-count"></span><button type="button" class="toggle-btn" id="scale-task-more" hidden>显示更多任务</button><button type="button" class="toggle-btn" id="scale-task-done">完成</button></div>
       </div>
     </section>`;
     // 四组数据（基础 / 换算，动态渲染）
@@ -483,6 +527,7 @@
       });
     });
 
+    layoutMonsterDetail(el,m);
     // 倍率换算（渲染四组数据 + 任务选择器）
     setupScaling(el, m);
   }
@@ -523,7 +568,7 @@
       const hpLo = Math.round(hpBase * fHealthMin);
       const hpHi = Math.round(hpBase * fHealthMax);
       const hpRange = fStrength > 0 ? (hpLo + '~' + hpHi) : '固定';
-      html += `<section class="section"><h2>血量浮动</h2>
+      html += `<section class="section" data-detail-group="vital"><h2>血量浮动</h2>
         <div class="tbl-wrap"><table><thead><tr><th>基础血量</th><th>任务倍率</th><th>血量</th><th>浮动范围</th></tr></thead>
         <tbody><tr><td class="num">${fmt(d.BHP)}</td><td class="num">×${fmt(fHealth)}</td><td class="num">${hpBase}</td><td class="num">${hpRange}</td></tr></tbody></table></div></section>`;
     }
@@ -583,7 +628,7 @@
       if (label === '伤口数') return fmt(w.Number);
       return '';
     };
-    html += `<section class="section"><h2>部位硬直 / 破坏 / 伤口</h2>
+    html += `<section class="section" data-detail-group="vital"><h2>部位硬直 / 破坏 / 伤口</h2>
       <div class="tbl-wrap"><table><thead><tr><th class="fz1">部位</th>${partCols.map(([l]) => `<th>${l}</th>`).join('')}</tr></thead>
       <tbody>${partRows.map((r) => {
         const part = partName(m.name, r.Part);
@@ -603,7 +648,7 @@
     const blowout = BLOWOUT[m.name];
     if (blowout && blowout.length) {
       const maxN = Math.max(...blowout.map((r) => r.vitals.length));
-      html += `<section class="section"><h2>炸膛</h2>
+      html += `<section class="section" data-detail-group="vital"><h2>炸膛</h2>
         <div class="tbl-wrap"><table><thead><tr><th class="fz1">部位</th>${Array.from({ length: maxN }, (_, i) => `<th>炸膛${i + 1}</th>`).join('')}</tr></thead>
         <tbody>${blowout.map((r) => {
           const v = scaleArr(r.vitals, fParts);
@@ -614,7 +659,7 @@
     // 异常状态（耐性增量/上限按 add=_AddAndMaxLimit×人数 缩放；初始耐性/持续时间按 def=_DefaultLimit 缩放）
     const activeStatus = activeCols(condRows, STATUS_COLS);
     if (activeStatus.length) {
-      html += `<section class="section"><h2>异常状态</h2>
+      html += `<section class="section" data-detail-group="status"><h2>异常状态</h2>
         <div class="tbl-wrap"><table><thead><tr><th class="fz1">项目</th>${activeStatus.map((s) => statusHead(s)).join('')}</tr></thead>
         <tbody>${condRows.filter((r) => r.Stats !== 'Damage').map((r) => {
           const label = r.Stats === '' ? '有效度' : (r.Stats !== undefined ? zh(TR.conditionRow, r.Stats, r.Stats) : '');
@@ -637,7 +682,7 @@
     // 道具效果（不随难度缩放）
     const activeTools = toolRows.length ? activeCols(toolRows, TOOL_COLS) : [];
     if (activeTools.length) {
-      html += `<section class="section"><h2>道具效果</h2>
+      html += `<section class="section" data-detail-group="tools"><h2>道具效果</h2>
         <div class="tbl-wrap"><table><thead><tr><th class="fz1">项目</th>${activeTools.map((s) => '<th>' + zh(TR.tool, s) + '</th>').join('')}</tr></thead>
         <tbody>${toolRows.map((r) => {
           const label = r.Label !== undefined ? zh(TR.toolRow, r.Label, r.Label) : '';
@@ -659,7 +704,7 @@
     const stUpper = st.Upper || {};
     const hasStamina = ['Stamina', 'TiredTime', 'MotionRate'].some((k) => stLower[k] !== undefined || stUpper[k] !== undefined);
     if (hasStamina || hasAngry) {
-      html += `<section class="section"><h2>疲劳 / 发怒</h2>`;
+      html += `<section class="section" data-detail-group="other"><h2>疲劳 / 发怒</h2>`;
       if (hasStamina) {
         html += `<div class="tbl-wrap"><table><thead><tr><th>疲劳</th><th>疲劳时间</th><th>动作倍率</th></tr></thead>
           <tbody>
@@ -684,24 +729,34 @@
     const pickerEl = el.querySelector('#scale-quest-picker');
     const playerBtns = el.querySelector('#scale-players');
     const groupsEl = el.querySelector('#data-groups');
-    let players = 4;
+    let players = 1;
     let selectedId = null; // null = 基础数据
 
-    groupsEl.innerHTML = renderDataGroups(m, null);
-
-    if (!questsWithMonster.length) {
-      pickerEl.innerHTML = '<div class="empty">该怪物没有可换算的任务</div>';
-      return;
+    const toggle=el.querySelector('#scale-toggle'),editor=el.querySelector('#scale-task-editor');
+    const search=el.querySelector('#scale-task-search'),level=el.querySelector('#scale-task-level'),difficulty=el.querySelector('#scale-task-difficulty');
+    let visibleLimit=40;
+    function setOpen(open){editor.hidden=!open;toggle.setAttribute('aria-expanded',String(open));toggle.textContent=open?'收起':selectedId?'更换':'选择任务';}
+    questsWithMonster.sort((a,b)=>b.level-a.level||b.name.localeCompare(a.name));
+    [...new Set(questsWithMonster.map(q=>q.level))].sort((a,b)=>b-a).forEach(n=>{const option=document.createElement('option');option.value=n;option.textContent=n+'★';level.appendChild(option);});
+    function renderPicker(){
+      const query=search.value.trim().toLowerCase();
+      const filtered=questsWithMonster.filter(q=>(!level.value||q.level===Number(level.value))&&(!query||(questName(q)+' '+q.name).toLowerCase().includes(query))&&(difficulty.value===''||(q.targets.find(t=>t.monsterId===m.id)?.legendaryID||0)===Number(difficulty.value)));
+      pickerEl.replaceChildren();
+      filtered.slice(0,visibleLimit).forEach(q=>{
+        const button=document.createElement('button');button.type='button';button.className='quest-chip'+(q.id===selectedId?' active':'');button.dataset.qid=q.id;
+        const star=document.createElement('span');star.className='chip-star';star.textContent=questLevelLabel(q);
+        const name=document.createElement('span');name.className='chip-name';name.textContent=questName(q);
+        const max=document.createElement('span');max.className='monster-task-max';max.textContent='最多'+q.maxPlayer+'人';button.append(star,name,max);pickerEl.appendChild(button);
+      });
+      if(!filtered.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='没有匹配的任务';pickerEl.appendChild(empty);}
+      el.querySelector('#scale-task-count').textContent='共 '+filtered.length+' 个任务';
+      el.querySelector('#scale-task-more').hidden=filtered.length<=visibleLimit;
     }
-    // 星级从高到低排序
-    questsWithMonster.sort((a, b) => b.level - a.level || b.name.localeCompare(a.name));
-
-    pickerEl.innerHTML = '<button class="quest-chip active" data-qid="">基础数据</button>' +
-      questsWithMonster.map((q) => `
-      <button class="quest-chip" data-qid="${q.id}">
-        <span class="chip-star">${questLevelLabel(q)}</span><span class="chip-name">${questName(q)}</span>
-      </button>`).join('');
-
+    [search,level,difficulty].forEach(input=>input.addEventListener(input===search?'input':'change',()=>{visibleLimit=40;renderPicker();}));
+    toggle.addEventListener('click',()=>{setOpen(editor.hidden);if(!editor.hidden)renderPicker();});
+    el.querySelector('#scale-task-done').addEventListener('click',()=>{setOpen(false);toggle.focus();});
+    el.querySelector('#scale-task-more').addEventListener('click',()=>{visibleLimit+=40;renderPicker();});
+    el.querySelector('#scale-clear').addEventListener('click',()=>{selectedId=null;players=1;setOpen(false);renderScale();});
     function getTarget(q) { return q.targets.find((x) => x.monsterId === m.id); }
     function getMulti(rate) {
       if (!rate || !rate._MultiTableId || !multiTables[rate._MultiTableId]) return null;
@@ -752,33 +807,28 @@
         .map((p) => `<button class="toggle-btn${p === players ? ' active' : ''}" data-p="${p}">${p}人</button>`).join('');
     }
     function renderScale() {
-      if (!selectedId) {
-        renderPlayerBtns(4);
-        groupsEl.innerHTML = renderDataGroups(m, null);
-        return;
-      }
-      const q = questsWithMonster.find((x) => x.id === selectedId);
-      if (q) renderPlayerBtns(q.maxPlayer || 4);
-      const f = q ? computeFactors(q) : null;
-      groupsEl.innerHTML = renderDataGroups(m, f);
+      const q=questsWithMonster.find(q=>q.id===selectedId)||null;
+      renderPlayerBtns(q?.maxPlayer||4);
+      const factors=q?computeFactors(q):null;
+      groupsEl.innerHTML=renderDataGroups(m,factors);
+      el.querySelector('#scale-current-task').textContent=q?questLevelLabel(q)+' '+questName(q):'基础数据';
+      const people=el.querySelector('#scale-current-players');people.hidden=!q;people.textContent=players+'人';
+      el.querySelector('#scale-clear').hidden=!q;
+      toggle.textContent=editor.hidden?(q?'更换':'选择任务'):'收起';
+      const health=el.querySelector('.detail-hero .meta-chips .chip');
+      if(health)health.textContent=(q?'任务血量 ':'基础血量 ')+fmt(typeof m.data.BHP==='number'?Math.round(m.data.BHP*(factors?.fHealth||1)):null);
+      syncMonsterTabs(el);
     }
-
-    pickerEl.addEventListener('click', (e) => {
-      const b = e.target.closest('[data-qid]');
-      if (!b) return;
-      selectedId = b.dataset.qid || null;
-      pickerEl.querySelectorAll('.quest-chip').forEach((x) => x.classList.remove('active'));
-      b.classList.add('active');
-      renderScale();
+    pickerEl.addEventListener('click',event=>{
+      const button=event.target.closest('[data-qid]');if(!button)return;
+      selectedId=button.dataset.qid||null;setOpen(false);renderScale();toggle.focus({preventScroll:true});
     });
-    playerBtns.addEventListener('click', (e) => {
-      const b = e.target.closest('[data-p]');
-      if (!b) return;
-      players = parseInt(b.dataset.p, 10);
-      playerBtns.querySelectorAll('.toggle-btn').forEach((x) => x.classList.remove('active'));
-      b.classList.add('active');
-      renderScale();
+    playerBtns.addEventListener('click',event=>{
+      const button=event.target.closest('[data-p]');if(!button)return;
+      players=Number(button.dataset.p);renderScale();
+      playerBtns.querySelector('[data-p="'+players+'"]')?.focus({preventScroll:true});
     });
+    renderPicker();renderScale();
   }
 
   // ---- 任务详情 ----
@@ -1081,9 +1131,11 @@
       <div class="calc-preset-actions">
         <button type="button" class="calc-btn ghost" id="calc-${kind}-preset-load">读取</button>
         <button type="button" class="calc-btn ghost" id="calc-${kind}-preset-save">保存当前</button>
+        <details class="calc-preset-manage"><summary>管理预设</summary><div class="calc-preset-actions">
         <button type="button" class="calc-btn ghost" id="calc-${kind}-preset-overwrite">覆盖保存</button>
         <button type="button" class="calc-btn ghost" id="calc-${kind}-preset-rename">重命名</button>
         <button type="button" class="calc-btn ghost" id="calc-${kind}-preset-delete">删除</button>
+        </div></details>
       </div>
       <form class="calc-preset-editor" id="calc-${kind}-preset-editor" hidden>
         <label class="calc-field"><span id="calc-${kind}-preset-edit-label">预设名称</span><input id="calc-${kind}-preset-name" maxlength="80" required autocomplete="off"></label>
@@ -1527,6 +1579,13 @@
 
     // 结果渲染
     function renderResults(r) {
+      const identity=el.querySelector('#calc-target-identity');
+      const targetMonster=selectedMonster(),icon=targetMonster&&META.imageMap[targetMonster.name]?.icon;
+      identity.replaceChildren();
+      if(targetMonster){
+        if(icon){const image=document.createElement('img');image.src=icon;image.alt=targetMonster.zh||targetMonster.name;image.width=44;image.height=44;identity.appendChild(image);}
+        const label=document.createElement('span');label.textContent=(targetMonster.zh||targetMonster.name)+' · '+partName(targetMonster.name,selectedPart()?.key||'');identity.appendChild(label);
+      }
       const grid = el.querySelector('#calc-result-grid');
       const tbl = el.querySelector('#calc-hit-table');
       const stat = (a, b, cls) => `<div class="calc-stat${cls ? ' ' + cls : ''}"><span>${a}</span><strong>${b}</strong></div>`;
@@ -2939,7 +2998,7 @@
         <div class="calc-hint" id="calc-weapon-note"${weaponNote ? '' : ' hidden'}>${weaponNote}</div>
       </section>
 
-      <section class="calc-card">
+      <section class="calc-card calc-base-card">
         <h2>基础数值</h2>
         <div class="calc-grid">
           <label class="calc-field"><span>基础攻击力（不乘武器系数）</span><input id="calc-attack" type="number" min="0" step="1" value="${state.attack}"></label>
@@ -2957,7 +3016,7 @@
         </div>
       </section>
 
-      <section class="calc-card">
+      <section class="calc-card calc-skills-card">
         <h2>技能</h2>
         <div class="calc-skill-bar">
           <button id="calc-skill-open" class="calc-btn">＋ 选择技能</button>
@@ -2967,16 +3026,20 @@
         <div class="calc-panel" id="calc-panel"></div>
       </section>
 
-      <section class="calc-card">
+      <section class="calc-card calc-target-card">
         <h2>怪物 / 部位</h2>
+        <div id="calc-target-identity" class="calc-target-identity"></div>
         <div class="calc-grid">
           <label class="calc-field"><span>怪物</span><select id="calc-monster">${monsterOpts}</select></label>
           <label class="calc-field"><span>部位</span><select id="calc-part"></select></label>
         </div>
-        <div class="calc-grid" style="margin-top:8px">
-          <label class="calc-field" style="grid-column:1 / -1"><span>选择任务</span><select id="calc-quest"></select></label>
-          <label class="calc-field"><span>人数</span><select id="calc-players"><option value="1">1人</option></select></label>
-        </div>
+        <details class="calc-task-context" id="calc-task-context">
+          <summary id="calc-task-summary">任务与人数 · 基础倍率</summary>
+          <div class="calc-grid" style="margin-top:8px">
+            <label class="calc-field" style="grid-column:1 / -1"><span>选择任务</span><select id="calc-quest"></select></label>
+            <label class="calc-field"><span>人数</span><select id="calc-players"><option value="1">1人</option></select></label>
+          </div>
+        </details>
         <div class="calc-hint" id="calc-scarraw-note"></div>
         <div class="calc-grid" style="margin-top:8px">
           <label class="calc-field" style="grid-column:1 / -1"><span>肉质状态</span><select id="calc-meat-state"></select></label>
@@ -2986,7 +3049,7 @@
         <div class="calc-hint" id="calc-meat-hint"></div>
       </section>
 
-      <section class="calc-card">
+      <section class="calc-card calc-combo-card">
         <h2>自定义连段</h2>
         ${presetHtml('combos', '连段预设（当前武器）')}
         <label class="calc-check calc-derive-toggle"><input type="checkbox" id="calc-derive-toggle"${state.deriveMode ? ' checked' : ''}>遵循派生逻辑（关闭后可任意接招）</label>
@@ -3049,6 +3112,21 @@
         </div>
         <div class="picker-list" id="calc-picker-list"></div>
       </div>`;
+
+    // 将现有控件放入并排布局，保留 ID、状态和事件，避免两份表单失去同步。
+    const calcLayout=document.createElement('div');calcLayout.className='calc-page-layout';
+    const configColumn=document.createElement('div');configColumn.className='calc-config-column';
+    const resultColumn=document.createElement('div');resultColumn.className='calc-observe-column';
+    const weaponCard=el.querySelector('.calc-weapon-card'),baseCard=el.querySelector('.calc-base-card');
+    const baseTitle=baseCard.querySelector('h2');baseTitle.textContent='基础数值';baseTitle.className='calc-subheading';
+    while(baseCard.firstChild)weaponCard.appendChild(baseCard.firstChild);
+    baseCard.remove();weaponCard.querySelector('h2').textContent='武器与基础数值';
+    const settingsPresets=weaponCard.querySelector('[data-preset-kind="settings"]');
+    el.querySelector('.calc-header').appendChild(settingsPresets);
+    configColumn.append(weaponCard,el.querySelector('.calc-skills-card'));
+    resultColumn.append(el.querySelector('.calc-target-card'),el.querySelector('.calc-result'));
+    calcLayout.append(configColumn,resultColumn,el.querySelector('.calc-combo-card'));
+    el.querySelector('.calc-header').after(calcLayout);
 
     // ===== 事件绑定 =====
     const $ = (id) => el.querySelector(id);
@@ -3549,6 +3627,8 @@
       const el = $('div#calc-scarraw-note');
       if (!el) return;
       const sc = scarRawOf();
+      const summary=$('#calc-task-summary');
+      if(summary)summary.textContent=state.quest?'任务：'+($('#calc-quest').selectedOptions[0]?.textContent||'')+' · '+state.players+'人':'任务与人数 · 基础倍率';
       const shown = v => Number(v).toFixed(2);
       el.textContent = sc.valid
         ? (state.quest ? '' : '未选择任务，爆伤口使用基础倍率 · ') + 'Scar Raw ' + shown(sc.questRaw)
