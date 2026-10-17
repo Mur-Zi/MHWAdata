@@ -425,9 +425,9 @@
     const body=document.createElement('div');body.className='monster-detail-body';
     const hero=el.querySelector('.detail-hero'),context=el.querySelector('.monster-task-context');context.dataset.detailPanel='tasks';
     const links=document.createElement('nav');links.className='monster-detail-links';links.setAttribute('aria-label','资料目录');
-    [['meat','肉质'],['vital','血量 / 部位 / 伤口'],['status','异常状态'],['tasks','血量与任务倍率']].forEach(([key,text])=>{const button=document.createElement('button');button.type='button';button.className='toggle-btn';button.dataset.detailTab=key;button.textContent=text;button.addEventListener('click',()=>{el.querySelector('[data-detail-panel="'+key+'"],[data-detail-group="'+key+'"]')?.scrollIntoView({block:'start'});});links.appendChild(button);});side.append(links);
+    [['meat','肉质'],['tasks','任务 / 人数 / 倍率'],['vital','血量 / 部位 / 伤口'],['status','异常状态']].forEach(([key,text])=>{const button=document.createElement('button');button.type='button';button.className='toggle-btn';button.dataset.detailTab=key;button.textContent=text;button.addEventListener('click',()=>{el.querySelector('[data-detail-panel="'+key+'"],[data-detail-group="'+key+'"]')?.scrollIntoView({block:'start'});});links.appendChild(button);});side.append(links);
     const meat=el.querySelector('.section');meat.dataset.detailPanel='meat';
-    body.append(hero,meat,el.querySelector('#data-groups'),context);workspace.append(side,body);el.replaceChildren(workspace);renderSide();
+    body.append(hero,meat,context,el.querySelector('#data-groups'));workspace.append(side,body);el.replaceChildren(workspace);renderSide();
     const selected=list.querySelector('[aria-pressed="true"]');
     if(selected){const row=selected.getBoundingClientRect(),bounds=list.getBoundingClientRect();if(row.bottom>bounds.bottom)list.scrollTop+=row.bottom-bounds.bottom;}
   }
