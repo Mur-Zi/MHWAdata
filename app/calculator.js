@@ -898,8 +898,8 @@ function calculateBowgunCombo(p) {
       const ctx={base:baseR,sequence,rapid,physicalAdd:(level('HunterSkill_019')===3?5*coverage('HunterSkill_019'):0)+(opening?5*level('HunterSkill_198')*coverage('HunterSkill_198'):0)+(boost?[3,6,10][tetrad-1]*coverage('HunterSkill_197'):0),tetradAffinity:sequence>=4&&tetrad?[8,10,12][tetrad-1]*coverage('HunterSkill_197'):0,elementDamageMul:(opening?factor('HunterSkill_198',1.1):1)*(boost?factor('HunterSkill_197',1.05):1)};
       const begin=hits.length,emit=h=>addHit(m,it,ci,h,ctx);
       if(['normal','pierce','spread','element','dragon'].includes(family)){
-        const count=family==='normal'?(isLight&&chase&&!rapid?2:isLight&&rapid?5:3):family==='spread'?(isLight&&chase&&rapid?3:isLight&&(rapid||chase)?2:1):isLight?(family==='dragon'?(rapid&&chase?2:1):chase?(rapid?3:2):rapid?(family==='pierce'?3:2):1):1;
-        const width=family==='spread'?[5,6,7][lv-1]:1,ticks=['pierce','element','dragon'].includes(family)?clampCount(it.rangedHits,m.rangedStages?.default||6):family==='spread'?clampCount(it.bgPellets,width,width):1;
+        const count=family==='normal'?(isLight&&chase&&!rapid?2:isLight&&rapid?5:3):family==='spread'?(isLight&&chase&&rapid?3:isLight&&(rapid||chase)?2:1):isLight?(family==='dragon'?(rapid?2:1):chase?(rapid?3:2):rapid?(family==='pierce'?3:2):1):1;
+        const width=family==='spread'?[5,6,7][lv-1]:1,maxTicks=family==='dragon'?7:family==='element'?6:family==='pierce'?[5,7,9][lv-1]:99,ticks=['pierce','element','dragon'].includes(family)?clampCount(it.rangedHits,m.rangedStages?.default||6,maxTicks):family==='spread'?clampCount(it.bgPellets,width,width):1;
         const mv=family==='normal'?(isLight?[17,23.8,30.6]:[17,23.8,32.3])[lv-1]:family==='pierce'?[11,12,12][lv-1]:family==='spread'?[13,15.6,18.2][lv-1]:family==='dragon'?20:lv===1?8:10;
         const corr=!isLight?1:rapid?({normal:.7,pierce:.65,spread:.6,element:.6,dragon:.7}[family]):chase?({normal:1.9,pierce:1.2,spread:.85,element:.75,dragon:1.1}[family]):({normal:.8,pierce:.8,spread:.7,element:.7,dragon:.8}[family]);
         for(let shot=0;shot<count;shot++)for(let tick=1;tick<=ticks;tick++){
