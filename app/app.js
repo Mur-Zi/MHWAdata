@@ -2515,6 +2515,40 @@
     let pickerOpen = false;
     let pickerSource = null;
     let pickerMoveItem = null;
+    let pickerCursor = -1;
+    function pickerOptions(){return Array.from(el.querySelectorAll('#calc-picker-list .picker-item')).filter(button=>!button.hidden&&!button.disabled);}
+    function focusPickerOption(button){
+      if(!button)return;
+      pickerCursor=Number(button.dataset.idx);button.focus({preventScroll:true});
+      const list=el.querySelector('#calc-picker-list');
+      const box=button.getBoundingClientRect(),bounds=list.getBoundingClientRect();
+      if(box.top<bounds.top)list.scrollTop-=bounds.top-box.top;
+      else if(box.bottom>bounds.bottom)list.scrollTop+=box.bottom-bounds.bottom;
+    }
+    function filterPicker(){
+      const search=el.querySelector('#calc-picker-search'),query=search.value.trim().toLocaleLowerCase();
+      el.querySelectorAll('#calc-picker-list .picker-item').forEach(button=>{button.hidden=!!query&&!button.dataset.search.includes(query);});
+      const options=pickerOptions();pickerCursor=options[0]?Number(options[0].dataset.idx):-1;
+      el.querySelector('#calc-picker-empty').hidden=options.length>0;
+      el.querySelector('#calc-picker-list').scrollTop=0;
+    }
+    function handlePickerKey(event){
+      if(event.isComposing)return false;
+      const options=pickerOptions(),search=el.querySelector('#calc-picker-search');
+      const current=options.findIndex(button=>button===document.activeElement);
+      if(event.key==='Escape'){event.preventDefault();event.stopPropagation();closePicker();return true;}
+      if(event.key==='ArrowDown'||event.key==='ArrowUp'){
+        event.preventDefault();const next=current<0?(event.key==='ArrowDown'?0:options.length-1):Math.max(0,Math.min(options.length-1,current+(event.key==='ArrowDown'?1:-1)));focusPickerOption(options[next]);return true;
+      }
+      if((event.key==='Home'||event.key==='End')&&document.activeElement!==search){event.preventDefault();focusPickerOption(event.key==='Home'?options[0]:options.at(-1));return true;}
+      if(event.key==='Enter'&&document.activeElement===search){event.preventDefault();options.find(button=>Number(button.dataset.idx)===pickerCursor)?.click();return true;}
+      if(event.key==='Tab'){
+        const controls=Array.from(el.querySelector('#calc-picker-sheet').querySelectorAll('button,input')).filter(node=>!node.disabled&&!node.hidden&&node.getClientRects().length);
+        if(event.shiftKey&&document.activeElement===controls[0]){event.preventDefault();controls.at(-1)?.focus();return true;}
+        if(!event.shiftKey&&document.activeElement===controls.at(-1)){event.preventDefault();controls[0]?.focus();return true;}
+      }
+      return false;
+    }
     function openPicker(sel, title) {
       pickerSource=sel;
       const moveIndex=sel.closest('[data-move-index]')?.dataset.moveIndex;
@@ -2523,13 +2557,26 @@
       const backdrop = el.querySelector('#calc-picker-backdrop');
       const list = el.querySelector('#calc-picker-list');
       el.querySelector('#calc-picker-title').textContent = title || '请选择';
+      const search=el.querySelector('#calc-picker-search');search.value='';
+      search.parentElement.hidden=sel.options.length<=8;
+      search.placeholder='搜索'+(title||'选项');
+      el.querySelector('#calc-picker-empty').hidden=true;
       // 招式选择器：吃飞燕的招式挂「飞燕」标签；**会在这一招发生形态变化的挂「高速变形」**
       //   （用户 2026-09-30：盾突刺/防御 派生列表里的大解也要显示吃高速变形 → 按当前连段形态逐条判）
       const isMoveSel = sel.id === 'calc-move';
-      list.innerHTML = Array.from(sel.options).map((o, i) => {
-        const m = isMoveSel ? moveOf(o.value) : null;
-        return `<button type="button" class="picker-item${o.selected ? ' active' : ''}" data-idx="${i}"${o.disabled?' disabled':''}><span>${o.textContent}${m ? hienTag(m) + morphTagInList(m) : ''}</span>${o.selected ? '<span class="picker-check">✓</span>' : ''}</button>`;
-      }).join('');
+      list.replaceChildren();
+      Array.from(sel.options).forEach((option,i)=>{
+        const button=document.createElement('button');button.type='button';button.className='picker-item'+(option.selected?' active':'');button.dataset.idx=i;button.disabled=option.disabled;
+        button.setAttribute('aria-pressed',String(option.selected));
+        button.dataset.search=(option.textContent+' '+(sel.id==='calc-monster'?option.value:'')).toLocaleLowerCase();
+        const icon=sel.id==='calc-monster'&&META.imageMap[option.value]?.icon;
+        if(icon){const image=document.createElement('img');image.src=icon;image.alt='';image.width=32;image.height=32;image.loading='lazy';button.appendChild(image);}
+        const text=document.createElement('span');text.className='picker-option-text';text.textContent=option.textContent;
+        const move=isMoveSel?moveOf(option.value):null;if(move)text.insertAdjacentHTML('beforeend',hienTag(move)+morphTagInList(move));
+        button.appendChild(text);
+        if(option.selected){const check=document.createElement('span');check.className='picker-check';check.textContent='✓';button.appendChild(check);}
+        list.appendChild(button);
+      });
       list.querySelectorAll('.picker-item').forEach((b) => {
         b.addEventListener('click', () => {
           const opt = sel.options[Number(b.dataset.idx)];
@@ -2538,14 +2585,23 @@
         });
       });
       pickerOpen = true;
+      pickerCursor=sel.selectedIndex;
+      sel.previousElementSibling?.setAttribute('aria-expanded','true');
       sheet.hidden = false; backdrop.hidden = false;
-      requestAnimationFrame(() => { sheet.classList.add('open'); backdrop.classList.add('open'); });
+      requestAnimationFrame(() => {
+        if(!pickerOpen||pickerSource!==sel)return;
+        sheet.classList.add('open');backdrop.classList.add('open');
+        const selected=list.querySelector('.picker-item.active:not(:disabled)');
+        if(!search.parentElement.hidden){search.focus({preventScroll:true});list.scrollTop=0;}
+        else focusPickerOption(selected||pickerOptions()[0]);
+      });
     }
     function closePicker() {
       const sheet = el.querySelector('#calc-picker-sheet');
       const backdrop = el.querySelector('#calc-picker-backdrop');
       if (!sheet) return;
       pickerOpen = false;
+      pickerSource?.previousElementSibling?.setAttribute('aria-expanded','false');
       sheet.classList.remove('open'); backdrop.classList.remove('open');
       const source=pickerSource,field=source?.closest('[data-move-control]')?.dataset.moveControl,moveItem=pickerMoveItem;
       setTimeout(() => {
@@ -2566,6 +2622,7 @@
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'picker-btn';
+      btn.setAttribute('aria-haspopup','dialog');btn.setAttribute('aria-controls','calc-picker-sheet');btn.setAttribute('aria-expanded','false');
       btn.innerHTML = '<span class="picker-btn-text"></span><span class="picker-btn-caret">▾</span>';
       sel.parentNode.insertBefore(btn, sel);
       const sync = () => {
@@ -3105,12 +3162,14 @@
       </aside>
 
       <div class="picker-backdrop" id="calc-picker-backdrop" hidden></div>
-      <div class="picker-sheet" id="calc-picker-sheet" hidden>
+      <div class="picker-sheet" id="calc-picker-sheet" role="dialog" aria-modal="true" aria-labelledby="calc-picker-title" hidden>
         <div class="picker-head">
           <span class="picker-title" id="calc-picker-title"></span>
-          <button type="button" class="picker-close" id="calc-picker-close">✕</button>
+          <button type="button" class="picker-close" id="calc-picker-close" aria-label="关闭选择">✕</button>
         </div>
+        <label class="picker-search" hidden><span class="picker-search-label">搜索选项</span><input type="search" id="calc-picker-search" placeholder="搜索选项" autocomplete="off"></label>
         <div class="picker-list" id="calc-picker-list"></div>
+        <div class="picker-empty" id="calc-picker-empty" role="status" hidden>没有匹配的可选项</div>
       </div>`;
 
     // 将现有控件放入并排布局，保留 ID、状态和事件，避免两份表单失去同步。
@@ -3134,7 +3193,7 @@
     comboMedia.addEventListener('change',onComboMediaChange);
     el._comboMediaCleanup=()=>comboMedia.removeEventListener('change',onComboMediaChange);
     el.onkeydown = event => {
-      if(event.key==='Escape'&&pickerOpen){event.preventDefault();event.stopPropagation();closePicker();}
+      if(pickerOpen){if(handlePickerKey(event))return;}
       else if(event.key==='Escape'&&!comboMedia.matches&&openMoveItem){
         const index=state.combo.indexOf(openMoveItem);openMoveItem=null;renderCombo();
         el.querySelectorAll('.calc-combo-item')[index]?.querySelector('.calc-move-expand')?.focus({preventScroll:true});
@@ -3579,6 +3638,7 @@
 
     // 自绘选择器：关闭
     $('button#calc-picker-close').addEventListener('click', closePicker);
+    $('#calc-picker-search').addEventListener('input',filterPicker);
     $('div#calc-picker-backdrop').addEventListener('click', closePicker);
 
     // 把所有原生 select 换成自绘选择器（怪物/部位/肉质状态/属性类型/斩味/招式/舞踏/受击次数）
