@@ -810,3 +810,16 @@ th .ic { display: block; margin: 0 auto; }
 .calc-combo-item:hover { border-color: #806639; }
 .calc-combo-selected:hover { border-color: var(--accent); }
 .calc-move-options, .calc-move-primary { cursor: auto; }
+
+@media (min-width: 900px) {
+  body { padding-bottom: 32px; }
+  .topbar { gap: 16px; padding: 10px 24px; }
+  .topbar-title { text-align: left; }
+  .topbar .bottom-bar { position: static; display: flex; align-items: center; gap: 20px; background: none; border: 0; }
+  .topbar .bottom-search { display: none; padding: 0; width: clamp(180px, 24vw, 320px); }
+  .topbar .bottom-search:has(input:not([hidden])) { display: block; }
+  .topbar .bottom-search input { padding: 8px 12px; font-size: 14px; }
+  .topbar .bottom-nav { gap: 6px; }
+  .topbar .bottom-nav .nav-btn { flex: 0 0 auto; padding: 8px 20px; border: 1px solid var(--line); border-radius: 8px; font-size: 14px; }
+  .topbar .bottom-nav .nav-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+}

@@ -171,6 +171,17 @@
   const navBack = document.getElementById('nav-back');
   const titleEl = document.getElementById('topbar-title');
   const filterTrigger = document.getElementById('filter-trigger');
+  // Reuse the same navigation and search controls at the desktop header or mobile footer.
+  const navigationBar=document.querySelector('.bottom-bar');
+  const navigationHome=navigationBar.parentNode,navigationNext=navigationBar.nextSibling;
+  const navigationMedia=window.matchMedia('(min-width: 900px)');
+  function positionNavigation(){
+    if(navigationMedia.matches)document.querySelector('.topbar').appendChild(navigationBar);
+    else navigationHome.insertBefore(navigationBar,navigationNext);
+  }
+  navigationMedia.addEventListener('change',positionNavigation);
+  positionNavigation();
+
 
   function showView(name) {
     views.forEach((v) => {
