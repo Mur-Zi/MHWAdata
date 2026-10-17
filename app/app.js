@@ -2516,6 +2516,29 @@
     let pickerSource = null;
     let pickerMoveItem = null;
     let pickerCursor = -1;
+    let pickerAnchored = false;
+    function positionPickerDropdown(){
+      if(!pickerOpen||!pickerAnchored)return;
+      const sheet=el.querySelector('#calc-picker-sheet'),trigger=pickerSource?.previousElementSibling;
+      if(!trigger?.isConnected||!comboMedia.matches){closePicker(false);return;}
+      const rect=trigger.getBoundingClientRect(),margin=12,gap=6;
+      if(rect.bottom<=0||rect.top>=innerHeight||rect.right<=0||rect.left>=innerWidth){closePicker(false);return;}
+      const width=Math.min(Math.max(rect.width,240),innerWidth-margin*2);
+      const below=innerHeight-rect.bottom-gap-margin,above=rect.top-gap-margin;
+      const upwards=below<Math.min(240,above)&&above>below;
+      const maxHeight=Math.max(60,Math.min(360,upwards?above:below));
+      sheet.style.setProperty('--picker-width',width+'px');sheet.style.setProperty('--picker-max-height',maxHeight+'px');
+      const height=sheet.getBoundingClientRect().height;
+      sheet.style.setProperty('--picker-left',Math.max(margin,Math.min(rect.left,innerWidth-width-margin))+'px');
+      sheet.style.setProperty('--picker-top',Math.max(margin,upwards?rect.top-gap-height:rect.bottom+gap)+'px');
+    }
+    function onPickerOutside(event){
+      if(!pickerOpen||!pickerAnchored)return;
+      if(!el.querySelector('#calc-picker-sheet').contains(event.target)&&event.target!==pickerSource?.previousElementSibling&&!pickerSource?.previousElementSibling?.contains(event.target))closePicker(false);
+    }
+    function onPickerViewportChange(event){
+      if(pickerAnchored&&pickerOpen&&!(event.target instanceof Node&&el.querySelector('#calc-picker-sheet').contains(event.target)))positionPickerDropdown();
+    }
     function pickerOptions(){return Array.from(el.querySelectorAll('#calc-picker-list .picker-item')).filter(button=>!button.hidden&&!button.disabled);}
     function focusPickerOption(button){
       if(!button)return;
@@ -2531,6 +2554,7 @@
       const options=pickerOptions();pickerCursor=options[0]?Number(options[0].dataset.idx):-1;
       el.querySelector('#calc-picker-empty').hidden=options.length>0;
       el.querySelector('#calc-picker-list').scrollTop=0;
+      positionPickerDropdown();
     }
     function handlePickerKey(event){
       if(event.isComposing)return false;
@@ -2543,6 +2567,7 @@
       if((event.key==='Home'||event.key==='End')&&document.activeElement!==search){event.preventDefault();focusPickerOption(event.key==='Home'?options[0]:options.at(-1));return true;}
       if(event.key==='Enter'&&document.activeElement===search){event.preventDefault();options.find(button=>Number(button.dataset.idx)===pickerCursor)?.click();return true;}
       if(event.key==='Tab'){
+        if(pickerAnchored){const trigger=pickerSource?.previousElementSibling;closePicker(false);trigger?.focus({preventScroll:true});return true;}
         const controls=Array.from(el.querySelector('#calc-picker-sheet').querySelectorAll('button,input')).filter(node=>!node.disabled&&!node.hidden&&node.getClientRects().length);
         if(event.shiftKey&&document.activeElement===controls[0]){event.preventDefault();controls.at(-1)?.focus();return true;}
         if(!event.shiftKey&&document.activeElement===controls.at(-1)){event.preventDefault();controls[0]?.focus();return true;}
@@ -2550,12 +2575,16 @@
       return false;
     }
     function openPicker(sel, title) {
+      pickerSource?.previousElementSibling?.setAttribute('aria-expanded','false');
       pickerSource=sel;
+      pickerAnchored=comboMedia.matches&&!['calc-monster','calc-move','calc-quest'].includes(sel.id);
       const moveIndex=sel.closest('[data-move-index]')?.dataset.moveIndex;
       pickerMoveItem=moveIndex==null?null:state.combo[Number(moveIndex)];
       const sheet = el.querySelector('#calc-picker-sheet');
       const backdrop = el.querySelector('#calc-picker-backdrop');
       const list = el.querySelector('#calc-picker-list');
+      sheet.classList.toggle('picker-dropdown',pickerAnchored);
+      sheet.setAttribute('aria-modal',String(!pickerAnchored));
       el.querySelector('#calc-picker-title').textContent = title || '请选择';
       const search=el.querySelector('#calc-picker-search');search.value='';
       search.parentElement.hidden=sel.options.length<=8;
@@ -2587,31 +2616,36 @@
       pickerOpen = true;
       pickerCursor=sel.selectedIndex;
       sel.previousElementSibling?.setAttribute('aria-expanded','true');
-      sheet.hidden = false; backdrop.hidden = false;
+      sheet.hidden = false; backdrop.hidden = pickerAnchored;
+      positionPickerDropdown();
       requestAnimationFrame(() => {
         if(!pickerOpen||pickerSource!==sel)return;
-        sheet.classList.add('open');backdrop.classList.add('open');
+        sheet.classList.add('open');if(!pickerAnchored)backdrop.classList.add('open');
         const selected=list.querySelector('.picker-item.active:not(:disabled)');
         if(!search.parentElement.hidden){search.focus({preventScroll:true});list.scrollTop=0;}
         else focusPickerOption(selected||pickerOptions()[0]);
       });
     }
-    function closePicker() {
+    function closePicker(restoreFocus=true) {
+      if(typeof restoreFocus!=='boolean')restoreFocus=true;
       const sheet = el.querySelector('#calc-picker-sheet');
       const backdrop = el.querySelector('#calc-picker-backdrop');
       if (!sheet) return;
       pickerOpen = false;
       pickerSource?.previousElementSibling?.setAttribute('aria-expanded','false');
       sheet.classList.remove('open'); backdrop.classList.remove('open');
+      const delay=pickerAnchored?0:240;
+      if(pickerAnchored){sheet.hidden=true;backdrop.hidden=true;}
       const source=pickerSource,field=source?.closest('[data-move-control]')?.dataset.moveControl,moveItem=pickerMoveItem;
       setTimeout(() => {
         if(pickerOpen)return;
         sheet.hidden = true; backdrop.hidden = true;
+        if(!restoreFocus)return;
         const scope=comboMedia.matches?(selectedMoveItem===moveItem?el.querySelector('#calc-combo-editor'):null):el.querySelectorAll('.calc-combo-item')[state.combo.indexOf(moveItem)];
         const wrapper=field&&scope&&Array.from(scope.querySelectorAll('[data-move-control]')).find(n=>n.dataset.moveControl===field);
         if(wrapper)wrapper.querySelector('button,input')?.focus({preventScroll:true});
         else if(source?.isConnected)source.previousElementSibling?.focus({preventScroll:true});
-      }, 240);
+      }, delay);
     }
     // 把原生 select 藏起来，前面插入「深色按钮」，点击开自绘选择器
     function enhanceSelect(sel, title) {
@@ -2632,7 +2666,7 @@
       };
       sel._syncPicker = sync;
       sel.addEventListener('change', sync);
-      btn.addEventListener('click', () => { if (!sel.disabled) openPicker(sel, title); });
+      btn.addEventListener('click', () => { if (!sel.disabled) {if(pickerOpen&&pickerSource===sel)closePicker();else openPicker(sel, title);} });
       sync();
     }
     function syncPicker(sel) { if (sel && sel._syncPicker) sel._syncPicker(); }
@@ -3189,9 +3223,18 @@
 
     // ===== 事件绑定 =====
     const $ = (id) => el.querySelector(id);
-    const onComboMediaChange=()=>{if(!comboMedia.matches)openMoveItem=selectedMoveItem;renderCombo();};
+    const onComboMediaChange=()=>{if(pickerOpen)closePicker(false);if(!comboMedia.matches)openMoveItem=selectedMoveItem;renderCombo();};
     comboMedia.addEventListener('change',onComboMediaChange);
-    el._comboMediaCleanup=()=>comboMedia.removeEventListener('change',onComboMediaChange);
+    document.addEventListener('pointerdown',onPickerOutside,true);
+    window.addEventListener('scroll',onPickerViewportChange,true);
+    window.addEventListener('resize',onPickerViewportChange);
+    el._comboMediaCleanup=()=>{
+      if(pickerOpen)closePicker(false);
+      comboMedia.removeEventListener('change',onComboMediaChange);
+      document.removeEventListener('pointerdown',onPickerOutside,true);
+      window.removeEventListener('scroll',onPickerViewportChange,true);
+      window.removeEventListener('resize',onPickerViewportChange);
+    };
     el.onkeydown = event => {
       if(pickerOpen){if(handlePickerKey(event))return;}
       else if(event.key==='Escape'&&!comboMedia.matches&&openMoveItem){

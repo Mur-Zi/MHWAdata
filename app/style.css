@@ -713,6 +713,13 @@ th .ic { display: block; margin: 0 auto; }
   .picker-sheet .picker-item { padding: 10px 12px; font-size: 14px; border-radius: 7px; }
   .picker-sheet .picker-item:hover:not(:disabled) { background: var(--bg3); }
   .picker-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .picker-sheet.picker-dropdown { left: var(--picker-left); top: var(--picker-top); width: var(--picker-width); max-height: var(--picker-max-height); transform: none; opacity: 1; transition: none; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.35); }
+  .picker-dropdown .picker-head { display: none; }
+  .picker-dropdown .picker-search { padding: 8px; }
+  .picker-dropdown .picker-search-label { display: none; }
+  .picker-dropdown .picker-search input { padding: 8px; font-size: 14px; }
+  .picker-dropdown .picker-list { padding: 4px; }
+  .picker-dropdown .picker-item { padding: 9px 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .picker-sheet, .picker-backdrop { transition: none; }
