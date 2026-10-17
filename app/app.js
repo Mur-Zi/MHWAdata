@@ -1605,6 +1605,26 @@
         stat('最终会心率', (r.affinityVsTarget != null ? r.affinityVsTarget : r.affinity).toFixed(1) + '%')
       ].join('');
 
+      const shares=el.querySelector('#calc-move-shares');
+      shares.replaceChildren();shares.hidden=!r.hits.length;
+      if(r.hits.length){
+        const heading=document.createElement('h3');heading.textContent='招式伤害占比';shares.append(heading);
+        const list=document.createElement('div');list.className='calc-move-share-list';
+        const grouped=new Map();
+        (r.moveContributions||[]).forEach(c=>{
+          let group=grouped.get(c.moveId);
+          if(!group){group={moveId:c.moveId,count:0,damage:0};grouped.set(c.moveId,group);}
+          group.count++;group.damage+=c.damage;
+        });
+        [...grouped.values()].sort((a,b)=>b.damage-a.damage).forEach(group=>{
+          const row=document.createElement('div');row.className='calc-move-share-row';row.dataset.moveId=group.moveId;
+          const name=document.createElement('span');name.textContent=(levelNameOf(moveOf(group.moveId),null)||moveOf(group.moveId)?.name||group.moveId)+' ×'+group.count;
+          const amount=document.createElement('strong');amount.textContent=group.damage.toFixed(2);
+          const share=document.createElement('span');share.className='calc-move-share-percent';share.textContent=(r.totalDamage>0?group.damage/r.totalDamage*100:0).toFixed(2)+'%';
+          row.append(name,amount,share);list.append(row);
+        });
+        shares.append(list);
+      }
       if (!r.hits.length) { tbl.innerHTML = ''; updateComboOutputs(); return; }
 
       // 按招式分组：默认折叠，点招式行展开逐刀明细（十几刀的招式不会占一屏）
@@ -1821,7 +1841,7 @@
         html += `<div class="calc-hit-group" data-combo-index="${g.comboIndex}">
           <button type="button" class="calc-hit-head" data-hit-group="${gi}">
             <span class="calc-hit-name">${g.moveName}${prevEdge ? '<i class="calc-branch-tag">' + prevEdge + '</i>' : ''}${tagStr}<em>${hitsLabel}</em></span>
-            <span class="calc-hit-nums">总伤害 <b>${(contribution?.damage??sum.raw+sum.element).toFixed(2)}</b> · 占比 <b>${(contribution?.share??0).toFixed(2)}%</b><br>物理 <b>${(contribution?.physical??sum.raw).toFixed(2)}</b> · 属性 <b>${(contribution?.element??sum.element).toFixed(2)}</b> · 固伤 <b>${(contribution?.fixed??0).toFixed(2)}</b></span>
+            <span class="calc-hit-nums">总伤害 <b>${(contribution?.damage??sum.raw+sum.element).toFixed(2)}</b><br>物理 <b>${(contribution?.physical??sum.raw).toFixed(2)}</b> · 属性 <b>${(contribution?.element??sum.element).toFixed(2)}</b> · 固伤 <b>${(contribution?.fixed??0).toFixed(2)}</b></span>
             <span class="calc-hit-caret">▸</span>
           </button>
           <div class="calc-hit-body" data-hit-body="${gi}" hidden>${insectTag}${soundTag}${body}</div>
@@ -2021,7 +2041,7 @@
       list?.querySelectorAll('.calc-combo-item').forEach(row=>{
         const c=comboResult?.moveContributions?.find(c=>c.comboIndex===Number(row.dataset.moveIndex));
         const output=row.querySelector('.calc-move-output-values');
-        if(output)output.textContent=c?`伤害 ${c.damage.toFixed(2)} · 占比 ${c.share.toFixed(2)}%`:'伤害 0.00 · 占比 0.00%';
+        if(output)output.textContent='伤害 '+(c?.damage||0).toFixed(2);
       });
       el.querySelectorAll('.calc-editor-damage').forEach(target=>{
         target.replaceChildren();
@@ -3209,6 +3229,7 @@
       <section class="calc-card calc-result">
         <h2>计算结果</h2>
         <div class="calc-result-grid" id="calc-result-grid"></div>
+        <section class="calc-move-shares" id="calc-move-shares" hidden></section>
         <div class="calc-hit-table" id="calc-hit-table" hidden></div>
       </section>
 
