@@ -274,11 +274,9 @@ th .ic { display: block; margin: 0 auto; }
 .calc-page-layout .calc-hit-table td.part-name { white-space: normal; min-width: 100px; }
 @media (min-width: 900px) {
   .calc-page-layout { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 16px; }
-  .calc-config-column, .calc-observe-column { display: grid; grid-template-rows: subgrid; grid-row: 1 / span 2; row-gap: 16px; align-self: stretch; align-items: stretch; }
-  .calc-config-column { grid-column: 1; }
-  .calc-observe-column { grid-column: 2; }
+  .calc-config-column, .calc-observe-column { display: grid; gap: 14px; align-content: start; align-items: start; }
   .calc-page-layout .calc-result { grid-row: auto; }
-  .calc-page-layout > .calc-combo-card { grid-column: 1 / -1; grid-row: 3; }
+  .calc-page-layout > .calc-combo-card { grid-column: 1 / -1; grid-row: auto; }
   #view-calculator { max-width: 1500px; margin: auto; }
 }
 
