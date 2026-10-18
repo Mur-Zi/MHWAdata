@@ -875,3 +875,24 @@ th .ic { display: block; margin: 0 auto; }
   .monster-sidebar-item { grid-template-columns: 30px minmax(0,1fr); }
   .monster-sidebar-item img { width: 30px; height: 30px; }
 }
+
+/* Preset comparison stays in the calculator and never replaces the active editor. */
+.calc-preset-comparison { margin: 12px 0 16px; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg2); scroll-margin-top: 82px; min-width: 0; }
+.calc-comparison-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.calc-comparison-head h3 { color: var(--accent); margin: 0; font-size: 15px; }
+.calc-compare-config { margin: 10px 0; }
+.calc-compare-config > summary, .calc-compare-sequences > summary, .calc-compare-config-diff > summary { color: var(--accent2); cursor: pointer; font-size: 13px; padding: 6px 0; }
+.calc-compare-config > .calc-grid { margin-top: 8px; }
+.calc-compare-summary { margin: 12px 0; color: var(--accent); font-weight: 600; font-variant-numeric: tabular-nums; }
+.calc-compare-table { overflow-x: auto; max-width: 100%; margin-top: 8px; }
+.calc-compare-table table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 13px; }
+.calc-compare-table th, .calc-compare-table td { padding: 8px; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.calc-compare-table th { color: var(--text-dim); font-weight: 500; }
+.calc-compare-table th:first-child, .calc-compare-table td:first-child { text-align: left; }
+#calc-compare-output h4 { color: var(--accent); margin: 16px 0 6px; font-size: 13px; }
+.calc-compare-sequences, .calc-compare-config-diff { margin-top: 12px; }
+.calc-compare-sequences td, .calc-compare-config-diff td { text-align: left; }
+@media (max-width: 600px) { .calc-preset-comparison { padding: 10px; } }
+
+.calc-compare-sequences table { min-width: 520px; table-layout: auto; }
+@media (max-width: 600px) { .calc-compare-table th, .calc-compare-table td { padding: 7px 5px; font-size: 12px; } }

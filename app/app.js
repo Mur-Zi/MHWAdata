@@ -938,11 +938,11 @@
     const WEAPON_ORDER = ['great_sword', 'long_sword', 'sword_and_shield', 'dual_blades',
       'hammer', 'hunting_horn', 'lance', 'gunlance', 'switch_axe', 'charge_blade', 'insect_glaive', 'bow', 'heavy_bowgun', 'light_bowgun'];
     // 当前武器的招式表（所有读取招式的地方都走这里，避免混用别的武器）
-    function currentMoves() {
+    function currentMoves(source=state) {
       const all = CALC.weaponMoves || {};
-      return all[state.weaponId] || CALC.moves || [];
+      return all[source.weaponId] || CALC.moves || [];
     }
-    const isRangedWeapon = () => ['bow', 'light_bowgun', 'heavy_bowgun'].includes(state.weaponId);
+    const isRangedWeapon = (source=state) => ['bow', 'light_bowgun', 'heavy_bowgun'].includes(source.weaponId);
     // 射击方式留在招式行内；保留各方式原有 ID，兼容已保存连段和计算数据。
     function bowgunShotChoices(move) {
       if (state.weaponId !== 'light_bowgun' || !move?.rangedAmmo || !['shot', 'chase', 'stepShot'].includes(move.rangedRole)) return [];
@@ -1183,6 +1183,7 @@
       <div class="calc-preset-actions">
         <button type="button" class="calc-btn ghost" id="calc-${kind}-preset-load">读取</button>
         <button type="button" class="calc-btn ghost" id="calc-${kind}-preset-save">保存当前</button>
+        <button type="button" class="calc-btn ghost" data-open-comparison>预设对比</button>
         <details class="calc-preset-manage"><summary>管理预设</summary><div class="calc-preset-actions">
         <button type="button" class="calc-btn ghost" id="calc-${kind}-preset-overwrite">覆盖保存</button>
         <button type="button" class="calc-btn ghost" id="calc-${kind}-preset-rename">重命名</button>
@@ -1252,9 +1253,9 @@
       return !!(p && /head/i.test(p.key));
     }
     // 已选道具/餐点
-    function currentItems() {
-      return Object.keys(state.itemPicks)
-        .map((k) => state.itemPicks[k])
+    function currentItems(source=state) {
+      return Object.keys(source.itemPicks)
+        .map((k) => source.itemPicks[k])
         .filter(Boolean)
         .map((id) => {
           for (const g of itemGroups) { const o = g.options.find((x) => x.id === id); if (o) return o; }
@@ -1910,38 +1911,38 @@
       });
     }
 
-    function recalc() {
+    function buildCalculationParams(source=state) {
       const meat = currentMeat();
-      const isIG = state.weaponId === 'insect_glaive';   // 三灯/猎虫/舞踏都是操虫棍独有
-      const isCB = state.weaponId === 'charge_blade';    // 盾斧：剑/斧形态 + 瓶爆 + 电锯
-      const isHH = state.weaponId === 'hunting_horn';    // 狩猎笛：响玉数量 + 音波/响玉共鸣
-      const isDB = state.weaponId === 'dual_blades';     // 双刀：蓝鬼（鬼人闪身）
-      const isGL = state.weaponId === 'gunlance';        // 铳枪：炮击类型/等级 + 炮击系
-      const skillsSelected = Object.keys(state.skillLevels)
-        .filter((id) => state.skillLevels[id] > 0)
+      const isIG = source.weaponId === 'insect_glaive';   // 三灯/猎虫/舞踏都是操虫棍独有
+      const isCB = source.weaponId === 'charge_blade';    // 盾斧：剑/斧形态 + 瓶爆 + 电锯
+      const isHH = source.weaponId === 'hunting_horn';    // 狩猎笛：响玉数量 + 音波/响玉共鸣
+      const isDB = source.weaponId === 'dual_blades';     // 双刀：蓝鬼（鬼人闪身）
+      const isGL = source.weaponId === 'gunlance';        // 铳枪：炮击类型/等级 + 炮击系
+      const skillsSelected = Object.keys(source.skillLevels)
+        .filter((id) => source.skillLevels[id] > 0)
         .map((id) => {
           const sk = skills.find((s) => s.id === id);
-          const item = { skill: sk, level: state.skillLevels[id] };
+          const item = { skill: sk, level: source.skillLevels[id] };
           // 覆盖率（防具/套装技能 + 心眼）：以期望值折算进面板数值，默认 100%
-          if (sk && sk.coverage) item.coverage = skillCoverage(id);
+          if (sk && sk.coverage) item.coverage = skillCoverage(id,source);
           return item;
         });
-      const r = window.MHCalculator.calculateCombo({
-        moves: currentMoves(), bowgunSpec:state.bowgunSpec,
-        weaponId: state.weaponId,
+      return {
+        moves: currentMoves(source), bowgunSpec:source.bowgunSpec,
+        weaponId: source.weaponId,
         weaponGroups,
         danceMultiplier, chargeMultiplier,
         lamp: isIG ? lamp : null,       // 三灯攻击倍率与随灯态变化的招式（操虫棍独有）
         kinsect: {                      // 猎虫（共斗虫）：虫种 + 等级 → 威力倍率（操虫棍独有）
-          kinsect: isIG ? (kinsects.find((k) => k.id === state.kinsectId) || null) : null,
-          level: state.kinsectLevel,
+          kinsect: isIG ? (kinsects.find((k) => k.id === source.kinsectId) || null) : null,
+          level: source.kinsectLevel,
           powerTable: kinsectPowerTable
         },
         skills: skillsSelected,
-        items: currentItems(),          // 道具/餐点
-        attack: state.attack, element: state.element, elementType: state.elementType,
-        status: state.status, statusType: state.statusType, affinity: state.affinity,
-        sharpness: isRangedWeapon() ? { raw: 1, element: 1 } : sharpness[state.sharpness] || { raw: 1, element: 1 },
+        items: currentItems(source),          // 道具/餐点
+        attack: source.attack, element: source.element, elementType: source.elementType,
+        status: source.status, statusType: source.statusType, affinity: source.affinity,
+        sharpness: isRangedWeapon(source) ? { raw: 1, element: 1 } : sharpness[source.sharpness] || { raw: 1, element: 1 },
         sharpGreen: sharpness.green || null,   // 狩猎笛响周波：斩味固定绿斩（用户拍板）
         hitzones: meat,
         isHead: currentIsHead(),        // 只有头部累计晕厥
@@ -1950,56 +1951,61 @@
         // 任务Difficulty._ScarRaw × 人数倍率；历战伤口加成用独立标记。
         scarRaw: scarRawOf().raw,
         scarLegendary: scarRawOf().legendary,
-        mode: state.mode,
-        combo: state.combo,
+        mode: source.mode,
+        combo: source.combo,
         mantle: false,         // 蚀攻衣装：开启后把衣装的加段并入对应招式
         // 盾斧：瓶种 / 瓶状态 / 红盾 / 红剑（开局就选；其他武器一律不吃）
         cb: isCB ? {
-          phial: state.cbPhial, reinforced: !!state.cbReinforced,
-          redShield: !!state.cbRedShield, redSword: !!state.cbRedSword
+          phial: source.cbPhial, reinforced: !!source.cbReinforced,
+          redShield: !!source.cbRedShield, redSword: !!source.cbRedSword
         } : null,
         // 斩击斧（用户 2026-10-06 拍板）：开刃 / 瓶种（强击瓶·强属性瓶）/ 红斧 —— 武器级开关
-        swax: state.weaponId === 'switch_axe' ? {
-          awakened: !!state.swaxAwakened,
-          phial: state.swaxPhial,
-          redAxe: !!state.swaxRedAxe
+        swax: source.weaponId === 'switch_axe' ? {
+          awakened: !!source.swaxAwakened,
+          phial: source.swaxPhial,
+          redAxe: !!source.swaxRedAxe
         } : null,
         phialTable: (CALC.cbPhials || null),
         // 狩猎笛：响玉数量（0~3，默认 0）+ 响玉共鸣表（平A / 演奏）
-        balladCount: isHH ? state.balladCount : 0,
+        balladCount: isHH ? source.balladCount : 0,
         balladTable: (CALC.hornBallads || null),
         // 双刀：蓝鬼（鬼人闪身）—— 只有双刀会生效（引擎侧按 weaponId 硬拦截，其他武器传了也忽略）
         blueDemon: isDB
-          ? { on: !!state.blueDemon, attackBaseMul: blueDemonCfg.attackBaseMul, elementDamageMul: blueDemonCfg.elementDamageMul || 1.3 }
+          ? { on: !!source.blueDemon, attackBaseMul: blueDemonCfg.attackBaseMul, elementDamageMul: blueDemonCfg.elementDamageMul || 1.3 }
           : null,
         // 铳枪：炮击类型 / 等级 + 炮击表（同样只在铳枪生效）
-        gunlance: isGL ? { type: state.glType, level: state.glLevel } : null,
+        gunlance: isGL ? { type: source.glType, level: source.glLevel } : null,
         shellTable: isGL ? GL_SHELL : null,
         // 旋律（所有武器都有，可多选；自我强化按数据层 weapons 过滤，非笛子不会出现）
-        melodies: (CALC.melodies || []).filter((m) => state.melodyIds.indexOf(m.id) >= 0),
+        melodies: (CALC.melodies || []).filter((m) => source.melodyIds.indexOf(m.id) >= 0),
         context: {
-          autoSkillConditions:true, wet:state.wet, bubble:state.bubble,
-          monsterEnraged: state.monsterEnraged,
-          fullHealth: state.fullHealth,
+          autoSkillConditions:true, wet:source.wet, bubble:source.bubble,
+          monsterEnraged: source.monsterEnraged,
+          fullHealth: source.fullHealth,
           wound: currentIsWound(),   // 自动：选中「伤口」肉质状态时应用伤口相关技能
           overcomeFrenzy: true,
-          overcomeFrenzyCoverage: ['HunterSkill_183','HunterSkill_195','custom_overcome_frenzy'].some(id=>state.skillLevels[id]>0)?skillCoverage('HunterSkill_183'):0,
-          clash: state.clash,            // 角力/抵消成功（辟兽之力、冻峰龙之反叛）
-          ateMeat: state.ateMeat,        // 食用烤熟的肉等道具（暗器蛸之力）
-          apexSoulReady:state.apexSoulReady,encouragement:state.encouragement,ailmentCleared:state.ailmentCleared,ailment:state.ailment,
-          dodgeEvade: state.skillLevels.SeriesSkill_01>=4, // 千刃龙效果由技能覆盖率表达。
-          festival: state.festival,      // 祭典期间（大地之恩惠）
-          warCry: state.warCry,          // 肢体动作「咆哮」后（雪狮子王之斗志）
-          absorbHits: state.absorbHits,
-          threeLamp: isIG ? state.threeLamp : false   // 操虫棍：是否三灯（其他武器强制关闭）
+          overcomeFrenzyCoverage: ['HunterSkill_183','HunterSkill_195','custom_overcome_frenzy'].some(id=>source.skillLevels[id]>0)?skillCoverage('HunterSkill_183',source):0,
+          clash: source.clash,            // 角力/抵消成功（辟兽之力、冻峰龙之反叛）
+          ateMeat: source.ateMeat,        // 食用烤熟的肉等道具（暗器蛸之力）
+          apexSoulReady:source.apexSoulReady,encouragement:source.encouragement,ailmentCleared:source.ailmentCleared,ailment:source.ailment,
+          dodgeEvade: source.skillLevels.SeriesSkill_01>=4, // 千刃龙效果由技能覆盖率表达。
+          festival: source.festival,      // 祭典期间（大地之恩惠）
+          warCry: source.warCry,          // 肢体动作「咆哮」后（雪狮子王之斗志）
+          absorbHits: source.absorbHits,
+          threeLamp: isIG ? source.threeLamp : false   // 操虫棍：是否三灯（其他武器强制关闭）
         }
-      });
+      };
+    }
+    function recalc() {
+      const isIG=state.weaponId==='insect_glaive',isDB=state.weaponId==='dual_blades';
+      const r=window.MHCalculator.calculateCombo(buildCalculationParams());
       // 长枪力防：把引擎算出的「哪一招吃到了力防加成」记下来，连段行与逐刀表都按它标注
       state.forceGuardUsed = r.forceGuardUsed || [];
       renderResults(r);
       renderPanel(r.panel, r.skillNotes);
       updateItemSummary();
       renderComboSum(r);
+      renderPresetComparison();
       // 蓝鬼等效值提示（开了才写「A → B」，关了回到倍率说明）
       if (isDB) updateBlueDemonNote();
       // 舞踏为自动派生：打完几次跳跃突进斩就是几层（操虫棍独有）
@@ -2795,9 +2801,9 @@
 
     // 技能列表：按当前属性/异常类型过滤后重建（切换类型时刷新）
     // 技能覆盖率（用户 2026-10-06）：整数百分比，默认 100；只有数据层标了 coverage 的技能才渲染滑块
-    const skillCoverage = (id) => {
+    const skillCoverage = (id,source=state) => {
       if(id==='HunterSkill_195'||id==='custom_overcome_frenzy')id='HunterSkill_183';
-      const v = state.skillCoverage[id];
+      const v = source.skillCoverage[id];
       return v == null ? 100 : Math.max(0, Math.min(100, Math.round(v)));
     };
     function syncFrenzyCoverage() {
@@ -3080,13 +3086,14 @@
     //   1) 属性/异常强化技能只在面板所选类型一致时出现（火武器不显示冰属性强化、属性变换只对龙）
     //   2) 需要面板有属性/有异常才生效的技能（会心击【属性】/属性吸收要属性、会心击【特殊】要异常）
     //   3) 武器专属技能只在支持的武器下出现（攻击守势要格挡、蓄击强化只有大锤）
-    function skillVisible(s) {
-      if(['light_bowgun','heavy_bowgun'].includes(state.weaponId))return !s.poolHidden&&(!s.weapons||s.weapons.includes(state.weaponId))&&!['HunterSkill_018','HunterSkill_020','HunterSkill_056'].includes(s.id);
-      if (s.elementType && s.elementType !== state.elementType) return false;
-      if (s.statusType && s.statusType !== state.statusType) return false;
-      if (s.requireElement && state.elementType === 'None') return false;
-      if (s.requireStatus && state.statusType === 'None') return false;
-      if (Array.isArray(s.weapons) && s.weapons.indexOf(state.weaponId) < 0) return false;
+    function skillVisible(s) { return skillVisibleFor(s,state); }
+    function skillVisibleFor(s,source) {
+      if(['light_bowgun','heavy_bowgun'].includes(source.weaponId))return !s.poolHidden&&(!s.weapons||s.weapons.includes(source.weaponId))&&!['HunterSkill_018','HunterSkill_020','HunterSkill_056'].includes(s.id);
+      if (s.elementType && s.elementType !== source.elementType) return false;
+      if (s.statusType && s.statusType !== source.statusType) return false;
+      if (s.requireElement && source.elementType === 'None') return false;
+      if (s.requireStatus && source.statusType === 'None') return false;
+      if (Array.isArray(s.weapons) && s.weapons.indexOf(source.weaponId) < 0) return false;
       return true;
     }
 
@@ -3265,6 +3272,19 @@
       <section class="calc-card calc-combo-card">
         <h2>自定义连段</h2>
         ${presetHtml('combos', '连段预设（当前武器）')}
+        <section class="calc-preset-comparison" id="calc-preset-comparison" aria-label="预设对比" hidden>
+          <div class="calc-comparison-head"><h3>预设对比</h3><button type="button" class="calc-btn ghost" id="calc-comparison-close">收起</button></div>
+          <div class="calc-grid">
+            <label class="calc-field"><span>A · 连段预设</span><select id="calc-compare-a-combo"></select></label>
+            <label class="calc-field"><span>B · 连段预设</span><select id="calc-compare-b-combo"></select></label>
+          </div>
+          <details class="calc-compare-config"><summary>分别选择配置（默认共用当前配置）</summary><div class="calc-grid">
+            <label class="calc-field"><span>A · 配置预设</span><select id="calc-compare-a-settings"></select></label>
+            <label class="calc-field"><span>B · 配置预设</span><select id="calc-compare-b-settings"></select></label>
+          </div></details>
+          <p class="calc-hint" id="calc-compare-target"></p>
+          <div id="calc-compare-output" aria-live="polite"></div>
+        </section>
         <label class="calc-check calc-derive-toggle"><input type="checkbox" id="calc-derive-toggle"${state.deriveMode ? ' checked' : ''}>遵循派生逻辑（关闭后可任意接招）</label>
         <div class="calc-add-row">
           <select id="calc-move"></select>
@@ -3481,6 +3501,8 @@
         syncPicker(sel);
         ['load', 'overwrite', 'rename', 'delete'].forEach(action => { $('button#calc-' + type + '-preset-' + action).disabled = !sel.value; });
       });
+      refreshComparisonSelectors();
+      renderPresetComparison();
     }
     function restoreSettingsPreset(preset) {
       const source = preset.data;
@@ -3516,6 +3538,116 @@
       el.querySelectorAll('[data-cond]').forEach(cb => { cb.checked = !!state[cb.dataset.cond]; });
       syncTypeInputs();buildItemSelectors(); updateCondSummary(); applyWeapon();
     }
+    function refreshComparisonSelectors() {
+      const bank=readPresets();
+      ['a','b'].forEach((side,index)=>['combo','settings'].forEach(type=>{
+        const sel=el.querySelector('#calc-compare-'+side+'-'+type);if(!sel)return;
+        const list=bank[type==='combo'?'combos':'settings'].filter(p=>p.weaponId===state.weaponId);
+        const keep=sel.dataset.weapon===state.weaponId?sel.value:'';
+        sel.replaceChildren(new Option(type==='combo'?'当前连段':'当前配置',''));
+        list.forEach(p=>sel.add(new Option(p.name,p.id)));
+        sel.value=list.some(p=>p.id===keep)?keep:'';sel.dataset.weapon=state.weaponId;syncPicker(sel);
+      }));
+    }
+    function comparisonConfiguration(preset) {
+      const source=clonePreset(state);
+      if(preset)CONFIG_KEYS.forEach(key=>{
+        const value=preset.data[key];
+        if(value===undefined)return;
+        if(Array.isArray(source[key])){if(Array.isArray(value))source[key]=value.filter(x=>typeof x==='string');}
+        else if(source[key]&&typeof source[key]==='object'){if(value&&typeof value==='object'&&!Array.isArray(value))source[key]=clonePreset(value);}
+        else if(typeof value===typeof source[key]&&(typeof value!=='number'||Number.isFinite(value)))source[key]=value;
+      });
+      source.weaponId=state.weaponId;
+      source.skillLevels=Object.fromEntries(skills.filter(s=>source.skillLevels[s.id]>0&&(!relevantSkills.includes(s)||skillVisibleFor(s,source))).map(s=>[s.id,Math.min(Math.max(Number(source.skillLevels[s.id])||0,0),Math.max(...s.levels.map(l=>l.level)))]));
+      source.skillCoverage=Object.fromEntries(Object.entries(source.skillCoverage).filter(([,v])=>Number.isFinite(Number(v))).map(([id,v])=>[id,Math.min(100,Math.max(0,Number(v)))]));
+      source.melodyIds=[...new Set(source.melodyIds.map(id=>id==='mel_status'?'mel_status_encore':id))].filter(id=>(CALC.melodies||[]).some(m=>m.id===id&&(!m.weapons||m.weapons.includes(source.weaponId))));
+      return source;
+    }
+    function renderPresetComparison() {
+      const panel=el.querySelector('#calc-preset-comparison');if(!panel||panel.hidden)return;
+      const output=el.querySelector('#calc-compare-output');output.replaceChildren();
+      const target=selectedMonster();
+      const targetText=el.querySelector('#calc-quest')?.selectedOptions[0]?.textContent||'基础倍率';
+      el.querySelector('#calc-compare-target').textContent=(WEAPON_META[state.weaponId]?.nameCn||state.weaponId)+' · 共用目标：'+(target?.zh||'未选择怪物')+' / '+(target?partName(target.name,selectedPart()?.key||''):'')+' / '+currentMeatLabel()+' · '+targetText+' · '+state.players+'人';
+      const bank=readPresets(),sides=['a','b'].map(side=>{
+        const comboId=el.querySelector('#calc-compare-'+side+'-combo').value,settingsId=el.querySelector('#calc-compare-'+side+'-settings').value;
+        const comboPreset=bank.combos.find(p=>p.id===comboId&&p.weaponId===state.weaponId),settingsPreset=bank.settings.find(p=>p.id===settingsId&&p.weaponId===state.weaponId);
+        if(comboId&&!comboPreset||settingsId&&!settingsPreset)return {error:'预设已变化，请重新选择。'};
+        const source=comparisonConfiguration(settingsPreset);
+        const saved=comboPreset?comboPreset.data.combo:state.combo;
+        if(!Array.isArray(saved)||!saved.length)return {error:'请选择有招式的连段预设，或先添加当前连段。'};
+        const combo=window.MHCalculator.migrateRangedCombo(clonePreset(saved),CALC.rangedLegacyAliases?.[state.weaponId]);
+        if(!Array.isArray(combo)||!combo.every(it=>it&&currentMoves().some(m=>m.id===it.moveId)))return {error:'该连段包含当前版本不支持的招式，请更新后再对比。'};
+        source.combo=combo.map(it=>({...it,mantleMode:it.mantleMode||(source.mantle?'after':'none')}));
+        return {source,combo:source.combo,name:comboPreset?.name||'当前连段',configName:settingsPreset?.name||'当前配置',result:window.MHCalculator.calculateCombo(buildCalculationParams(source))};
+      });
+      const error=sides.find(s=>s.error);if(error){const p=document.createElement('p');p.className='calc-hint';p.textContent=error.error;output.append(p);return;}
+      const [a,b]=sides,format=n=>Number(n||0).toFixed(2),delta=(x,y)=>{const n=Number(y||0)-Number(x||0);return (n>0?'+':'')+format(n);};
+      const summary=document.createElement('p');summary.className='calc-compare-summary';
+      const diff=b.result.totalDamage-a.result.totalDamage;
+      summary.textContent='B 较 A 总伤害 '+delta(a.result.totalDamage,b.result.totalDamage)+(a.result.totalDamage>0?'（'+(diff>0?'+':'')+(diff/a.result.totalDamage*100).toFixed(2)+'%）':a.result.totalDamage===b.result.totalDamage?'':'（A 为 0，不计算百分比）');output.append(summary);
+      function table(headers,rows){
+        const wrap=document.createElement('div');wrap.className='calc-compare-table';
+        const t=document.createElement('table'),head=document.createElement('thead'),tr=document.createElement('tr');
+        headers.forEach(label=>{const th=document.createElement('th');th.scope='col';th.textContent=label;tr.append(th);});head.append(tr);t.append(head);
+        const body=document.createElement('tbody');rows.forEach(row=>{const tr=document.createElement('tr');row.forEach((value,i)=>{const cell=document.createElement(i?'td':'th');if(!i)cell.scope='row';cell.textContent=value;tr.append(cell);});body.append(tr);});t.append(body);wrap.append(t);return wrap;
+      }
+      const metrics=[['总伤害',r=>r.totalDamage],['物理伤害',r=>r.totalPhysical??r.totalRaw],['属性伤害',r=>r.totalElement],['固伤',r=>r.totalFixed],['伤害 hit 数',r=>r.hits.length],['总动作值',r=>r.totalMotionValue],['总属补',r=>r.totalElementRate],['异常累计（期望）',r=>r.bowgunStatusPending?'待补数据':r.totalStatus],['昏厥累计',r=>r.totalStun]];
+      if(!isRangedWeapon())metrics.push(['耗斩（刀）',r=>r.sharpKnives]);
+      output.append(table(['指标','A · '+a.name,'B · '+b.name,'差值 B − A'],metrics.map(([label,get])=>{const x=get(a.result),y=get(b.result);return [label,typeof x==='string'?x:format(x),typeof y==='string'?y:format(y),typeof x==='string'||typeof y==='string'?'—':delta(x,y)];})));
+      const contributions=new Map();
+      sides.forEach((side,index)=>(side.result.moveContributions||[]).forEach(c=>{let row=contributions.get(c.moveId);if(!row){row={id:c.moveId,count:[0,0],damage:[0,0]};contributions.set(c.moveId,row);}row.count[index]++;row.damage[index]+=c.damage;}));
+      const heading=document.createElement('h4');heading.textContent='按招式汇总';output.append(heading,table(['招式','A · 次数 / 伤害','B · 次数 / 伤害','伤害差值'],[...contributions.values()].sort((x,y)=>Math.max(...y.damage)-Math.max(...x.damage)).map(row=>[moveOf(row.id)?.name||row.id,row.count[0]+'次 / '+format(row.damage[0]),row.count[1]+'次 / '+format(row.damage[1]),delta(...row.damage)])));
+      const sequences=document.createElement('details');sequences.className='calc-compare-sequences';const sequenceTitle=document.createElement('summary');sequenceTitle.textContent='逐招顺序与条件';sequences.append(sequenceTitle);
+      const ordered=Array.from({length:Math.max(a.combo.length,b.combo.length)},(_,i)=>{
+        const describe=item=>{
+          if(!item)return '—';const move=moveOf(item.moveId),notes=[];
+          if(item.charge!=null)notes.push(levelsOf(move)?.find(l=>l.level===item.charge)?.name||(['great_sword','hammer'].includes(state.weaponId)?item.charge+'蓄':'档位 '+item.charge));
+          notes.push({none:'无衣装',before:'蚀攻衣装·克服前',after:'蚀攻衣装·克服后',evasion:'回避衣装'}[item.mantleMode]||'无衣装');
+          if(item.completion!=null)notes.push('完成 '+item.completion+' 段');
+          if(item.wound!=null)notes.push(item.wound?'命中伤口':'未命中伤口');
+          [['hits','命中数'],['shells','发炮数'],['rangedHits','命中数'],['spin','圈数'],['soundCount','旋律数']].forEach(([key,label])=>{if(item[key]!=null)notes.push(label+' '+item[key]);});
+          return (levelNameOf(move,item.charge)||move?.name||item.moveId)+' · '+notes.join(' / ');
+        };
+        const x=a.combo[i],y=b.combo[i];return [i+1,describe(x),describe(y),!x?'B 多一招':!y?'A 多一招':x.moveId!==y.moveId?'招式不同':[...new Set([...Object.keys(x),...Object.keys(y)])].some(key=>JSON.stringify(x[key])!==JSON.stringify(y[key]))?'条件不同':'相同'];
+      });sequences.append(table(['序号','A','B','差异'],ordered));output.append(sequences);
+      const configs=document.createElement('details');configs.className='calc-compare-config-diff';const configTitle=document.createElement('summary');configTitle.textContent='配置差异 · '+a.configName+' / '+b.configName;configs.append(configTitle);
+      const configRows=[];
+      const addDiff=(label,x,y)=>{if(String(x)!==String(y))configRows.push([label,String(x),String(y)]);};
+      const configLabels={attack:'基础攻击力',affinity:'会心率',element:'面板属性',status:'面板异常',sharpness:'斩味',elementType:'属性类型',statusType:'异常类型',fullHealth:'体力全满',overcomeFrenzy:'克服狂龙症',clash:'角力／抵消条件',ateMeat:'食用烤肉',festival:'祭典条件',warCry:'咆哮条件',absorbHits:'属性吸收受击',wet:'淋湿',bubble:'泡沫异常',bowgunSpec:'重弩性能',threeLamp:'三灯',cbPhial:'盾斧瓶种',cbReinforced:'瓶强化',cbRedShield:'红盾',cbRedSword:'红剑',swaxAwakened:'斩斧开刃',swaxPhial:'斩斧瓶种',swaxRedAxe:'红斧',balladCount:'响玉数量',blueDemon:'蓝鬼',dbMode:'双刀起始模式',glType:'炮击类型',glLevel:'炮击等级',kinsectId:'猎虫',kinsectLevel:'猎虫等级',apexSoulReady:'霸主之魂条件',encouragement:'被队友赋予增益',ailmentCleared:'解除异常状态',ailment:'异常状态'};
+      const configValue=(key,value)=>{
+        if(typeof value==='boolean')return value?'是':'否';
+        if(key==='sharpness')return sharpCn[value]||value;
+        if(key==='elementType')return EL_CN[value]||value;
+        if(key==='statusType')return ST_CN[value]||value;
+        if(key==='kinsectId')return kinsects.find(k=>k.id===value)?.name||value;
+        if(key==='glType')return GL_TYPE_CN[value]||value;
+        if(key==='swaxPhial')return {power:'强击瓶',element:'强属性瓶'}[value]||value;
+        if(key==='cbPhial')return {impact:'榴弹瓶',element:'强属性瓶'}[value]||value;
+        if(key==='bowgunSpec')return {basic:'基本型',normal1:'通常模式特化Ⅰ',normal2:'通常模式特化Ⅱ',heat1:'龙热模式特化Ⅰ',heat2:'龙热模式特化Ⅱ'}[value]||value;
+        if(key==='dbMode')return {normal:'普通',enhanced:'鬼人强化',demon:'鬼人化'}[value]||value;
+        return value;
+      };
+      Object.entries(configLabels).forEach(([key,label])=>addDiff(label,configValue(key,a.source[key]),configValue(key,b.source[key])));
+      skills.forEach(skill=>{const describe=source=>source.skillLevels[skill.id]?'Lv'+source.skillLevels[skill.id]+(skill.coverage?' · '+skillCoverage(skill.id,source)+'%':''):'未选择';addDiff(skill.name,describe(a.source),describe(b.source));});
+      addDiff('其他加成',currentItems(a.source).map(x=>x.name).join(' / ')||'无',currentItems(b.source).map(x=>x.name).join(' / ')||'无');
+      addDiff('旋律',(CALC.melodies||[]).filter(m=>a.source.melodyIds.includes(m.id)).map(m=>m.name).join(' / ')||'无',(CALC.melodies||[]).filter(m=>b.source.melodyIds.includes(m.id)).map(m=>m.name).join(' / ')||'无');
+      if(configRows.length)configs.append(table(['项目','A','B'],configRows));else{const p=document.createElement('p');p.className='calc-hint';p.textContent='这些配置项目相同。';configs.append(p);}output.append(configs);
+    }
+    function setupPresetComparison() {
+      const panel=el.querySelector('#calc-preset-comparison');
+      ['a','b'].forEach(side=>['combo','settings'].forEach(type=>{const sel=el.querySelector('#calc-compare-'+side+'-'+type);enhanceSelect(sel,(side==='a'?'A':'B')+' · '+(type==='combo'?'连段预设':'配置预设'));sel.addEventListener('change',renderPresetComparison);}));
+      el.querySelectorAll('[data-open-comparison]').forEach(button=>button.addEventListener('click',()=>{
+        panel.hidden=false;refreshComparisonSelectors();
+        if(panel.dataset.openedWeapon!==state.weaponId){
+          const combos=readPresets().combos.filter(p=>p.weaponId===state.weaponId);
+          ['a','b'].forEach((side,i)=>{const sel=el.querySelector('#calc-compare-'+side+'-combo');sel.value=combos[i]?.id||'';syncPicker(sel);});panel.dataset.openedWeapon=state.weaponId;
+        }
+        renderPresetComparison();panel.scrollIntoView({block:'start'});el.querySelector('#calc-compare-a-combo').previousElementSibling?.focus({preventScroll:true});
+      }));
+      el.querySelector('#calc-comparison-close').addEventListener('click',()=>{panel.hidden=true;el.querySelector('[data-preset-kind=combos] [data-open-comparison]').focus({preventScroll:true});});
+    }
     function setupPresets() {
       enhanceSelect($('select#calc-settings-preset'), '配置预设');
       enhanceSelect($('select#calc-combos-preset'), '连段预设');
@@ -3547,7 +3679,28 @@
           const name = input.value.trim().slice(0, 80);
           if (editing.action !== 'delete' && !name) { presetMessage(kind, '请输入预设名称'); return; }
           const bank = readPresets(); let id = editing.id;
-          if (editing.action === 'save') {
+          const capture=()=>kind==='settings'?Object.fromEntries(CONFIG_KEYS.map(key=>[key,clonePreset(state[key])])):{combo:clonePreset(state.combo),deriveMode:state.deriveMode};
+          const nameKey=value=>value.trim().normalize('NFKC').toLocaleLowerCase();
+          if(editing.action==='save'||editing.action==='rename'){
+            const duplicate=bank[kind].find(p=>p.id!==id&&nameKey(p.name)===nameKey(name));
+            if(duplicate){
+              const source=editing.action==='rename'?bank[kind].find(p=>p.id===id):null;
+              if(editing.action==='rename'&&!source){presetMessage(kind,'该预设已不存在');return;}
+              editing={action:'replace',id:duplicate.id,name,sourceId:source?.id,data:source?clonePreset(source.data):capture(),weaponId:source?.weaponId||state.weaponId};
+              input.value=name;input.readOnly=true;
+              $('span#calc-'+kind+'-preset-edit-label').textContent='已有同名预设（'+(WEAPON_META[duplicate.weaponId]?.nameCn||duplicate.weaponId)+'），是否覆盖？';
+              $('button#calc-'+kind+'-preset-confirm').textContent='确认覆盖';
+              presetMessage(kind,'尚未保存。确认后将替换“'+duplicate.name+'”，取消可保留原预设。');
+              $('button#calc-'+kind+'-preset-confirm').focus();return;
+            }
+          }
+          if(editing.action==='replace'){
+            const target=bank[kind].find(p=>p.id===id);
+            if(!target||nameKey(target.name)!==nameKey(editing.name)){presetMessage(kind,'同名预设已发生变化，请取消后重试');return;}
+            if(editing.sourceId&&!bank[kind].some(p=>p.id===editing.sourceId)){presetMessage(kind,'原预设已不存在，请取消后重试');return;}
+            Object.assign(target,{name:editing.name,data:clonePreset(editing.data),weaponId:editing.weaponId,savedAt:Date.now()});
+            if(editing.sourceId)bank[kind]=bank[kind].filter(p=>p.id!==editing.sourceId);
+          } else if (editing.action === 'save') {
             id = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
             const data = kind === 'settings' ? Object.fromEntries(CONFIG_KEYS.map(key => [key, clonePreset(state[key])]))
               : { combo: clonePreset(state.combo), deriveMode: state.deriveMode };
@@ -3565,7 +3718,7 @@
           try { localStorage.setItem(PRESET_KEY, JSON.stringify(bank)); }
           catch (error) { presetMessage(kind, '保存失败，本机存储空间不足或不可用'); return; }
           const action = editing.action; close(); refreshPresetLists(kind, action === 'delete' ? '' : id);
-          presetMessage(kind, action === 'delete' ? '已删除预设' : (action==='overwrite'?'已覆盖保存预设':'预设已保存到本机'));
+          presetMessage(kind, action === 'delete' ? '已删除预设' : (['overwrite','replace'].includes(action)?'已覆盖保存预设':'预设已保存到本机'));
         });
         $('button#calc-' + kind + '-preset-load').addEventListener('click', () => {
           const p = find(); if (!p) return;
@@ -3581,7 +3734,7 @@
           close(); presetMessage(kind, '已读取：' + p.name);
         });
       });
-      refreshPresetLists();
+      setupPresetComparison();refreshPresetLists();
     }
     $('select#calc-weapon').addEventListener('change', (e) => {
       state.weaponId = e.target.value;
