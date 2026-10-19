@@ -190,7 +190,7 @@
     navMonsters.classList.toggle('active', name === 'monsters' || name === 'monster-detail');
     navQuests.classList.toggle('active', name === 'quests');
     navCalculator.classList.toggle('active', name === 'calculator');
-    navBack.style.display = (name === 'monster-detail'&&!navigationMedia.matches || name === 'quest-detail') ? '' : 'none';
+    navBack.style.display = (name === 'monster-detail' || name === 'quest-detail') ? '' : 'none';
     // 底部搜索栏：怪物页显示怪物搜索，任务页显示任务搜索，详情页/计算器隐藏
     monsterSearchEl.hidden = (name !== 'monsters');
     questSearchEl.hidden = (name !== 'quests');
@@ -200,7 +200,7 @@
     // 返回怪物列表时按最新查看次数实时重排（无需重进 app）
     if (name === 'monsters') renderMonsterList(monsterSearchEl.value);
   }
-  navMonsters.addEventListener('click', () => { if(navigationMedia.matches){openMonster(lastDetailMonster||preferredMonsterName(),false);return;}titleEl.textContent = 'MHWA数据库'; showView('monsters'); });
+  navMonsters.addEventListener('click', () => { titleEl.textContent = 'MHWA数据库'; showView('monsters'); });
   navQuests.addEventListener('click', () => { titleEl.textContent = '任务列表'; showView('quests'); });
   navCalculator.addEventListener('click', () => { titleEl.textContent = '伤害计算器'; showView('calculator'); renderCalculatorView(); });
   navBack.addEventListener('click', () => { titleEl.textContent = 'MHWA数据库'; showView('monsters'); });
@@ -348,7 +348,6 @@
   function openMonster(name,record=true) {
     const m = monsters.find((x) => x.name === name);
     if(!m)return;
-    lastDetailMonster=name;
     if(record)bumpViewCount(name);
     titleEl.textContent = m.zh;
     showView('monster-detail');
@@ -362,7 +361,6 @@
   }
 
   let detailMonsterSearch='';
-  let lastDetailMonster=null;
   const monsterMeatSummaries=new Map();
   function monsterMeatSummary(m){
     if(monsterMeatSummaries.has(m.id))return monsterMeatSummaries.get(m.id);
@@ -4111,17 +4109,8 @@
     footerBtn.addEventListener('click', () => { footerInfo.hidden = !footerInfo.hidden; });
   }
 
-  // Desktop opens the linked index and detail directly; mobile retains the monster grid.
-  function preferredMonsterName(){
-    const counts=getViewCounts();
-    const frequent=monsters.slice().sort((a,b)=>(counts[b.name]||0)-(counts[a.name]||0))[0];
-    return frequent&&counts[frequent.name]?frequent.name:monsters.find(m=>m.name==='Arkveld')?.name||monsters[0]?.name;
-  }
-  navigationMedia.addEventListener('change',()=>{
-    if(navigationMedia.matches&&!document.getElementById('view-monsters').hidden)openMonster(lastDetailMonster||preferredMonsterName(),false);
-    navBack.style.display=(!navigationMedia.matches&&!document.getElementById('view-monster-detail').hidden||!document.getElementById('view-quest-detail').hidden)?'':'none';
-  });
-  if(navigationMedia.matches)openMonster(preferredMonsterName(),false);else showView('monsters');
+  // Both layouts start with the visual monster selection page.
+  showView('monsters');
 
   // 测试/诊断句柄（不影响正常使用）
   window.__MHWILD_DEBUG__ = { monsters, quests, questScarRawOf, renderMonsterDetail, renderQuestDetail, renderCalculatorView, openMonster, openQuest, fmt, hzvClass };
