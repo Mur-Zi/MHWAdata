@@ -896,3 +896,15 @@ th .ic { display: block; margin: 0 auto; }
 
 .calc-compare-sequences table { min-width: 520px; table-layout: auto; }
 @media (max-width: 600px) { .calc-compare-table th, .calc-compare-table td { padding: 7px 5px; font-size: 12px; } }
+
+/* Per-input bowgun comparison shares the calculator's dark/gold table style. */
+.calc-magazine { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; min-width: 0; }
+.calc-magazine h4 { margin: 0 0 7px; font-size: 14px; color: var(--accent); }
+.calc-magazine p { margin: 0 0 9px; font-size: 12px; color: var(--text-dim); }
+.calc-magazine-scroll { max-width: 100%; overflow-x: auto; scrollbar-width: thin; scrollbar-color: var(--accent) var(--bg2); }
+.calc-magazine table { width: 100%; min-width: 490px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.calc-magazine th, .calc-magazine td { padding: 8px 6px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; font-size: 12px; }
+.calc-magazine th { color: var(--text-dim); font-weight: 500; }
+.calc-magazine th:first-child, .calc-magazine td:first-child { text-align: left; }
+.calc-magazine small { display: block; color: var(--text-dim); font-size: 10px; margin-top: 3px; }
+.calc-magazine tr.current > td:first-child { color: var(--accent); font-weight: 600; }

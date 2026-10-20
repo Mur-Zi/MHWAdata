@@ -853,7 +853,7 @@ function calculateBowgunCombo(p) {
       cache.set(key,r);return r;
     };
     const base=baseFor('None','none'),hits=[],moves=p.moves||[],contributions=[];
-    let sequence=0,lastAmmo='',totalMv=0,totalElemRate=0,totalStun=0,lastBase=base;
+    let sequence=0,lastAmmo='',reloadPending=false,fullClipKnown=false,totalMv=0,totalElemRate=0,totalStun=0,lastBase=base;
     const round=v=>Math.round((v+1e-10)*10)/10,clampCount=(v,def,max=99)=>Math.floor(clamp(n(v,def),1,max));
     const addHit=(m,it,ci,h,ctx)=>{
       const r=ctx.base,s=r.state,zone=h.fixed?100:n(p.hitzones?.[h.type==='SLASH'?'Slash':h.type==='BLOW'?'Blow':'Shot'],0);
@@ -878,24 +878,25 @@ function calculateBowgunCombo(p) {
       const flat=(s.elementFlat+s.absorbElemFlat+s.dragonElemFlat)/10;
       const elemBefore=b*s.elementPct*s.convertElemMult+flat,elemCap=b*2.3;
       const ecrit=h.fixed?1:elementCritMultiplier(aff,s.elementCritMult,p.mode);
-      let element=h.fixedFire!=null?h.fixedFire*eZone/100:Math.min(elemBefore,elemCap)*eZone/100*ecrit*ctx.elementDamageMul;
+      let element=h.fixedFire!=null?h.fixedFire*eZone/100:Math.min(elemBefore,elemCap)*eZone/100*ecrit*ctx.elementDamageMul*(ctx.rapid?factor('HunterSkill_045',1.05):1);
       const enrage=n(p.enrageMul,1);raw=round(Math.max(0,raw*enrage));element=round(Math.max(0,element*enrage));
       const stun=p.isHead?n(h.stun,0)*s.stunMult:0;
-      const out={moveId:m.id,moveName:m.name,comboIndex:ci,index:hits.length+1,fixedExtraDamage:round(n(h.fixedExtra)*enrage),raw,element,total:round(raw+element),status:0,stun,mv:h.mv,effectiveMv:h.mv*(h.mult??1)*(h.decay??1),elemRate:h.elementMotion?1:0,statusRate:0,type:h.type||'SHOT',fixed:!!h.fixed,noSharp:true,sharpCost:0,isWeak:zone>=45,affinityUsed:h.fixed?0:aff,charge:null,chargeUnit:null,mantle:!!h.mantle,wound:!!h.wound,hien:false,airborneMult:1,morphMult:1,projectile:h.projectile||1,bowgun:{sequence:ctx.sequence,projectile:h.projectile||1,tick:h.tick||1,decay:h.decay??1,distance,correction:h.mult??1,elementCorrection:h.elementCorrection??1,elementBase:b,elementBefore:elemBefore,elementCap:elemCap,elementCapped:elemBefore>elemCap+1e-8,elementType:eType,physicalAttack}};
+      const out={moveId:m.id,moveName:m.name,comboIndex:ci,index:hits.length+1,fixedExtraDamage:round(n(h.fixedExtra)*enrage),raw,element,total:round(raw+element),status:0,stun,mv:h.mv,effectiveMv:h.mv*(h.mult??1)*(h.decay??1),elemRate:h.elementMotion?1:0,statusRate:0,type:h.type||'SHOT',fixed:!!h.fixed,noSharp:true,sharpCost:0,isWeak:zone>=45,affinityUsed:h.fixed?0:aff,charge:null,chargeUnit:null,mantle:!!h.mantle,wound:!!h.wound,hien:false,airborneMult:1,morphMult:1,projectile:h.projectile||1,bowgun:{sequence:ctx.sequence,fullClip:ctx.fullClip,opening:ctx.opening,rapidMultiplier:ctx.rapid?factor('HunterSkill_045',1.05):1,projectile:h.projectile||1,tick:h.tick||1,decay:h.decay??1,distance,correction:h.mult??1,elementCorrection:h.elementCorrection??1,elementBase:b,elementBefore:elemBefore,elementCap:elemCap,elementCapped:elemBefore>elemCap+1e-8,elementType:eType,physicalAttack}};
       hits.push(out);totalMv+=h.mv;totalElemRate+=out.elemRate;totalStun+=stun;
     };
     for(let ci=0;ci<(p.combo||[]).length;ci++){
       const it=p.combo[ci],m=moves.find(x=>x.id===(it.moveId||it.id));if(!m)continue;
-      if(m.rangedRole==='reload'){sequence=0;lastAmmo='';continue;}
+      if(m.rangedRole==='reload'){sequence=0;lastAmmo='';reloadPending=true;fullClipKnown=false;continue;}
       if(m.rangedRole==='mode')continue;
       const name=m.rangedAmmo||m.nameJa||m.name,lv=Number(name.match(/LV([123])/i)?.[1]||1),rapid=!!m.rangedRapid,chase=m.rangedRole==='chase';
       const family=/通常/.test(name)?'normal':/貫通/.test(name)?'pierce':/散弾/.test(name)?'spread':/徹甲/.test(name)?'sticky':/拡散/.test(name)?'cluster':/斬裂/.test(name)?'slice':/滅龍/.test(name)?'dragon':/火炎|水冷|電撃|氷結/.test(name)?'element':'special';
       const elementType=/火炎/.test(name)?'Fire':/水冷/.test(name)?'Water':/電撃/.test(name)?'Thunder':/氷結/.test(name)?'Ice':family==='dragon'?'Dragon':'None';
-      if(it.bgFullClip||lastAmmo!==name)sequence=0;
+      if(it.bgFullClip||lastAmmo!==name){sequence=0;fullClipKnown=!!it.bgFullClip||reloadPending;}
+      reloadPending=false;
       sequence=it.bgSequence!=null?clampCount(it.bgSequence,1,999):sequence+1;lastAmmo=name;
       const baseR=baseFor(elementType,it.mantleMode||'none');lastBase=baseR;
-      const opening=sequence===1&&level('HunterSkill_198')>0,tetrad=level('HunterSkill_197'),boost=[4,6].includes(sequence)&&tetrad>0;
-      const ctx={base:baseR,sequence,rapid,physicalAdd:(level('HunterSkill_019')===3?5*coverage('HunterSkill_019'):0)+(opening?5*level('HunterSkill_198')*coverage('HunterSkill_198'):0)+(boost?[3,6,10][tetrad-1]*coverage('HunterSkill_197'):0),tetradAffinity:sequence>=4&&tetrad?[8,10,12][tetrad-1]*coverage('HunterSkill_197'):0,elementDamageMul:(opening?factor('HunterSkill_198',1.1):1)*(boost?factor('HunterSkill_197',1.05):1)};
+      const opening=fullClipKnown&&sequence===1&&level('HunterSkill_198')>0,tetrad=level('HunterSkill_197'),boost=[4,6].includes(sequence)&&tetrad>0;
+      const ctx={base:baseR,sequence,rapid,fullClip:fullClipKnown,opening,physicalAdd:(level('HunterSkill_019')===3?5*coverage('HunterSkill_019'):0)+(opening?5*level('HunterSkill_198')*coverage('HunterSkill_198'):0)+(boost?[3,6,10][tetrad-1]*coverage('HunterSkill_197'):0),tetradAffinity:sequence>=4&&tetrad?[8,10,12][tetrad-1]*coverage('HunterSkill_197'):0,elementDamageMul:(opening?factor('HunterSkill_198',1.1):1)*(boost?factor('HunterSkill_197',1.05):1)};
       const begin=hits.length,emit=h=>addHit(m,it,ci,h,ctx);
       if(['normal','pierce','spread','element','dragon'].includes(family)){
         const count=family==='normal'?(isLight&&chase&&!rapid?2:isLight&&rapid?5:3):family==='spread'?(isLight&&chase&&rapid?3:isLight&&(rapid||chase)?2:1):isLight?(family==='dragon'?(rapid?2:1):chase?(rapid?3:2):rapid?(family==='pierce'?3:2):1):1;

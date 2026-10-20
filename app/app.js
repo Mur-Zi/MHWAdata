@@ -1776,6 +1776,8 @@
         // 加段是表内的独立 hit 行 —— 动作值 / 属补 / 自定义耗斩都是它自己的，这里一并显示出来
         if(g.hits.some(h=>h.bowgun)){
           const b=g.hits.find(h=>h.bowgun).bowgun;tags.push('第'+b.sequence+'次射击 · 按每发独立衰减');
+          if(b.opening)tags.push('首发迅击');
+          if(b.rapidMultiplier>1)tags.push('速射强化：物理／属性最终伤害×'+rd2(b.rapidMultiplier));
           if(g.hits.some(h=>h.bowgun?.elementCapped))tags.push('属性已达上限');
         }
         const mantleHits = blade.filter((h) => h.mantle);
@@ -2090,6 +2092,24 @@
     }
 
     // 主行只留两个核心选项；其余控件沿用原事件和数据，移入招式设置面板。
+    function renderBowgunMagazine(target,index) {
+      const item=state.combo[index],move=moveOf(item?.moveId);
+      if(!move?.bowgunPreview||!['shot','chase','stepShot'].includes(move.rangedRole))return;
+      const actual=comboResult?.hits.find(h=>h.comboIndex===index&&h.bowgun)?.bowgun;
+      if(!actual)return;
+      const params=buildCalculationParams(),combo=Array.from({length:9},(_,i)=>({...item,bgFullClip:i===0&&actual.fullClip,bgSequence:i+1}));
+      const calc=mode=>window.MHCalculator.calculateCombo({...params,combo,mode});
+      const expected=calc('expected'),critical=calc('guaranteedCrit'),normal=calc('noCrit');
+      const section=document.createElement('section');section.className='calc-magazine';
+      const damage=(r,i)=>{const c=r.moveContributions.find(c=>c.comboIndex===i);return '<b>'+Number(c?.damage||0).toFixed(2)+'</b><small>'+Number(c?.physical||0).toFixed(2)+' / '+Number(c?.element||0).toFixed(2)+'</small>';};
+      section.innerHTML='<h4>第1～9发伤害对照</h4><p>沿用本招条件，每行含整次射击；小字：物理 / 属性。满弹仓起算：'+(actual.fullClip?'是':'否')+'。</p>'
+        +'<div class="calc-magazine-scroll"><table><thead><tr><th>射击</th><th>会心率</th><th>期望伤害</th><th>100%会心</th><th>非会心</th></tr></thead><tbody>'
+        +Array.from({length:9},(_,i)=>{const hit=expected.hits.find(h=>h.comboIndex===i),b=hit?.bowgun;
+          const tags=[b?.opening?'首发迅击':'',state.skillLevels.HunterSkill_197>0&&[4,6].includes(i+1)?'强四射击':''].filter(Boolean).join(' · ');
+          return '<tr data-magazine-shot="'+(i+1)+'"'+(actual.sequence===i+1?' class="current"':'')+'><td>第'+(i+1)+'发'+(tags?'<small>'+tags+'</small>':'')+'</td><td>'+Number(hit?.affinityUsed||0).toFixed(1)+'%</td><td>'+damage(expected,i)+'</td><td>'+damage(critical,i)+'</td><td>'+damage(normal,i)+'</td></tr>';
+        }).join('')+'</tbody></table></div>';
+      target.prepend(section);
+    }
     function updateComboOutputs() {
       const list=el.querySelector('#calc-combo-list');
       list?.querySelectorAll('.calc-combo-item').forEach(row=>{
@@ -2105,6 +2125,7 @@
         if(body)body.hidden=false;
         if(head){head.classList.add('open');head.setAttribute('aria-expanded','true');head.addEventListener('click',()=>{body.hidden=!body.hidden;head.classList.toggle('open',!body.hidden);head.setAttribute('aria-expanded',String(!body.hidden));});}
         target.append(detail);
+        if(!target.hidden)renderBowgunMagazine(target,Number(target.dataset.moveIndex));
       });
     }
     function revealComboSelection() {
