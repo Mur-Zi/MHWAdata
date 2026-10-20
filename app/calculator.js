@@ -841,6 +841,29 @@
 
   // ===================== 连段计算 =====================
 
+  // A workshop cycle is input 1..clipSize; a completed magazine starts the next cycle at 1.
+  function lightBowgunMagazinePlan(p) {
+    const moves=new Map((p.moves||[]).map(m=>[m.id,m])),sizes=new Map(),tracks=new Map();
+    const keyOf=m=>m.rangedAmmo||m.nameJa||m.name;
+    const isShot=m=>m&&['shot','chase','stepShot'].includes(m.rangedRole);
+    const clipOf=v=>Math.floor(clamp(n(v,6),1,9));
+    for(const it of p.combo||[]){const m=moves.get(it.moveId||it.id);if(isShot(m)&&it.bgClipSize!=null)sizes.set(keyOf(m),clipOf(it.bgClipSize));}
+    let reload=false;
+    return (p.combo||[]).map(it=>{
+      const m=moves.get(it.moveId||it.id);if(m?.rangedRole==='reload'){reload=true;return null;}if(!isShot(m))return null;
+      const key=keyOf(m),clipSize=sizes.get(key)||6;
+      let track=tracks.get(key),fresh=!track,autoReload=false;
+      if(!track)track={sequence:0,fullClip:true};
+      if(reload||it.bgFullClip===true){track.sequence=0;track.fullClip=true;}
+      else if(track.sequence>=clipSize){track.sequence=0;track.fullClip=true;autoReload=true;}
+      else if(fresh&&it.bgFullClip===false&&it.bgSequence==null&&clipSize>1){track.sequence=1;track.fullClip=false;}
+      const sequence=it.bgSequence!=null?Math.floor(clamp(n(it.bgSequence,1),1,clipSize)):track.sequence+1;
+      if(it.bgSequence!=null)track.fullClip=true;
+      track.sequence=sequence;tracks.set(key,track);reload=false;
+      return {sequence,clipSize,fullClip:track.fullClip,remaining:clipSize-sequence,autoReload,ammoKey:key};
+    });
+  }
+
 function calculateBowgunCombo(p) {
     const isLight=p.weaponId==='light_bowgun',specialIds=['HunterSkill_019','HunterSkill_035','HunterSkill_037','HunterSkill_038','HunterSkill_039','HunterSkill_040','HunterSkill_045','HunterSkill_197','HunterSkill_198','custom_bladescale_loading'];
     const selected=p.skills||[],level=id=>n(selected.find(x=>(x.skill||x).id===id)?.level,0);
@@ -855,7 +878,7 @@ function calculateBowgunCombo(p) {
       r.panel.affinityAfter=r.state.affinity;
       cache.set(key,r);return r;
     };
-    const base=baseFor('None','none'),hits=[],moves=p.moves||[],contributions=[];
+    const base=baseFor('None','none'),hits=[],moves=p.moves||[],contributions=[],magazinePlan=isLight?lightBowgunMagazinePlan(p):[];
     let sequence=0,lastAmmo='',reloadPending=false,fullClipKnown=false,totalMv=0,totalElemRate=0,totalStun=0,lastBase=base;
     const round=v=>Math.round((v+1e-10)*10)/10,clampCount=(v,def,max=99)=>Math.floor(clamp(n(v,def),1,max));
     const addHit=(m,it,ci,h,ctx)=>{
@@ -884,7 +907,7 @@ function calculateBowgunCombo(p) {
       let element=h.fixedFire!=null?h.fixedFire*eZone/100:Math.min(elemBefore,elemCap)*eZone/100*ecrit*ctx.elementDamageMul*(ctx.rapid?factor('HunterSkill_045',1.05):1);
       const enrage=n(p.enrageMul,1);raw=round(Math.max(0,raw*enrage));element=round(Math.max(0,element*enrage));
       const stun=p.isHead?n(h.stun,0)*s.stunMult:0;
-      const out={moveId:m.id,moveName:m.name,comboIndex:ci,index:hits.length+1,fixedExtraDamage:round(n(h.fixedExtra)*enrage),raw,element,total:round(raw+element),status:0,stun,mv:h.mv,effectiveMv:h.mv*(h.mult??1)*(h.decay??1),elemRate:h.elementMotion?1:0,statusRate:0,type:h.type||'SHOT',fixed:!!h.fixed,noSharp:true,sharpCost:0,isWeak:zone>=45,affinityUsed:h.fixed?0:aff,charge:null,chargeUnit:null,mantle:!!h.mantle,wound:!!h.wound,hien:false,airborneMult:1,morphMult:1,projectile:h.projectile||1,bowgun:{sequence:ctx.sequence,fullClip:ctx.fullClip,opening:ctx.opening,rapidMultiplier:ctx.rapid?factor('HunterSkill_045',1.05):1,projectile:h.projectile||1,tick:h.tick||1,decay:h.decay??1,distance,correction:h.mult??1,elementCorrection:h.elementCorrection??1,elementBase:b,elementBefore:elemBefore,elementCap:elemCap,elementCapped:elemBefore>elemCap+1e-8,elementType:eType,physicalAttack}};
+      const out={moveId:m.id,moveName:m.name,comboIndex:ci,index:hits.length+1,fixedExtraDamage:round(n(h.fixedExtra)*enrage),raw,element,total:round(raw+element),status:0,stun,mv:h.mv,effectiveMv:h.mv*(h.mult??1)*(h.decay??1),elemRate:h.elementMotion?1:0,statusRate:0,type:h.type||'SHOT',fixed:!!h.fixed,noSharp:true,sharpCost:0,isWeak:zone>=45,affinityUsed:h.fixed?0:aff,charge:null,chargeUnit:null,mantle:!!h.mantle,wound:!!h.wound,hien:false,airborneMult:1,morphMult:1,projectile:h.projectile||1,bowgun:{...ctx.magazine,sequence:ctx.sequence,fullClip:ctx.fullClip,opening:ctx.opening,rapidMultiplier:ctx.rapid?factor('HunterSkill_045',1.05):1,projectile:h.projectile||1,tick:h.tick||1,decay:h.decay??1,distance,correction:h.mult??1,elementCorrection:h.elementCorrection??1,elementBase:b,elementBefore:elemBefore,elementCap:elemCap,elementCapped:elemBefore>elemCap+1e-8,elementType:eType,physicalAttack}};
       hits.push(out);totalMv+=h.mv;totalElemRate+=out.elemRate;totalStun+=stun;
     };
     for(let ci=0;ci<(p.combo||[]).length;ci++){
@@ -894,12 +917,16 @@ function calculateBowgunCombo(p) {
       const name=m.rangedAmmo||m.nameJa||m.name,lv=Number(name.match(/LV([123])/i)?.[1]||1),rapid=!!m.rangedRapid,chase=m.rangedRole==='chase';
       const family=/通常/.test(name)?'normal':/貫通/.test(name)?'pierce':/散弾/.test(name)?'spread':/徹甲/.test(name)?'sticky':/拡散/.test(name)?'cluster':/斬裂/.test(name)?'slice':/滅龍/.test(name)?'dragon':/火炎|水冷|電撃|氷結/.test(name)?'element':'special';
       const elementType=/火炎/.test(name)?'Fire':/水冷/.test(name)?'Water':/電撃/.test(name)?'Thunder':/氷結/.test(name)?'Ice':family==='dragon'?'Dragon':'None';
-      if(it.bgFullClip||lastAmmo!==name){sequence=0;fullClipKnown=!!it.bgFullClip||reloadPending;}
-      reloadPending=false;
-      sequence=it.bgSequence!=null?clampCount(it.bgSequence,1,999):sequence+1;lastAmmo=name;
+      const magazine=isLight?magazinePlan[ci]:null;
+      if(isLight){sequence=magazine?.sequence||0;fullClipKnown=!!magazine?.fullClip;}
+      else{
+        if(it.bgFullClip||lastAmmo!==name){sequence=0;fullClipKnown=!!it.bgFullClip||reloadPending;}
+        reloadPending=false;
+        sequence=it.bgSequence!=null?clampCount(it.bgSequence,1,999):sequence+1;lastAmmo=name;
+      }
       const baseR=baseFor(elementType,it.mantleMode||'none');lastBase=baseR;
-      const opening=fullClipKnown&&sequence===1&&level('HunterSkill_198')>0,tetrad=level('HunterSkill_197'),boost=[4,6].includes(sequence)&&tetrad>0;
-      const ctx={base:baseR,critMode:comboCritMode(p,it),sequence,rapid,fullClip:fullClipKnown,opening,physicalAdd:(level('HunterSkill_019')===3?5*coverage('HunterSkill_019'):0)+(opening?5*level('HunterSkill_198')*coverage('HunterSkill_198'):0)+(boost?[3,6,10][tetrad-1]*coverage('HunterSkill_197'):0),tetradAffinity:sequence>=4&&tetrad?[8,10,12][tetrad-1]*coverage('HunterSkill_197'):0,elementDamageMul:(opening?factor('HunterSkill_198',1.1):1)*(boost?factor('HunterSkill_197',1.05):1)};
+      const opening=fullClipKnown&&sequence===1&&level('HunterSkill_198')>0,tetrad=(!isLight||magazine)?level('HunterSkill_197'):0,boost=[4,6].includes(sequence)&&tetrad>0;
+      const ctx={base:baseR,critMode:comboCritMode(p,it),sequence,rapid,magazine,fullClip:fullClipKnown,opening,physicalAdd:(level('HunterSkill_019')===3?5*coverage('HunterSkill_019'):0)+(opening?5*level('HunterSkill_198')*coverage('HunterSkill_198'):0)+(boost?[3,6,10][tetrad-1]*coverage('HunterSkill_197'):0),tetradAffinity:sequence>=4&&tetrad?[8,10,12][tetrad-1]*coverage('HunterSkill_197'):0,elementDamageMul:(opening?factor('HunterSkill_198',1.1):1)*(boost?factor('HunterSkill_197',1.05):1)};
       const begin=hits.length,emit=h=>addHit(m,it,ci,h,ctx);
       if(['normal','pierce','spread','element','dragon'].includes(family)){
         const count=family==='normal'?(isLight&&chase&&!rapid?2:isLight&&rapid?5:3):family==='spread'?(isLight&&chase&&rapid?3:isLight&&(rapid||chase)?2:1):isLight?(family==='dragon'?(rapid?2:1):chase?(rapid?3:2):rapid?(family==='pierce'?3:2):1):1;
@@ -2119,7 +2146,7 @@ function calculateBowgunCombo(p) {
     SHARPNESS_ORDER, SHARPNESS_CN,
     ELEMENT_CAP_RATE, ELEMENT_CAP_MIN, elementCap, floorAtk,
     groupValue, conditionActive, applySkills, rawCritMultiplier, elementCritMultiplier,
-    calcHit, calculateCombo, buildMonsterParts,rangedNextMoves,rangedVariantChoices,rangedWholeMove,migrateRangedCombo,
+    calcHit, calculateCombo, lightBowgunMagazinePlan, buildMonsterParts,rangedNextMoves,rangedVariantChoices,rangedWholeMove,migrateRangedCombo,
     kinsectPowerMult, kinsectMultipliers, KINSECT_MUL: {
       base: KINSECT_BASE, sever: KINSECT_SEVER, extract: KINSECT_EXTRACT,
       link: KINSECT_LINK, linkElem: KINSECT_LINK_ELEM, charged: KINSECT_CHARGED,

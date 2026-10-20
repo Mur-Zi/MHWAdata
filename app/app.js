@@ -948,6 +948,11 @@
       return currentMoves().filter(m => m.rangedAmmo === move.rangedAmmo && ['shot', 'chase', 'stepShot'].includes(m.rangedRole))
         .sort((a, b) => order(a) - order(b));
     }
+    const bowgunAmmoKey=move=>move?.rangedAmmo||move?.nameJa||move?.name;
+    function lightBowgunClipSize(move) {
+      const configured=state.combo.findLast(it=>bowgunAmmoKey(moveOf(it.moveId))===bowgunAmmoKey(move)&&it.bgClipSize!=null);
+      return Math.floor(Math.max(1,Math.min(9,Number(configured?.bgClipSize)||6)));
+    }
     function bowgunMode(prefix) {
       return prefix.filter(it=>moveOf(it.moveId)?.rangedRole==='mode').length%2===1;
     }
@@ -1779,7 +1784,8 @@
         // 蚀攻衣装加段：并进本招，但单独标出来（用户拍板：加段归到原招式里，不单独成招）
         // 加段是表内的独立 hit 行 —— 动作值 / 属补 / 自定义耗斩都是它自己的，这里一并显示出来
         if(g.hits.some(h=>h.bowgun)){
-          const b=g.hits.find(h=>h.bowgun).bowgun;tags.push('第'+b.sequence+'次射击 · 按每发独立衰减');
+          const b=g.hits.find(h=>h.bowgun).bowgun;if(b.sequence>0)tags.push(b.clipSize?'本匣第'+b.sequence+'/'+b.clipSize+'次射击':'第'+b.sequence+'次射击 · 按每发独立衰减');
+          if(b.autoReload)tags.push('换匣首发');
           if(b.opening)tags.push('首发迅击');
           if(b.rapidMultiplier>1)tags.push('速射强化：物理／属性最终伤害×'+rd2(b.rapidMultiplier));
           if(g.hits.some(h=>h.bowgun?.elementCapped))tags.push('属性已达上限');
@@ -2116,14 +2122,15 @@
       if(!move?.bowgunPreview||!['shot','chase','stepShot'].includes(move.rangedRole))return;
       const actual=comboResult?.hits.find(h=>h.comboIndex===index&&h.bowgun)?.bowgun;
       if(!actual)return;
-      const params=buildCalculationParams(),combo=Array.from({length:9},(_,i)=>({...item,bgFullClip:i===0&&actual.fullClip,bgSequence:i+1}));
+      const count=state.weaponId==='light_bowgun'?(actual.clipSize||6):9;
+      const params=buildCalculationParams(),combo=Array.from({length:count},(_,i)=>({...item,bgFullClip:i===0&&(state.weaponId==='light_bowgun'||actual.fullClip),bgSequence:i+1}));
       const calc=mode=>window.MHCalculator.calculateCombo({...params,combo,mode,perMoveCrit:false});
       const expected=calc('expected'),critical=calc('guaranteedCrit'),normal=calc('noCrit');
       const section=document.createElement('section');section.className='calc-magazine';
       const damage=(r,i)=>{const c=r.moveContributions.find(c=>c.comboIndex===i);return '<b>'+Number(c?.damage||0).toFixed(2)+'</b><small>'+Number(c?.physical||0).toFixed(2)+' / '+Number(c?.element||0).toFixed(2)+'</small>';};
-      section.innerHTML='<h4>第1～9发伤害对照</h4><p>沿用本招条件，每行含整次射击；小字：物理 / 属性。满弹仓起算：'+(actual.fullClip?'是':'否')+'。</p>'
+      section.innerHTML='<h4>'+ (state.weaponId==='light_bowgun'?'整匣逐发对照（'+count+'发）':'第1～9发伤害对照')+'</h4><p>沿用本招条件，每行含整次射击；小字：物理 / 属性。'+(state.weaponId==='light_bowgun'?'打空后按装填完成，从第1发重新计算。':'满弹仓起算：'+(actual.fullClip?'是':'否')+'。')+'</p>'
         +'<div class="calc-magazine-scroll"><table><thead><tr><th>射击</th><th>会心率</th><th>期望伤害</th><th>100%会心</th><th>非会心</th></tr></thead><tbody>'
-        +Array.from({length:9},(_,i)=>{const hit=expected.hits.find(h=>h.comboIndex===i),b=hit?.bowgun;
+        +Array.from({length:count},(_,i)=>{const hit=expected.hits.find(h=>h.comboIndex===i),b=hit?.bowgun;
           const tags=[b?.opening?'首发迅击':'',state.skillLevels.HunterSkill_197>0&&[4,6].includes(i+1)?'强四射击':''].filter(Boolean).join(' · ');
           return '<tr data-magazine-shot="'+(i+1)+'"'+(actual.sequence===i+1?' class="current"':'')+'><td>第'+(i+1)+'发'+(tags?'<small>'+tags+'</small>':'')+'</td><td>'+Number(hit?.affinityUsed||0).toFixed(1)+'%</td><td>'+damage(expected,i)+'</td><td>'+damage(critical,i)+'</td><td>'+damage(normal,i)+'</td></tr>';
         }).join('')+'</tbody></table></div>';
@@ -2134,7 +2141,8 @@
       list?.querySelectorAll('.calc-combo-item').forEach(row=>{
         const c=comboResult?.moveContributions?.find(c=>c.comboIndex===Number(row.dataset.moveIndex));
         const output=row.querySelector('.calc-move-output-values');
-        if(output)output.textContent='伤害 '+(c?.damage||0).toFixed(2);
+        const b=comboResult?.hits.find(h=>h.comboIndex===Number(row.dataset.moveIndex)&&h.bowgun?.clipSize)?.bowgun;
+        if(output)output.textContent='伤害 '+(c?.damage||0).toFixed(2)+(b?' · 本匣第'+b.sequence+'/'+b.clipSize+'发'+(b.autoReload?' · 换匣首发':''):'');
       });
       el.querySelectorAll('.calc-editor-damage').forEach(target=>{
         target.replaceChildren();
@@ -2155,7 +2163,7 @@
       else if(rect.bottom>bounds.bottom)list.scrollTop+=Math.min(rect.bottom-bounds.bottom,rect.top-bounds.top);
     }
     function layoutMoveOptions(row, item, index) {
-      const labels = {critical:'会心',charge:'档位',dbMode:'形态',bowgunShot:'射击方式',mantlePick:'衣装',bgDistance:'射击距离',bgPellets:'命中弹丸',bgSpecialHits:'命中数',bgHeatStage:'龙热穿甲阶段',bgFullClip:'满弹仓开始',bgSequence:'射击序号',rangedVariant:'招式类型',rangedHits:'每箭／发命中数',rangedFollowHits:'伤口追击命中数',rangedExtraHits:'追加命中数',sequence:'命中方式',recovery:'收招形态',sound:'旋律',soundCountPick:'旋律数量',precise:'精密命中',counter:'反击',completion:'完成段数',bloom:'命中绽伤',forceGuard:'力防层数',saw:'电锯跳数',phial:'瓶爆次数',shells:'发炮数',wound:'命中伤口',woundCount:'伤口数量',woundLegendary:'历战伤口',energy:'能量充足',gp:'当身成功',aim:'变化点',qi:'有气',finish:'打完',cancelPrev:'打断上一招',hits:'命中数',spin:'圈数'};
+      const labels = {critical:'会心',charge:'档位',dbMode:'形态',bowgunShot:'射击方式',mantlePick:'衣装',bgDistance:'射击距离',bgPellets:'命中弹丸',bgSpecialHits:'命中数',bgHeatStage:'龙热穿甲阶段',bgClipSize:'弹容量',bgFullClip:'满弹仓开始',bgSequence:'本发位置',rangedVariant:'招式类型',rangedHits:'每箭／发命中数',rangedFollowHits:'伤口追击命中数',rangedExtraHits:'追加命中数',sequence:'命中方式',recovery:'收招形态',sound:'旋律',soundCountPick:'旋律数量',precise:'精密命中',counter:'反击',completion:'完成段数',bloom:'命中绽伤',forceGuard:'力防层数',saw:'电锯跳数',phial:'瓶爆次数',shells:'发炮数',wound:'命中伤口',woundCount:'伤口数量',woundLegendary:'历战伤口',energy:'能量充足',gp:'当身成功',aim:'变化点',qi:'有气',finish:'打完',cancelPrev:'打断上一招',hits:'命中数',spin:'圈数'};
       const coreOrder = ['critical','charge','dbMode','bowgunShot','rangedVariant','completion','sound','sequence','wound','bloom','hits','spin','rangedHits','shells','bgPellets','bgSpecialHits','soundCountPick'];
       const controls = Array.from(row.children).filter(n => n.dataset.moveField).map((node, order) => {
         const field = node.dataset.moveField, wrapper = document.createElement('div');
@@ -2266,6 +2274,13 @@
       list.innerHTML = '';
       state.combo.forEach((item, i) => {
         const move = moveOf(item.moveId);
+        if(state.weaponId==='light_bowgun'&&move&&Object.hasOwn(item,'bgFullClip')){
+          if(item.bgSequence==null){
+            if(item.bgFullClip)item.bgSequence=1;
+            else if(!state.combo.slice(0,i).some(it=>bowgunAmmoKey(moveOf(it.moveId))===bowgunAmmoKey(move)))item.bgSequence=Math.min(2,lightBowgunClipSize(move));
+          }
+          delete item.bgFullClip;
+        }
         const prevForCharge = i > 0 ? state.combo[i - 1] : null;
         const forcedChargeRule = state.deriveMode && prevForCharge && move && (move.entryChargeRules || []).find(r =>
           r.ids.includes(prevForCharge.moveId) && (r.completion == null || r.completion === prevForCharge.completion));
@@ -2416,7 +2431,11 @@
             sel.appendChild(o);
           }
           sel.value = String(cur);
-          sel.addEventListener('change', () => { state.combo[i][field] = Number(sel.value); refreshComboUI(); });
+          sel.addEventListener('change', () => {
+            if(field==='bgClipSize')state.combo.forEach(it=>{if(bowgunAmmoKey(moveOf(it.moveId))===bowgunAmmoKey(move)){it.bgClipSize=Number(sel.value);if(it.bgSequence!=null)it.bgSequence=Math.min(it.bgSequence,it.bgClipSize);}});
+            else state.combo[i][field] = Number(sel.value);
+            refreshComboUI();
+          });
           row.appendChild(sel);
           enhanceSelect(sel, tip || (move.name + ' · ' + unit));
         };
@@ -2435,7 +2454,7 @@
             sel.appendChild(el);
           });
           sel.value = String(cur);
-          sel.addEventListener('change', () => { if(field==='mantlePick')state.combo[i].mantleMode=['none','before','after','evasion'][Number(sel.value)];else state.combo[i][field==='soundCountPick'?'soundCount':field] = Number(sel.value)+(field==='soundCountPick'?1:0); refreshComboUI(); });
+          sel.addEventListener('change', () => { if(field==='mantlePick')state.combo[i].mantleMode=['none','before','after','evasion'][Number(sel.value)];else if(field==='bgSequence'&&Number(sel.value)===0)delete state.combo[i].bgSequence;else state.combo[i][field==='soundCountPick'?'soundCount':field] = Number(sel.value)+(field==='soundCountPick'?1:0); refreshComboUI(); });
           row.appendChild(sel);
           enhanceSelect(sel, tip);
         };
@@ -2493,7 +2512,11 @@
           if(move.bgSpecial){const max=move.rangedHeatType==='machine'?40:move.rangedHeatType==='grenade'?6:30,def=move.rangedHeatType==='machine'?40:move.rangedHeatType==='grenade'?6:12;cbSel('hit',1,max,item.bgSpecialHits??def,def,'bgSpecialHits');}
           if(move.rangedRole==='focus'&&item.wound)cbSel('处伤口',1,3,item.woundCount??1,1,'woundCount');
           if(move.rangedHeatType==='pierce')cbPick([{label:'阶段随命中变化',value:0},{label:'阶段1',value:1},{label:'阶段2',value:2},{label:'阶段3',value:3}],item.bgHeatStage??0,'bgHeatStage','龙热穿甲阶段');
-          if(state.skillLevels.HunterSkill_197>0||state.skillLevels.HunterSkill_198>0){
+          if(state.weaponId==='light_bowgun'&&['shot','chase','stepShot'].includes(move.rangedRole)){
+            const size=lightBowgunClipSize(move);
+            cbSel('发',1,9,size,6,'bgClipSize','弹容量');
+            cbPick([{label:'自动',value:0},...Array.from({length:size},(_,j)=>({label:'第'+(j+1)+'发',value:j+1}))],item.bgSequence??0,'bgSequence','本发位置');
+          }else if(state.weaponId==='heavy_bowgun'&&(state.skillLevels.HunterSkill_197>0||state.skillLevels.HunterSkill_198>0)){
           cbCheck({label:'满弹仓开始'},!!item.bgFullClip,'bgFullClip');
           const lab=document.createElement('label');lab.className='calc-check';lab.textContent='射击序号 ';lab.dataset.moveField='bgSequence';
           const input=document.createElement('input');input.type='number';input.min='1';input.max='999';input.placeholder='自动';input.value=item.bgSequence??'';input.style.width='64px';input.addEventListener('change',()=>{if(input.value)state.combo[i].bgSequence=Math.max(1,Math.min(999,Number(input.value)||1));else delete state.combo[i].bgSequence;refreshComboUI();});lab.appendChild(input);row.appendChild(lab);
@@ -4124,6 +4147,7 @@
       state.combo.push({
         moveId, mantleMode:state.combo.at(-1)?.mantleMode||'none',
         ...(move?.bowgunPreview?{bgDistance:state.combo.at(-1)?.bgDistance??0}:{}),
+        ...(state.weaponId==='light_bowgun'&&['shot','chase','stepShot'].includes(move?.rangedRole)?{bgClipSize:lightBowgunClipSize(move)}:{}),
         ...(move?.skipPrefixAfter && state.combo.at(-1)?.moveId === move.skipPrefixAfter && state.combo.at(-1)?.wound ? {wound:true} : {}),
         ...(state.weaponId === 'dual_blades' ? { dbMode: dbModeOf(state.combo.at(-1), move) } : {}),
         charge: lvs ? defaultLevelOf(move) : ((move && move.chargeable) ? 2 : null),
