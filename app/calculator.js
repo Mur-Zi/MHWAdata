@@ -402,6 +402,13 @@
   // 攻击力向下取整（用户拍板：攻击力舍弃小数点）
   // 先抹掉浮点噪声再取整，否则 200×0.15 = 29.999999999999996 会被 floor 成 29（应为 30）
   function floorAtk(v) { return Math.floor(Math.round(n(v) * 1e6) / 1e6); }
+  function attackCap(weaponBase) { return Math.max(0,n(weaponBase))*2; }
+  function cappedAttack(value,weaponBase) { return Math.max(0,Math.min(floorAtk(value),floorAtk(attackCap(weaponBase)))); }
+  function gunlanceAttackCoefficient(base,flat,arty,limit) {
+    // Cap the attack pool before the separate artillery damage modifier. Keep the existing split below cap.
+    if(Number.isFinite(limit)&&base+flat>limit){base=Math.min(base,limit-Math.min(0,flat));flat=limit-base;}
+    return base*arty+flat;
+  }
 
   // 属性值上限：max(基础面板属性值 × 2.3, 400)；基础为 0（无属性武器）时上限为 0
   function elementCap(baseElement) {
@@ -555,7 +562,7 @@
     //     · 估算器 C2 = readme 面板 × skill_data!A2（所有乘算技能的乘积）—— 不取整，所以这里也不能用 floorAtk
     //     · 估算器 D2 = SUM(所有加算) —— 力量护符/攻击技能加算等一并进来
     //     · 炮术的**加算**（J3 = +3/+6/+9）**不进固伤**，只加到「附带火属性」（估算器 M 列）—— 见下面 element
-    const coeff = n(p.shellBaseAllMuls, n(p.baseAttack)) * n(p.artyMul, 1) + n(p.atkFlatPool, 0);
+    const coeff = gunlanceAttackCoefficient(n(p.shellBaseAllMuls,n(p.baseAttack)),n(p.atkFlatPool,0),n(p.artyMul,1),p.attackLimit);
     let mv = 0, count = 1, note = moveKey, spark = false;
     if (moveKey === 'shot') {
       mv = n(row.shellAttack);
@@ -705,7 +712,9 @@
       attack = (baseAtkValue * n(p.baseAtkPct, 1) * st.attackPct + st.attackFlat + n(p.lampFlat)) * n(p.swaxBasePct, 1) + n(p.swaxBaseAdd, 0);
     }
     const chainIdx = (p.hitIndex || 0) < 4 ? 0 : (st.chainLevel || 1);
-    attack = floorAtk(attack * st.finalAttackPct);   // 攻击守势乘包含加算的最终攻击力
+    const attackBeforeCap=attack*st.finalAttackPct;
+    const attackLimit=attackCap(p.attack!=null?p.attack:baseAtkValue);
+    attack=cappedAttack(attackBeforeCap,p.attack!=null?p.attack:baseAtkValue);   // 攻击守势乘包含加算的最终攻击力
 
     // 属性显示值（含技能）＋ 连击属性档 —— 顺序 (基础×乘算)+加算
     const hitElementBase = hit.waveElementOnly ? n(hit.waveElementValue, 0) : p.element;
@@ -808,6 +817,7 @@
     const stun = (p.isHead ? n(hit.stun) : 0) * st.stunMult * n(p.hammerChargeStunMult, 1);
 
     return {
+      attackUsed:attack,attackCap:attackLimit,attackCapped:attackBeforeCap>=attackLimit,
       raw: Math.max(0, raw),
       element: Math.max(0, elemental),
       total: Math.max(0, raw + elemental),
@@ -874,7 +884,9 @@ function calculateBowgunCombo(p) {
       const r=calculateCombo({...p,_bowgunInternal:true,combo:[],skills:baseSkills,elementType:type,element:0,statusType:'None',status:0,mantle:mode==='after'});
       if(mode==='before')r.state.affinity=clamp(r.state.affinity+5,-100,100);
       if(mode==='evasion')r.state.attackFlat+=r.panel.baseAttackAfter*.2;
-      r.panel.attackAfter=Math.floor((r.panel.baseAttackAfter*r.state.attackPct+r.state.attackFlat)*r.state.finalAttackPct+1e-8);
+      r.panel.attackBeforeCap=(r.panel.baseAttackAfter*r.state.attackPct+r.state.attackFlat)*r.state.finalAttackPct;
+      r.panel.attackCap=attackCap(p.attack);r.panel.attackCapped=r.panel.attackBeforeCap>=r.panel.attackCap;
+      r.panel.attackAfter=cappedAttack(r.panel.attackBeforeCap,p.attack);
       r.panel.affinityAfter=r.state.affinity;
       cache.set(key,r);return r;
     };
@@ -884,8 +896,8 @@ function calculateBowgunCombo(p) {
     const addHit=(m,it,ci,h,ctx)=>{
       const r=ctx.base,s=r.state,zone=h.fixed?100:n(p.hitzones?.[h.type==='SLASH'?'Slash':h.type==='BLOW'?'Blow':'Shot'],0);
       const aff=clamp(s.affinity+(zone>=45&&!h.fixed?s.weakSpotAffinity:0)+(it.wound||p.context?.wound?s.woundAffinity:0)+ctx.tetradAffinity,-100,100);
-      const attack=Math.floor((r.panel.baseAttackAfter*s.attackPct+s.attackFlat)*s.finalAttackPct+1e-8);
-      const physicalAttack=attack+ctx.physicalAdd,crit=h.fixed?1:rawCritMultiplier(aff,s.critMult,ctx.critMode);
+      const attack=cappedAttack((r.panel.baseAttackAfter*s.attackPct+s.attackFlat)*s.finalAttackPct,p.attack);
+      const physicalAttack=Math.max(0,Math.min(attack+ctx.physicalAdd,attackCap(p.attack))),crit=h.fixed?1:rawCritMultiplier(aff,s.critMult,ctx.critMode);
       let damageMul=h.mult??1;
       if(h.ammoFamily==='normal')damageMul*=factor('HunterSkill_038',1.05);
       if(h.ammoFamily==='pierce')damageMul*=factor('HunterSkill_039',1.05);
@@ -907,7 +919,7 @@ function calculateBowgunCombo(p) {
       let element=h.fixedFire!=null?h.fixedFire*eZone/100:Math.min(elemBefore,elemCap)*eZone/100*ecrit*ctx.elementDamageMul*(ctx.rapid?factor('HunterSkill_045',1.05):1);
       const enrage=n(p.enrageMul,1);raw=round(Math.max(0,raw*enrage));element=round(Math.max(0,element*enrage));
       const stun=p.isHead?n(h.stun,0)*s.stunMult:0;
-      const out={moveId:m.id,moveName:m.name,comboIndex:ci,index:hits.length+1,fixedExtraDamage:round(n(h.fixedExtra)*enrage),raw,element,total:round(raw+element),status:0,stun,mv:h.mv,effectiveMv:h.mv*(h.mult??1)*(h.decay??1),elemRate:h.elementMotion?1:0,statusRate:0,type:h.type||'SHOT',fixed:!!h.fixed,noSharp:true,sharpCost:0,isWeak:zone>=45,affinityUsed:h.fixed?0:aff,charge:null,chargeUnit:null,mantle:!!h.mantle,wound:!!h.wound,hien:false,airborneMult:1,morphMult:1,projectile:h.projectile||1,bowgun:{...ctx.magazine,sequence:ctx.sequence,fullClip:ctx.fullClip,opening:ctx.opening,rapidMultiplier:ctx.rapid?factor('HunterSkill_045',1.05):1,projectile:h.projectile||1,tick:h.tick||1,decay:h.decay??1,distance,correction:h.mult??1,elementCorrection:h.elementCorrection??1,elementBase:b,elementBefore:elemBefore,elementCap:elemCap,elementCapped:elemBefore>elemCap+1e-8,elementType:eType,physicalAttack}};
+      const out={attackUsed:physicalAttack,attackCap:attackCap(p.attack),attackCapped:attack+ctx.physicalAdd>=attackCap(p.attack),moveId:m.id,moveName:m.name,comboIndex:ci,index:hits.length+1,fixedExtraDamage:round(n(h.fixedExtra)*enrage),raw,element,total:round(raw+element),status:0,stun,mv:h.mv,effectiveMv:h.mv*(h.mult??1)*(h.decay??1),elemRate:h.elementMotion?1:0,statusRate:0,type:h.type||'SHOT',fixed:!!h.fixed,noSharp:true,sharpCost:0,isWeak:zone>=45,affinityUsed:h.fixed?0:aff,charge:null,chargeUnit:null,mantle:!!h.mantle,wound:!!h.wound,hien:false,airborneMult:1,morphMult:1,projectile:h.projectile||1,bowgun:{...ctx.magazine,sequence:ctx.sequence,fullClip:ctx.fullClip,opening:ctx.opening,rapidMultiplier:ctx.rapid?factor('HunterSkill_045',1.05):1,projectile:h.projectile||1,tick:h.tick||1,decay:h.decay??1,distance,correction:h.mult??1,elementCorrection:h.elementCorrection??1,elementBase:b,elementBefore:elemBefore,elementCap:elemCap,elementCapped:elemBefore>elemCap+1e-8,elementType:eType,physicalAttack}};
       hits.push(out);totalMv+=h.mv;totalElemRate+=out.elemRate;totalStun+=stun;
     };
     for(let ci=0;ci<(p.combo||[]).length;ci++){
@@ -1041,7 +1053,8 @@ function calculateBowgunCombo(p) {
     let lampFlat = floorAtk(baseAttack * (lampRate + state.attackFromBasePct)) - soulFlat;
     state.attackFlat += soulFlat;
     // 最终攻击力同样向下取整（技能乘算/加算、道具、三灯加值全部算完之后）
-    let attackFinal = floorAtk((baseAttack * state.attackPct + state.attackFlat + lampFlat) * state.finalAttackPct);
+    let attackBeforeCap=(baseAttack * state.attackPct + state.attackFlat + lampFlat) * state.finalAttackPct;
+    let attackFinal=cappedAttack(attackBeforeCap,params.attack);
     const setMantle = function(mode) {
       state.baseAttackBonusPct = unmantled.bonus + (mode === 'after' ? .05 : 0);
       state.affinity = clamp(unmantled.affinity + (mode === 'after' ? 10 : mode === 'before' ? 5 : 0), -100, 100);
@@ -1049,7 +1062,8 @@ function calculateBowgunCombo(p) {
       const soul = floorAtk(baseAttack * state.attackFromBasePct);
       lampFlat = floorAtk(baseAttack * (lampRate + state.attackFromBasePct)) - soul;
       state.attackFlat = unmantled.flat + soul + (mode === 'evasion' ? baseAttack * .2 : 0);
-      attackFinal = floorAtk((baseAttack * state.attackPct + state.attackFlat + lampFlat) * state.finalAttackPct);
+      attackBeforeCap=(baseAttack * state.attackPct + state.attackFlat + lampFlat) * state.finalAttackPct;
+      attackFinal=cappedAttack(attackBeforeCap,params.attack);
     };
     setMantle(params.mantle ? 'after' : 'none');
 
@@ -1590,6 +1604,7 @@ function calculateBowgunCombo(p) {
             shellType: glType,
             shellLevel: glLevel,
             baseAttack: baseAttack,
+            attackLimit:attackCap(params.attack),
             // 与估算器 skill_data!C2 同口径：面板 × 全部乘算（基础乘区 × 其他乘区），**不取整**
             shellBaseAllMuls: n(params.attack) * (state.baseAttackPct+state.baseAttackBonusPct) * state.attackPct * state.finalAttackPct,
             // 与估算器 skill_data!D2 同口径：全部加算（基础加算 + 其他加算 + 灯具加值）
@@ -1658,7 +1673,7 @@ function calculateBowgunCombo(p) {
           threeLamp: threeLamp,            // 三灯：动作值取 mvLamp + 攻击力加算
           lampFlat: move.noLampBonus ? 0 : lampFlat,
           baseAttack: baseAttack,          // 基础攻击力（含「攻击」技能）
-          attack: n(params.attack),        // 面板输入值（仅用于面板显示/兜底）
+          attack: n(params.attack),        // 未加技能的武器基础攻击力：用于两倍攻击力上限
           element: n(params.element),
           elementDisabled: noElemType,     // 面板选「无」属性 → 猎虫也不吃属性
           kinsect: kinsectCfg,             // 猎虫（共斗虫）配置：虫种 + 等级 → 威力倍率
@@ -1910,7 +1925,7 @@ function calculateBowgunCombo(p) {
       attackBase: n(params.attack),        // 面板输入的基础攻击力
       baseAttackAfter: baseAttack,         // 基础攻击力（已向下取整）
       // 最终攻击力 = 基础攻击力 × 其他乘算 + Σ加算（其他技能/道具 + 三灯），再向下取整
-      attackAfter: attackFinal,
+      attackAfter: attackFinal,attackBeforeCap,attackCap:attackCap(params.attack),attackCapped:attackBeforeCap>=attackCap(params.attack),
       attackLampFlat: lampFlat,        // 面板里拆出三灯加值，便于界面标注
       attackOtherPct: state.attackPct, // 其他技能/道具的乘算（供面板说明）
       attackOtherFlat: state.attackFlat,
@@ -1978,10 +1993,9 @@ function calculateBowgunCombo(p) {
         artyAdd: isGL ? state.gunlanceArtyAdd : 0,
         // 炮击系数（与估算器 skill_data!K1 同口径）：面板 × 全部乘算（不取整）× 炮术倍率 + 全部加算
         //   注意：炮术加算（artyAdd）**不进固伤**，只加到附带火属性 —— 别写回这里
-        coefficient: isGL
-          ? Math.round(((n(params.attack) * (state.baseAttackPct+state.baseAttackBonusPct) * state.attackPct) * state.gunlanceArtyMul
-            + state.baseAttackFlat + state.attackFlat + n(lampFlat)) * state.finalAttackPct * 100) / 100
-          : 0,
+        coefficient: isGL ? Math.round(gunlanceAttackCoefficient(
+          n(params.attack)*(state.baseAttackPct+state.baseAttackBonusPct)*state.attackPct*state.finalAttackPct,
+          (state.baseAttackFlat+state.attackFlat+n(lampFlat))*state.finalAttackPct,state.gunlanceArtyMul,attackCap(params.attack))*100)/100 : 0,
         coefficientFrom: isGL ? '（面板×全部乘算）×炮术倍率 + 全部加算 —— 与估算器 skill_data!K1 同口径' : null
       },
       // 集中处决「爆伤口」（用户 2026-10-08）：命中伤口后按处数造成的额外伤害，单列展示
@@ -2145,7 +2159,7 @@ function calculateBowgunCombo(p) {
     CRIT_BASE, CRIT_NEG, STATUS_PROC, ELEMENT_TYPES, WEAPONS, DEFAULT_SHARPNESS,
     SHARPNESS_ORDER, SHARPNESS_CN,
     ELEMENT_CAP_RATE, ELEMENT_CAP_MIN, elementCap, floorAtk,
-    groupValue, conditionActive, applySkills, rawCritMultiplier, elementCritMultiplier,
+    groupValue, conditionActive, applySkills, attackCap, cappedAttack, rawCritMultiplier, elementCritMultiplier,
     calcHit, calculateCombo, lightBowgunMagazinePlan, buildMonsterParts,rangedNextMoves,rangedVariantChoices,rangedWholeMove,migrateRangedCombo,
     kinsectPowerMult, kinsectMultipliers, KINSECT_MUL: {
       base: KINSECT_BASE, sever: KINSECT_SEVER, extract: KINSECT_EXTRACT,

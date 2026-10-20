@@ -1725,6 +1725,7 @@
         // 档位不写成文字（用户 2026-10-08）：选中的档位由行内档位按钮的高亮表示，行内不再出现「N蓄」这类标签
         if (g.dance) tags.push('舞踏' + g.dance);
         if (blade.some((h) => h.isWeak)) tags.push('弱点');
+        const cappedHit=g.hits.find(h=>h.attackCapped);if(cappedHit)tags.push('攻击力已达上限 '+rd2(cappedHit.attackCap));
         const hienCt = blade.filter((h) => h.hien).length;
         // 飞燕：勾了技能才亮标，而且只写一个词（不写刀数、不写数值）
         if (hienCt && airMult !== 1) tags.push('飞燕');
@@ -3073,6 +3074,7 @@
       if (p.attackFinalPct && Math.abs(p.attackFinalPct - 1) > 1e-6) atkParts.push('攻击守势：最终 ×' + num(p.attackFinalPct));
       html += `<div class="calc-panel-row"><span>最终攻击力</span><b class="${Math.abs(p.attackAfter - baseAtk) > 1e-6 ? 'up' : ''}">${num(p.attackAfter)}`
         + (atkParts.length ? `　<i class="calc-panel-note">${atkParts.join(' · ')}</i>` : '') + '</b></div>';
+      if(p.attackCap!=null)html += '<div class="calc-panel-row" data-attack-cap><span>攻击力上限</span><b'+(p.attackCapped?' class="cap"':'')+'>'+num(p.attackCap)+(p.attackCapped?'（已达上限）':'')+'</b></div>';
       if(!['light_bowgun','heavy_bowgun'].includes(state.weaponId))html += row('面板属性值', p.elementBase, p.elementAfter);
       if (p.elementCapped) html += '<div class="calc-panel-row"><span>属性上限</span><b class="cap">已触上限（基础×2.3 或 400 取高）</b></div>';
       if(!['light_bowgun','heavy_bowgun'].includes(state.weaponId))html += row('面板异常值', p.statusBase, p.statusAfter);
