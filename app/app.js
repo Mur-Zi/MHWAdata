@@ -1120,7 +1120,7 @@
       monster: monsters[0] ? monsters[0].name : '',
       part: '', meatIdx: 0,
       quest: '', players: 1,
-      mode: 'expected',
+      mode: 'expected', expectedCrit: true,
       weakSpot: false, monsterEnraged: false, fullHealth: true, wound: false, overcomeFrenzy: false, clash: false,
       ateMeat: false, festival: false, warCry: false,   // 套装技能条件：食用烤熟的肉 / 祭典期间 / 咆哮后
       absorbHits: 1, wet:false, bubble:false, bowgunSpec:'basic',
@@ -1159,13 +1159,14 @@
     let openMoveItem = null;
     let selectedMoveItem = null;
     let comboResult = null;
+    let comboCritResults = null;
     let moveEditorTab = 'options';
     const comboMedia = window.matchMedia('(min-width: 900px)');
     const CONFIG_KEYS = ['weaponId', 'attack', 'affinity', 'element', 'elementType', 'status', 'statusType', 'sharpness',
       'fullHealth', 'overcomeFrenzy', 'clash', 'ateMeat', 'festival', 'warCry', 'absorbHits', 'wet', 'bubble', 'bowgunSpec',
       'threeLamp', 'mantle', 'cbPhial', 'cbReinforced', 'cbRedShield', 'cbRedSword', 'swaxAwakened', 'swaxPhial','apexSoulReady','encouragement','ailmentCleared','ailment',
       'swaxRedAxe', 'balladCount', 'blueDemon', 'dbMode', 'glType', 'glLevel', 'melodyIds', 'kinsectId', 'kinsectLevel',
-      'itemPicks', 'skillLevels', 'skillCoverage'];
+      'itemPicks', 'skillLevels', 'skillCoverage', 'expectedCrit'];
     const clonePreset = value => JSON.parse(JSON.stringify(value));
     function readPresets() {
       try {
@@ -1638,12 +1639,15 @@
         if(icon){const image=document.createElement('img');image.src=icon;image.alt=targetMonster.zh||targetMonster.name;image.width=44;image.height=44;identity.appendChild(image);}
         const label=document.createElement('span');label.textContent=(targetMonster.zh||targetMonster.name)+' · '+partName(targetMonster.name,selectedPart()?.key||'');identity.appendChild(label);
       }
+      el.querySelector('#calc-crit-expected').checked=state.expectedCrit!==false;
       const grid = el.querySelector('#calc-result-grid');
       const tbl = el.querySelector('#calc-hit-table');
       const stat = (a, b, cls) => `<div class="calc-stat${cls ? ' ' + cls : ''}"><span>${a}</span><strong>${b}</strong></div>`;
       // 总伤害优先展示
       grid.innerHTML = [
         stat('总伤害', r.totalDamage.toFixed(2), 'primary'),
+        stat('100%会心伤害', (comboCritResults?.critical?.totalDamage??r.totalDamage).toFixed(2)),
+        stat('非会心伤害', (comboCritResults?.normal?.totalDamage??r.totalDamage).toFixed(2)),
         stat('物理伤害', (r.totalPhysical??r.totalRaw).toFixed(2)),
         stat('属性伤害', r.totalElement.toFixed(2)),
         stat('固伤', (r.totalFixed||0).toFixed(2)),
@@ -1952,6 +1956,7 @@
         scarRaw: scarRawOf().raw,
         scarLegendary: scarRawOf().legendary,
         mode: source.mode,
+        perMoveCrit: source.expectedCrit === false,
         combo: source.combo,
         mantle: false,         // 蚀攻衣装：开启后把衣装的加段并入对应招式
         // 盾斧：瓶种 / 瓶状态 / 红盾 / 红剑（开局就选；其他武器一律不吃）
@@ -1998,7 +2003,9 @@
     }
     function recalc() {
       const isIG=state.weaponId==='insect_glaive',isDB=state.weaponId==='dual_blades';
-      const r=window.MHCalculator.calculateCombo(buildCalculationParams());
+      const params=buildCalculationParams(),calculate=mode=>window.MHCalculator.calculateCombo({...params,mode,perMoveCrit:false});
+      const r=window.MHCalculator.calculateCombo(params);
+      comboCritResults={expected:params.perMoveCrit?calculate('expected'):r,critical:calculate('guaranteedCrit'),normal:calculate('noCrit')};
       // 长枪力防：把引擎算出的「哪一招吃到了力防加成」记下来，连段行与逐刀表都按它标注
       state.forceGuardUsed = r.forceGuardUsed || [];
       renderResults(r);
@@ -2092,13 +2099,25 @@
     }
 
     // 主行只留两个核心选项；其余控件沿用原事件和数据，移入招式设置面板。
+    function renderMoveCriticalComparison(target,index) {
+      if(!comboCritResults||['light_bowgun','heavy_bowgun'].includes(state.weaponId))return;
+      const section=document.createElement('section');section.className='calc-critical-outcomes';section.setAttribute('aria-label','本招会心伤害对照');
+      for(const [key,label]of [['expected','期望伤害'],['critical','100%会心'],['normal','非会心']]){
+        const c=comboCritResults[key].moveContributions?.find(c=>c.comboIndex===index);
+        if(!c)continue;
+        const card=document.createElement('div');card.dataset.critOutcome=key;
+        card.innerHTML='<span>'+label+'</span><b>'+Number(c.damage).toFixed(2)+'</b><small>物理 '+Number(c.physical).toFixed(2)+' · 属性 '+Number(c.element).toFixed(2)+(c.fixed>0?' · 固伤 '+Number(c.fixed).toFixed(2):'')+'</small>';
+        section.append(card);
+      }
+      const note=document.createElement('p');note.textContent='不允许会心的伤害按原规则计算。';section.append(note);target.prepend(section);
+    }
     function renderBowgunMagazine(target,index) {
       const item=state.combo[index],move=moveOf(item?.moveId);
       if(!move?.bowgunPreview||!['shot','chase','stepShot'].includes(move.rangedRole))return;
       const actual=comboResult?.hits.find(h=>h.comboIndex===index&&h.bowgun)?.bowgun;
       if(!actual)return;
       const params=buildCalculationParams(),combo=Array.from({length:9},(_,i)=>({...item,bgFullClip:i===0&&actual.fullClip,bgSequence:i+1}));
-      const calc=mode=>window.MHCalculator.calculateCombo({...params,combo,mode});
+      const calc=mode=>window.MHCalculator.calculateCombo({...params,combo,mode,perMoveCrit:false});
       const expected=calc('expected'),critical=calc('guaranteedCrit'),normal=calc('noCrit');
       const section=document.createElement('section');section.className='calc-magazine';
       const damage=(r,i)=>{const c=r.moveContributions.find(c=>c.comboIndex===i);return '<b>'+Number(c?.damage||0).toFixed(2)+'</b><small>'+Number(c?.physical||0).toFixed(2)+' / '+Number(c?.element||0).toFixed(2)+'</small>';};
@@ -2125,7 +2144,7 @@
         if(body)body.hidden=false;
         if(head){head.classList.add('open');head.setAttribute('aria-expanded','true');head.addEventListener('click',()=>{body.hidden=!body.hidden;head.classList.toggle('open',!body.hidden);head.setAttribute('aria-expanded',String(!body.hidden));});}
         target.append(detail);
-        if(!target.hidden)renderBowgunMagazine(target,Number(target.dataset.moveIndex));
+        if(!target.hidden){renderBowgunMagazine(target,Number(target.dataset.moveIndex));renderMoveCriticalComparison(target,Number(target.dataset.moveIndex));}
       });
     }
     function revealComboSelection() {
@@ -2136,8 +2155,8 @@
       else if(rect.bottom>bounds.bottom)list.scrollTop+=Math.min(rect.bottom-bounds.bottom,rect.top-bounds.top);
     }
     function layoutMoveOptions(row, item, index) {
-      const labels = {charge:'档位',dbMode:'形态',bowgunShot:'射击方式',mantlePick:'衣装',bgDistance:'射击距离',bgPellets:'命中弹丸',bgSpecialHits:'命中数',bgHeatStage:'龙热穿甲阶段',bgFullClip:'满弹仓开始',bgSequence:'射击序号',rangedVariant:'招式类型',rangedHits:'每箭／发命中数',rangedFollowHits:'伤口追击命中数',rangedExtraHits:'追加命中数',sequence:'命中方式',recovery:'收招形态',sound:'旋律',soundCountPick:'旋律数量',precise:'精密命中',counter:'反击',completion:'完成段数',bloom:'命中绽伤',forceGuard:'力防层数',saw:'电锯跳数',phial:'瓶爆次数',shells:'发炮数',wound:'命中伤口',woundCount:'伤口数量',woundLegendary:'历战伤口',energy:'能量充足',gp:'当身成功',aim:'变化点',qi:'有气',finish:'打完',cancelPrev:'打断上一招',hits:'命中数',spin:'圈数'};
-      const coreOrder = ['charge','dbMode','bowgunShot','rangedVariant','completion','sound','sequence','wound','bloom','hits','spin','rangedHits','shells','bgPellets','bgSpecialHits','soundCountPick'];
+      const labels = {critical:'会心',charge:'档位',dbMode:'形态',bowgunShot:'射击方式',mantlePick:'衣装',bgDistance:'射击距离',bgPellets:'命中弹丸',bgSpecialHits:'命中数',bgHeatStage:'龙热穿甲阶段',bgFullClip:'满弹仓开始',bgSequence:'射击序号',rangedVariant:'招式类型',rangedHits:'每箭／发命中数',rangedFollowHits:'伤口追击命中数',rangedExtraHits:'追加命中数',sequence:'命中方式',recovery:'收招形态',sound:'旋律',soundCountPick:'旋律数量',precise:'精密命中',counter:'反击',completion:'完成段数',bloom:'命中绽伤',forceGuard:'力防层数',saw:'电锯跳数',phial:'瓶爆次数',shells:'发炮数',wound:'命中伤口',woundCount:'伤口数量',woundLegendary:'历战伤口',energy:'能量充足',gp:'当身成功',aim:'变化点',qi:'有气',finish:'打完',cancelPrev:'打断上一招',hits:'命中数',spin:'圈数'};
+      const coreOrder = ['critical','charge','dbMode','bowgunShot','rangedVariant','completion','sound','sequence','wound','bloom','hits','spin','rangedHits','shells','bgPellets','bgSpecialHits','soundCountPick'];
       const controls = Array.from(row.children).filter(n => n.dataset.moveField).map((node, order) => {
         const field = node.dataset.moveField, wrapper = document.createElement('div');
         wrapper.className = 'calc-move-control'; wrapper.dataset.moveControl = field;
@@ -2466,6 +2485,7 @@
           row.appendChild(sel);
           enhanceSelect(sel, '射击方式');
         }
+        if(state.expectedCrit===false)cbCheck({label:'会心'},item.critical===true,'critical');
         cbPick([{label:'无衣装',value:0},{label:'蚀攻衣装·克服前',value:1},{label:'蚀攻衣装·克服后',value:2},{label:'回避衣装',value:3}],['none','before','after','evasion'].indexOf(item.mantleMode||'none'),'mantlePick','衣装');
         if(move?.bowgunPreview&&!['reload','mode'].includes(move.rangedRole)){
           if(move.bgDistance)cbPick([{label:'适正距离'},{label:'过近'},{label:'过远'}],item.bgDistance??0,'bgDistance','射击距离');
@@ -3323,6 +3343,7 @@
 
       <section class="calc-card calc-result">
         <h2>计算结果</h2>
+        <label class="calc-check calc-crit-toggle"><input type="checkbox" id="calc-crit-expected" checked>会心按期望计算</label>
         <div class="calc-result-grid" id="calc-result-grid"></div>
         <section class="calc-move-shares" id="calc-move-shares" hidden></section>
         <div class="calc-hit-table" id="calc-hit-table" hidden></div>
@@ -3525,6 +3546,7 @@
     }
     function restoreSettingsPreset(preset) {
       const source = preset.data;
+      state.expectedCrit=typeof source.expectedCrit==='boolean'?source.expectedCrit:true;
       if (state.weaponId !== preset.weaponId) {
         state.combo = []; state.deriveMode = !!WEAPON_META[preset.weaponId].hasDerive;
       }
@@ -3570,6 +3592,7 @@
     }
     function comparisonConfiguration(preset) {
       const source=clonePreset(state);
+      if(preset&&typeof preset.data.expectedCrit!=='boolean')source.expectedCrit=true;
       if(preset)CONFIG_KEYS.forEach(key=>{
         const value=preset.data[key];
         if(value===undefined)return;
@@ -3598,6 +3621,7 @@
         if(!Array.isArray(saved)||!saved.length)return {error:'请选择有招式的连段预设，或先添加当前连段。'};
         const combo=window.MHCalculator.migrateRangedCombo(clonePreset(saved),CALC.rangedLegacyAliases?.[state.weaponId]);
         if(!Array.isArray(combo)||!combo.every(it=>it&&currentMoves().some(m=>m.id===it.moveId)))return {error:'该连段包含当前版本不支持的招式，请更新后再对比。'};
+        if(comboPreset)source.expectedCrit=comboPreset.data.expectedCrit!==false;
         source.combo=combo.map(it=>({...it,mantleMode:it.mantleMode||(source.mantle?'after':'none')}));
         return {source,combo:source.combo,name:comboPreset?.name||'当前连段',configName:settingsPreset?.name||'当前配置',result:window.MHCalculator.calculateCombo(buildCalculationParams(source))};
       });
@@ -3634,7 +3658,7 @@
       const configs=document.createElement('details');configs.className='calc-compare-config-diff';const configTitle=document.createElement('summary');configTitle.textContent='配置差异 · '+a.configName+' / '+b.configName;configs.append(configTitle);
       const configRows=[];
       const addDiff=(label,x,y)=>{if(String(x)!==String(y))configRows.push([label,String(x),String(y)]);};
-      const configLabels={attack:'基础攻击力',affinity:'会心率',element:'面板属性',status:'面板异常',sharpness:'斩味',elementType:'属性类型',statusType:'异常类型',fullHealth:'体力全满',overcomeFrenzy:'克服狂龙症',clash:'角力／抵消条件',ateMeat:'食用烤肉',festival:'祭典条件',warCry:'咆哮条件',absorbHits:'属性吸收受击',wet:'淋湿',bubble:'泡沫异常',bowgunSpec:'重弩性能',threeLamp:'三灯',cbPhial:'盾斧瓶种',cbReinforced:'瓶强化',cbRedShield:'红盾',cbRedSword:'红剑',swaxAwakened:'斩斧开刃',swaxPhial:'斩斧瓶种',swaxRedAxe:'红斧',balladCount:'响玉数量',blueDemon:'蓝鬼',dbMode:'双刀起始模式',glType:'炮击类型',glLevel:'炮击等级',kinsectId:'猎虫',kinsectLevel:'猎虫等级',apexSoulReady:'霸主之魂条件',encouragement:'被队友赋予增益',ailmentCleared:'解除异常状态',ailment:'异常状态'};
+      const configLabels={expectedCrit:'会心按期望计算',attack:'基础攻击力',affinity:'会心率',element:'面板属性',status:'面板异常',sharpness:'斩味',elementType:'属性类型',statusType:'异常类型',fullHealth:'体力全满',overcomeFrenzy:'克服狂龙症',clash:'角力／抵消条件',ateMeat:'食用烤肉',festival:'祭典条件',warCry:'咆哮条件',absorbHits:'属性吸收受击',wet:'淋湿',bubble:'泡沫异常',bowgunSpec:'重弩性能',threeLamp:'三灯',cbPhial:'盾斧瓶种',cbReinforced:'瓶强化',cbRedShield:'红盾',cbRedSword:'红剑',swaxAwakened:'斩斧开刃',swaxPhial:'斩斧瓶种',swaxRedAxe:'红斧',balladCount:'响玉数量',blueDemon:'蓝鬼',dbMode:'双刀起始模式',glType:'炮击类型',glLevel:'炮击等级',kinsectId:'猎虫',kinsectLevel:'猎虫等级',apexSoulReady:'霸主之魂条件',encouragement:'被队友赋予增益',ailmentCleared:'解除异常状态',ailment:'异常状态'};
       const configValue=(key,value)=>{
         if(typeof value==='boolean')return value?'是':'否';
         if(key==='sharpness')return sharpCn[value]||value;
@@ -3698,7 +3722,7 @@
           const name = input.value.trim().slice(0, 80);
           if (editing.action !== 'delete' && !name) { presetMessage(kind, '请输入预设名称'); return; }
           const bank = readPresets(); let id = editing.id;
-          const capture=()=>kind==='settings'?Object.fromEntries(CONFIG_KEYS.map(key=>[key,clonePreset(state[key])])):{combo:clonePreset(state.combo),deriveMode:state.deriveMode};
+          const capture=()=>kind==='settings'?Object.fromEntries(CONFIG_KEYS.map(key=>[key,clonePreset(state[key])])):{combo:clonePreset(state.combo),deriveMode:state.deriveMode,expectedCrit:state.expectedCrit};
           const nameKey=value=>value.trim().normalize('NFKC').toLocaleLowerCase();
           if(editing.action==='save'||editing.action==='rename'){
             const duplicate=bank[kind].find(p=>p.id!==id&&nameKey(p.name)===nameKey(name));
@@ -3722,14 +3746,14 @@
           } else if (editing.action === 'save') {
             id = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
             const data = kind === 'settings' ? Object.fromEntries(CONFIG_KEYS.map(key => [key, clonePreset(state[key])]))
-              : { combo: clonePreset(state.combo), deriveMode: state.deriveMode };
+              : { combo: clonePreset(state.combo), deriveMode: state.deriveMode, expectedCrit: state.expectedCrit };
             bank[kind].push({ id, name, weaponId: state.weaponId, data, savedAt: Date.now() });
           } else {
             const p = bank[kind].find(p => p.id === id);
             if (!p) { presetMessage(kind, '该预设已不存在'); return; }
             if (editing.action === 'rename') p.name = name;
             else if (editing.action === 'overwrite') {
-              p.data=kind==='settings'?Object.fromEntries(CONFIG_KEYS.map(key=>[key,clonePreset(state[key])])):{combo:clonePreset(state.combo),deriveMode:state.deriveMode};
+              p.data=kind==='settings'?Object.fromEntries(CONFIG_KEYS.map(key=>[key,clonePreset(state[key])])):{combo:clonePreset(state.combo),deriveMode:state.deriveMode,expectedCrit:state.expectedCrit};
               p.weaponId=state.weaponId;p.savedAt=Date.now();
             }
             else bank[kind] = bank[kind].filter(p => p.id !== id);
@@ -3748,6 +3772,7 @@
               presetMessage(kind, '该连段含当前版本不支持的招式，无法读取'); return;
             }
             state.combo = clonePreset(saved).map(it=>({...it,mantleMode:it.mantleMode||(state.mantle?'after':'none')})); state.deriveMode = p.data.deriveMode !== false;
+            state.expectedCrit=p.data.expectedCrit!==false;
             $('input#calc-derive-toggle').checked = state.deriveMode; refreshComboUI();
           }
           close(); presetMessage(kind, '已读取：' + p.name);
@@ -4090,6 +4115,7 @@
       state.deriveMode = e.target.checked;
       refreshComboUI();
     });
+    $('input#calc-crit-expected').addEventListener('change', e => {state.expectedCrit=e.target.checked;refreshComboUI();});
     $('button#calc-add').addEventListener('click', () => {
       const moveId = $('select#calc-move').value;
       if (!moveId) return;

@@ -495,6 +495,9 @@
   }
 
   // 会心补正（物理）：expected 会按正/负会心分别取 1.25 / 0.75
+  function comboCritMode(params,item) {
+    return params.perMoveCrit ? (item.critical === true ? 'guaranteedCrit' : 'noCrit') : (params.mode || 'expected');
+  }
   function rawCritMultiplier(affinity, critMult, mode) {
     const a = clamp(affinity, -100, 100) / 100;
     if (mode === 'guaranteedCrit') return critMult;
@@ -859,7 +862,7 @@ function calculateBowgunCombo(p) {
       const r=ctx.base,s=r.state,zone=h.fixed?100:n(p.hitzones?.[h.type==='SLASH'?'Slash':h.type==='BLOW'?'Blow':'Shot'],0);
       const aff=clamp(s.affinity+(zone>=45&&!h.fixed?s.weakSpotAffinity:0)+(it.wound||p.context?.wound?s.woundAffinity:0)+ctx.tetradAffinity,-100,100);
       const attack=Math.floor((r.panel.baseAttackAfter*s.attackPct+s.attackFlat)*s.finalAttackPct+1e-8);
-      const physicalAttack=attack+ctx.physicalAdd,crit=h.fixed?1:rawCritMultiplier(aff,s.critMult,p.mode);
+      const physicalAttack=attack+ctx.physicalAdd,crit=h.fixed?1:rawCritMultiplier(aff,s.critMult,ctx.critMode);
       let damageMul=h.mult??1;
       if(h.ammoFamily==='normal')damageMul*=factor('HunterSkill_038',1.05);
       if(h.ammoFamily==='pierce')damageMul*=factor('HunterSkill_039',1.05);
@@ -877,7 +880,7 @@ function calculateBowgunCombo(p) {
       const eType=h.elementType||'None',eZone=n(p.hitzones?.[eType],0),b=attack/100*n(h.elementMotion,0)*n(h.elementCorrection,1);
       const flat=(s.elementFlat+s.absorbElemFlat+s.dragonElemFlat)/10;
       const elemBefore=b*s.elementPct*s.convertElemMult+flat,elemCap=b*2.3;
-      const ecrit=h.fixed?1:elementCritMultiplier(aff,s.elementCritMult,p.mode);
+      const ecrit=h.fixed?1:elementCritMultiplier(aff,s.elementCritMult,ctx.critMode);
       let element=h.fixedFire!=null?h.fixedFire*eZone/100:Math.min(elemBefore,elemCap)*eZone/100*ecrit*ctx.elementDamageMul*(ctx.rapid?factor('HunterSkill_045',1.05):1);
       const enrage=n(p.enrageMul,1);raw=round(Math.max(0,raw*enrage));element=round(Math.max(0,element*enrage));
       const stun=p.isHead?n(h.stun,0)*s.stunMult:0;
@@ -896,7 +899,7 @@ function calculateBowgunCombo(p) {
       sequence=it.bgSequence!=null?clampCount(it.bgSequence,1,999):sequence+1;lastAmmo=name;
       const baseR=baseFor(elementType,it.mantleMode||'none');lastBase=baseR;
       const opening=fullClipKnown&&sequence===1&&level('HunterSkill_198')>0,tetrad=level('HunterSkill_197'),boost=[4,6].includes(sequence)&&tetrad>0;
-      const ctx={base:baseR,sequence,rapid,fullClip:fullClipKnown,opening,physicalAdd:(level('HunterSkill_019')===3?5*coverage('HunterSkill_019'):0)+(opening?5*level('HunterSkill_198')*coverage('HunterSkill_198'):0)+(boost?[3,6,10][tetrad-1]*coverage('HunterSkill_197'):0),tetradAffinity:sequence>=4&&tetrad?[8,10,12][tetrad-1]*coverage('HunterSkill_197'):0,elementDamageMul:(opening?factor('HunterSkill_198',1.1):1)*(boost?factor('HunterSkill_197',1.05):1)};
+      const ctx={base:baseR,critMode:comboCritMode(p,it),sequence,rapid,fullClip:fullClipKnown,opening,physicalAdd:(level('HunterSkill_019')===3?5*coverage('HunterSkill_019'):0)+(opening?5*level('HunterSkill_198')*coverage('HunterSkill_198'):0)+(boost?[3,6,10][tetrad-1]*coverage('HunterSkill_197'):0),tetradAffinity:sequence>=4&&tetrad?[8,10,12][tetrad-1]*coverage('HunterSkill_197'):0,elementDamageMul:(opening?factor('HunterSkill_198',1.1):1)*(boost?factor('HunterSkill_197',1.05):1)};
       const begin=hits.length,emit=h=>addHit(m,it,ci,h,ctx);
       if(['normal','pierce','spread','element','dragon'].includes(family)){
         const count=family==='normal'?(isLight&&chase&&!rapid?2:isLight&&rapid?5:3):family==='spread'?(isLight&&chase&&rapid?3:isLight&&(rapid||chase)?2:1):isLight?(family==='dragon'?(rapid?2:1):chase?(rapid?3:2):rapid?(family==='pierce'?3:2):1):1;
@@ -1144,6 +1147,7 @@ function calculateBowgunCombo(p) {
     const forceGuardUsed = [];   // 连段里实际吃到力防加成的位置（界面标注 + 闸门断言用）
     for (let comboIdx = 0; comboIdx < comboList.length; comboIdx++) {
       const item = comboList[comboIdx];
+      const critMode = comboCritMode(params,item);
       const mantleMode = item.mantleMode || (params.mantle ? 'after' : 'none');
       setMantle(mantleMode);
       let move = moveById.get(item.moveId || item.id);
@@ -1548,7 +1552,7 @@ function calculateBowgunCombo(p) {
             state.affinity + ((shellZone >= 45) ? state.weakSpotAffinity : 0) + (isWound ? state.woundAffinity : 0),
             -100, 100
           );
-          const shellCrit = rawCritMultiplier(shellAff, state.critMult, params.mode);
+          const shellCrit = rawCritMultiplier(shellAff, state.critMult, critMode);
           const glElemPanel = (params.elementType && params.elementType !== 'None')
             ? Math.min(elementCap(params.element), n(params.element) * state.elementPct + state.elementFlat
               + state.absorbElemFlat + state.dragonElemFlat)
@@ -1635,7 +1639,7 @@ function calculateBowgunCombo(p) {
           sharpness: sharpness,
           sharpGreen: params.sharpGreen,   // 绿斩倍率（狩猎笛响周波固定绿斩用）
           state: state,
-          mode: params.mode || 'expected',
+          mode: critMode,
           // 蚀攻衣装加段：表内给的就是它自己的实测动作值/属补/耗斩（独立于原招式），
           // 不再吃原招式的蓄力倍率（大剑那些「3 蓄才有」的加段已在数据层按档位挂好）
           chargeMul: isMantle ? 1 : chargeMul,
