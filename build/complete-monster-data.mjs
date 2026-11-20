@@ -67,44 +67,36 @@ const supplemental=[];
 for(const d of Object.values(raw['Monster Data'])){
  const pp=result[d.Name];if(!pp)continue;
  for(const r of d.Hitzones?.Rows||[]){
+  if(d.Name==='Nerscylla'&&['Foreleg','Hind Leg'].includes(r.Part))continue;
   if(!r.Meat||pp[r.Part]||/^(HIDE|Unmatched|Weak Point|All Others|Others)/.test(r.Part))continue;
   const existing=Object.values(pp).flatMap(p=>[...Object.values(p.groups).flat(),...(p.at||[]),...(p.wounds||[])]);
   if(r.Part!=='Tongue'&&existing.some(x=>el.every(e=>x.m[e]===r.Meat[e])))continue;
-  const rows=(d.Hitzones.Rows||[]).filter(x=>x.Part===r.Part&&x.Meat).map(x=>({s:tr.state[x.State]||String(x.State||'普通'),m:x.Meat,extract:({1:'赤',2:'白',3:'橙',4:'緑'})[x.KE]||'',note:'原始数据库补充部位。',source:'robomeche'}));
+  const rows=(d.Hitzones.Rows||[]).filter(x=>x.Part===r.Part&&x.Meat&&(!x.State||x.State==='Break*')).map(x=>({s:x.State==='Break*'?'破坏后':'普通',m:x.Meat,extract:({1:'赤',2:'白',3:'橙',4:'緑'})[x.KE]||'',note:'',source:'robomeche'}));
   pp[r.Part]={groups:{普通:rows},at:null,wound:r.ScarMeat||null,wounds:r.ScarMeat?[{s:'',m:r.ScarMeat}]:[]};supplemental.push(d.Name+'/'+r.Part);
  }
 }
 Object.assign(tr.monster,{'Nerscylla Clone':'克隆影蜘蛛'});Object.assign(tr.part,{'Leg Tip':'脚尖','Whole Body':'全身'});
-// Retain reviewed raw-source alternatives without replacing the preferred Kuro rows.
+// Merge only named, understood conditions. Unresolved states stay in the review report.
 const rawSource=JSON.parse(read('raw/robomeche-hzv-20261120.json'));
-const review=JSON.parse(read('raw/hzv-source-differences-20261120.json'));
-const rawNames=new Set(review.rawPartKeysNotSeparatelyListed.map(([n,p])=>n+'|'+p));
-const reviewed=new Map(review.records.map(r=>[r.monster+'|'+r.index+'|'+r.field,r]));
 let rawAdded=0,brokenAdded=0;
 for(const d of rawSource.monsters){
  if(d.name==='High Purrformance Barrel Puncher'||excludedSmall.has(d.name)||!result[d.name])continue;
- d.rows.forEach((r,index)=>{
-  const broken=/break|sever|cut|destroy/i.test(r.State||''),separate=rawNames.has(d.name+'|'+r.Part);
-  for(const field of ['Meat','ScarMeat']){
-   const audited=reviewed.get(d.name+'|'+index+'|'+field);
-   if(!r[field]||!audited&&!separate&&!broken)continue;
-   const key=r.Part==='HIDE'?'RoboHidden'+(index+1):r.Part;
-   if(r.Part==='HIDE')tr.part[key]='隐藏条目 '+(index+1)+'（部位未确认）';
-   else if(/^Unmatched /.test(key))tr.part[key]='未辨识部位 '+key.replace('Unmatched ','');
-   const p=result[d.name][key]||={groups:{},at:null,wound:null,wounds:[]};
-   const wound=field==='ScarMeat'||/Wnd|Wound/i.test(r.State||'');
-   const state=r.State==='AT Wnd'?'AT Wnd（原表伤口）':r.State==='Break*'?'破坏后（Break*）':tr.state[r.State]||r.State||'普通';
-   let note='RoboMechE原表'+(r.State?'状态：'+r.State:'普通状态')+'。';
-   if(r.Part==='HIDE'||/^Unmatched /.test(r.Part))note+='实际部位尚未确认，按原始编号保留。';
-   if(audited?.cloneCovered)note+='克隆影蜘蛛已有同值；原表编号状态仍保留于影蜘蛛。';
-   if(audited?.onlyStunDiff)note+='与另一来源的对应数值仅昏厥肉质不同。';
-   const entry={s:wound?'RoboMechE·'+state:state,m:r[field],extract:({1:'赤',2:'白',3:'橙',4:'緑'})[r.KE]||'',note,source:'robomeche',sourceIndex:index,sourceField:field,rawPart:r.Part,rawState:r.State||''};
-   if(wound){p.wounds.push(entry);if(!p.wound)p.wound=entry.m;}
-   else (p.groups[broken?'原表破坏后':'原始数据库']||=[]).push(entry);
-   rawAdded++;if(broken)brokenAdded++;
+ for(const [index,r]of d.rows.entries()){
+  if(/^(HIDE|Unmatched|Weak Point|All Others|Others)/.test(r.Part))continue;
+  const p=result[d.name][r.Part];if(!p)continue;
+  const equal=m=>Object.values(p.groups).flat().some(x=>el.every(e=>x.m[e]===m[e]));
+  if(r.State==='Break*'&&r.Meat&&!equal(r.Meat)){
+   const existing=Object.values(p.groups).flat().filter(x=>/破坏|破壊|切断/.test(x.s));
+   if(!existing.length){(p.groups['普通']||=[]).push({s:'破坏后',m:r.Meat,extract:({1:'赤',2:'白',3:'橙',4:'緑'})[r.KE]||'',note:'',source:'robomeche',sourceIndex:index,sourceField:'Meat'});rawAdded++;brokenAdded++;}
   }
- });
+  if(!r.State&&r.ScarMeat&&Number(r.Wound?.Number)>0&&!p.wounds.length&&!p.wound){
+   const base=Object.entries(p.groups).flatMap(([g,rs])=>rs.filter(x=>el.every(e=>x.m[e]===r.Meat[e])).map(x=>({g,s:x.s})));
+   const labels=[...new Set(base.map(x=>(x.g==='普通'?'':x.g+'·')+(x.s==='普通'?'':x.s)))];
+   if(labels.length===1){p.wound=r.ScarMeat;p.wounds=[{s:labels[0],m:r.ScarMeat,extract:({1:'赤',2:'白',3:'橙',4:'緑'})[r.KE]||'',note:'',source:'robomeche',sourceIndex:index,sourceField:'ScarMeat'}];rawAdded++;}
+  }
+ }
 }
+for(const key of Object.keys(tr.part))if(/^RoboHidden/.test(key))delete tr.part[key];
 const cloneNames=new Set(['Nerscylla Clone']);
 // Training target: user keeps soft HZV as default; hard mode is independently selectable.
 const trainingName='High Purrformance Barrel Puncher',training=raw['Monster Data'][raw['Monster Names'][trainingName]];

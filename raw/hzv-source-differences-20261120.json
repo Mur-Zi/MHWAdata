@@ -1331,11 +1331,10 @@
     ]
   ],
   "resolution": {
-    "date": "2026-11-20",
-    "status": "Added as selectable RoboMechE alternatives; Kuro defaults retained",
-    "reviewedRecords": 58,
-    "additionalPartKeys": 22,
-    "rawAlternativeRows": 120,
-    "breakStateRows": 23
+    "date": "2026-11-21",
+    "status": "Confirmed gaps integrated into existing categories; ambiguous states and conflicts withheld pending user decisions",
+    "directlyMerged": 4,
+    "sourceDirectoriesRemoved": true,
+    "decisionReport": "hzv-pending-decisions-20261121.html"
   }
 }

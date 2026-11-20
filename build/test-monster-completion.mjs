@@ -22,9 +22,17 @@ const tp=k['High Purrformance Barrel Puncher'];check(Object.keys(tp).length===5,
 for(const [part,p]of Object.entries(tp)){const a=p.groups['软肉质'],b=p.groups['硬肉质'];check(!p.groups['普通'],'training modes use separate directories');eq(a[0].m.Slash,part==='Back Panel'?20:80,'soft remains default');check(a.length===1&&b.length===1,'one row per mode');for(const e of el.slice(0,3))eq(b[0].m[e],part==='Back Panel'?20:40,'hard physical');for(const e of el.slice(3,8))eq(b[0].m[e],part==='Back Panel'?5:15,'hard element');check(!!p.wound===['Front Panel','Side Panel'].includes(part),'training wound availability unchanged');}
 const allRows=n=>Object.values(k[n]||{}).flatMap(p=>[...Object.values(p.groups).flat(),...(p.at||[]),...(p.wounds||[])]);
 const rawReview=JSON.parse(read('raw/hzv-source-differences-20261120.json')),rawSource=JSON.parse(read('raw/robomeche-hzv-20261120.json'));
-for(const r of rawReview.records)check(allRows(r.monster).some(x=>x.source==='robomeche'&&x.sourceIndex===r.index&&x.sourceField===r.field&&el.every((e,i)=>x.m[e]===r.values[i])),r.monster+' raw source record '+r.index+'/'+r.field);
-for(const [n,part]of rawReview.rawPartKeysNotSeparatelyListed)check(Object.values(k[n]).some(p=>Object.values(p.groups).flat().some(x=>x.rawPart===part)),n+' separately selectable '+part);
-let broken=0;for(const d of rawSource.monsters){if(d.name==='High Purrformance Barrel Puncher')continue;d.rows.forEach((r,index)=>{if(!r.Meat||!/break|sever|cut|destroy/i.test(r.State||''))return;broken++;check(allRows(d.name).some(x=>x.sourceIndex===index&&x.sourceField==='Meat'&&el.every(e=>x.m[e]===r.Meat[e])),d.name+' break row '+index);});}check(broken===23,'all 23 raw break-state rows covered');
+for(const [n,pp]of Object.entries(k))for(const [p,v]of Object.entries(pp)){
+ check(!/^RoboHidden|^Unmatched|^HIDE$/.test(p),n+' no unconfirmed part in picker');
+ check(!Object.keys(v.groups).some(g=>/原始数据库|原表破坏后/.test(g)),n+' no source directories');
+ for(const x of [...Object.values(v.groups).flat(),...(v.wounds||[])])check(!/State [0-9]|状态 [0-9]|AT Wnd|RoboMechE·/.test(x.s),n+' no undecided state');
+}
+for(const part of ['Head','Torso','Belly'])check(k.Nerscylla[part].groups['普通'].some(x=>x.s==='破坏后'&&x.source==='robomeche'),'Nerscylla '+part+' break integrated');
+eq(k.Seregios.Neck.wound.Slash,60,'conflicting neck wound unchanged pending decision');
+check(k['Omega Planetes']['Rear Power Unit'].wounds.some(x=>x.m.Slash===80&&x.m.Shot===20),'known rear power unit wound integrated');
+const pending=JSON.parse(read('raw/hzv-pending-decisions-20261121.json'));
+check(pending.states.length===83,'all 83 numbered/AT states listed for review');check(pending.unknown.length===50,'all unnamed and hidden rows listed');
+for(const r of [...pending.states,...pending.unknown,...pending.conflicts]){const original=rawSource.monsters.find(d=>d.name===r.monster).rows[r.index][r.field];check(el.every((e,i)=>original[e]===r.values[i]),r.monster+' pending values match source');}
 const C=createRequire(import.meta.url)('../app/calculator.js'),data=w.MHWCALC;
 const calc=(wid,name,target={},extra={})=>C.calculateCombo({weaponId:wid,moves:data.weaponMoves[wid],weaponGroups:data.weaponGroups,attack:200,element:200,elementType:'Fire',statusType:'None',affinity:0,sharpness:data.sharpness.white,hitzones:{Slash:50,Blow:50,Shot:50,Fire:30,Dragon:30},mode:'expected',combo:[{moveId:data.weaponMoves[wid].find(m=>m.name===name).id,rangedHits:3}],target,...extra});
 for(const wid of ['light_bowgun','heavy_bowgun'])for(const [ammo,t,mul]of [['Lv2火炎弹',{name:'Gogmazios'},.85],['Lv2灭龙弹',{name:'Gogmazios'},.35],['Lv2灭龙弹',{name:'Zoh Shia',questLevel:10},.7]]){

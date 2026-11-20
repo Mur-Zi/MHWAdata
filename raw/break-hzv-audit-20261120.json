@@ -21,7 +21,7 @@
       "previousValueMissing": false,
       "previousSamePartValue": true,
       "previousBrokenLabel": true,
-      "status": "preserved as RoboMechE break-state alternative"
+      "status": "integrated_in_existing_break_state"
     },
     {
       "monster": "Mizutsune",
@@ -42,7 +42,7 @@
       "previousValueMissing": false,
       "previousSamePartValue": true,
       "previousBrokenLabel": true,
-      "status": "preserved as RoboMechE break-state alternative"
+      "status": "integrated_in_existing_break_state"
     },
     {
       "monster": "Guardian Fulgur Anjanath",
@@ -63,7 +63,7 @@
       "previousValueMissing": false,
       "previousSamePartValue": false,
       "previousBrokenLabel": false,
-      "status": "preserved as RoboMechE break-state alternative"
+      "status": "withheld_pending_part_or_state_mapping"
     },
     {
       "monster": "Guardian Fulgur Anjanath",
@@ -84,7 +84,7 @@
       "previousValueMissing": false,
       "previousSamePartValue": true,
       "previousBrokenLabel": true,
-      "status": "preserved as RoboMechE break-state alternative"
+      "status": "integrated_in_existing_break_state"
     },
     {
       "monster": "Guardian Ebony Odogaron",
@@ -105,7 +105,7 @@
       "previousValueMissing": false,
       "previousSamePartValue": true,
       "previousBrokenLabel": true,
-      "status": "preserved as RoboMechE break-state alternative"
+      "status": "integrated_in_existing_break_state"
     },
     {
       "monster": "Guardian Ebony Odogaron",
@@ -126,7 +126,7 @@
       "previousValueMissing": false,
       "previousSamePartValue": true,
       "previousBrokenLabel": true,
-      "status": "preserved as RoboMechE break-state alternative"
+      "status": "integrated_in_existing_break_state"
     },
     {
       "monster": "Guardian Ebony Odogaron",
@@ -147,7 +147,7 @@
       "previousValueMissing": false,
       "previousSamePartValue": true,
       "previousBrokenLabel": true,
-      "status": "preserved as RoboMechE break-state alternative"
+      "status": "integrated_in_existing_break_state"
     },
     {
       "monster": "Guardian Ebony Odogaron",
@@ -168,7 +168,7 @@
       "previousValueMissing": false,
       "previousSamePartValue": true,
       "previousBrokenLabel": true,
-      "status": "preserved as RoboMechE break-state alternative"
+      "status": "integrated_in_existing_break_state"
     },
     {
       "monster": "Nerscylla",
@@ -189,7 +189,7 @@
       "previousValueMissing": true,
       "previousSamePartValue": false,
       "previousBrokenLabel": false,
-      "status": "preserved as RoboMechE break-state alternative"
+      "status": "integrated_in_existing_break_state"
     },
     {
       "monster": "Nerscylla",
@@ -210,7 +210,7 @@
       "previousValueMissing": true,
       "previousSamePartValue": false,
       "previousBrokenLabel": false,
-      "status": "preserved as RoboMechE break-state alternative"
+      "status": "integrated_in_existing_break_state"
     },
     {
       "monster": "Nerscylla",
@@ -231,7 +231,7 @@
       "previousValueMissing": true,
       "previousSamePartValue": false,
       "previousBrokenLabel": false,
-      "status": "preserved as RoboMechE break-state alternative"
+      "status": "integrated_in_existing_break_state"
     },
     {
       "monster": "Nerscylla",
@@ -252,7 +252,7 @@
       "previousValueMissing": false,
       "previousSamePartValue": true,
       "previousBrokenLabel": false,
-      "status": "preserved as RoboMechE break-state alternative"
+      "status": "values_already_covered_by_existing_state"
     },
     {
       "monster": "Nerscylla",
@@ -273,7 +273,7 @@
       "previousValueMissing": false,
       "previousSamePartValue": true,
       "previousBrokenLabel": true,
-      "status": "preserved as RoboMechE break-state alternative"
+      "status": "withheld_pending_part_or_state_mapping"
     },
     {
       "monster": "Nerscylla",
@@ -294,7 +294,7 @@
       "previousValueMissing": false,
       "previousSamePartValue": true,
       "previousBrokenLabel": true,
-      "status": "preserved as RoboMechE break-state alternative"
+      "status": "integrated_in_existing_break_state"
     },
     {
       "monster": "Nerscylla",
@@ -315,7 +315,7 @@
       "previousValueMissing": false,
       "previousSamePartValue": false,
       "previousBrokenLabel": false,
-      "status": "preserved as RoboMechE break-state alternative"
+      "status": "withheld_pending_part_or_state_mapping"
     },
     {
       "monster": "Nerscylla",
@@ -336,7 +336,7 @@
       "previousValueMissing": false,
       "previousSamePartValue": true,
       "previousBrokenLabel": true,
-      "status": "preserved as RoboMechE break-state alternative"
+      "status": "withheld_pending_part_or_state_mapping"
     },
     {
       "monster": "Nerscylla",
@@ -357,7 +357,7 @@
       "previousValueMissing": false,
       "previousSamePartValue": true,
       "previousBrokenLabel": true,
-      "status": "preserved as RoboMechE break-state alternative"
+      "status": "integrated_in_existing_break_state"
     },
     {
       "monster": "Nerscylla",
@@ -378,7 +378,7 @@
       "previousValueMissing": false,
       "previousSamePartValue": false,
       "previousBrokenLabel": false,
-      "status": "preserved as RoboMechE break-state alternative"
+      "status": "withheld_pending_part_or_state_mapping"
     },
     {
       "monster": "Gravios",
@@ -399,7 +399,7 @@
       "previousValueMissing": false,
       "previousSamePartValue": true,
       "previousBrokenLabel": true,
-      "status": "preserved as RoboMechE break-state alternative"
+      "status": "integrated_in_existing_break_state"
     },
     {
       "monster": "Gravios",
@@ -420,7 +420,7 @@
       "previousValueMissing": false,
       "previousSamePartValue": true,
       "previousBrokenLabel": true,
-      "status": "preserved as RoboMechE break-state alternative"
+      "status": "integrated_in_existing_break_state"
     },
     {
       "monster": "Gravios",
@@ -441,7 +441,7 @@
       "previousValueMissing": false,
       "previousSamePartValue": true,
       "previousBrokenLabel": true,
-      "status": "preserved as RoboMechE break-state alternative"
+      "status": "integrated_in_existing_break_state"
     },
     {
       "monster": "Gravios",
@@ -462,7 +462,7 @@
       "previousValueMissing": false,
       "previousSamePartValue": true,
       "previousBrokenLabel": true,
-      "status": "preserved as RoboMechE break-state alternative"
+      "status": "integrated_in_existing_break_state"
     },
     {
       "monster": "Gravios",
@@ -483,7 +483,8 @@
       "previousValueMissing": false,
       "previousSamePartValue": true,
       "previousBrokenLabel": true,
-      "status": "preserved as RoboMechE break-state alternative"
+      "status": "integrated_in_existing_break_state"
     }
-  ]
+  ],
+  "recheckedAt": "2026-11-21"
 }
