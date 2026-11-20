@@ -1,0 +1,489 @@
+{
+  "source": "https://raw.githubusercontent.com/RoboMechE/MHWilds-Database/refs/heads/main/monster/assets/json/MHWilds_Data_compact.json.gz",
+  "checkedAt": "2026-11-20",
+  "rows": [
+    {
+      "monster": "Chatacabra",
+      "index": 4,
+      "part": "Foreleg",
+      "state": "Break*",
+      "values": [
+        75,
+        75,
+        75,
+        10,
+        5,
+        25,
+        15,
+        0,
+        0
+      ],
+      "previousValueMissing": false,
+      "previousSamePartValue": true,
+      "previousBrokenLabel": true,
+      "status": "preserved as RoboMechE break-state alternative"
+    },
+    {
+      "monster": "Mizutsune",
+      "index": 5,
+      "part": "Claw",
+      "state": "Break*",
+      "values": [
+        28,
+        28,
+        10,
+        5,
+        0,
+        25,
+        15,
+        30,
+        0
+      ],
+      "previousValueMissing": false,
+      "previousSamePartValue": true,
+      "previousBrokenLabel": true,
+      "status": "preserved as RoboMechE break-state alternative"
+    },
+    {
+      "monster": "Guardian Fulgur Anjanath",
+      "index": 12,
+      "part": "Leg",
+      "state": "Break*",
+      "values": [
+        45,
+        45,
+        50,
+        5,
+        20,
+        0,
+        20,
+        0,
+        0
+      ],
+      "previousValueMissing": false,
+      "previousSamePartValue": false,
+      "previousBrokenLabel": false,
+      "status": "preserved as RoboMechE break-state alternative"
+    },
+    {
+      "monster": "Guardian Fulgur Anjanath",
+      "index": 17,
+      "part": "Tail",
+      "state": "Break*",
+      "values": [
+        60,
+        60,
+        75,
+        10,
+        20,
+        0,
+        20,
+        5,
+        0
+      ],
+      "previousValueMissing": false,
+      "previousSamePartValue": true,
+      "previousBrokenLabel": true,
+      "status": "preserved as RoboMechE break-state alternative"
+    },
+    {
+      "monster": "Guardian Ebony Odogaron",
+      "index": 1,
+      "part": "Head",
+      "state": "Break*",
+      "values": [
+        60,
+        65,
+        55,
+        20,
+        30,
+        20,
+        20,
+        5,
+        100
+      ],
+      "previousValueMissing": false,
+      "previousSamePartValue": true,
+      "previousBrokenLabel": true,
+      "status": "preserved as RoboMechE break-state alternative"
+    },
+    {
+      "monster": "Guardian Ebony Odogaron",
+      "index": 7,
+      "part": "Foreleg",
+      "state": "Break*",
+      "values": [
+        45,
+        45,
+        40,
+        10,
+        25,
+        10,
+        10,
+        30,
+        0
+      ],
+      "previousValueMissing": false,
+      "previousSamePartValue": true,
+      "previousBrokenLabel": true,
+      "status": "preserved as RoboMechE break-state alternative"
+    },
+    {
+      "monster": "Guardian Ebony Odogaron",
+      "index": 9,
+      "part": "Hind Leg",
+      "state": "Break*",
+      "values": [
+        50,
+        50,
+        40,
+        10,
+        25,
+        10,
+        10,
+        5,
+        0
+      ],
+      "previousValueMissing": false,
+      "previousSamePartValue": true,
+      "previousBrokenLabel": true,
+      "status": "preserved as RoboMechE break-state alternative"
+    },
+    {
+      "monster": "Guardian Ebony Odogaron",
+      "index": 12,
+      "part": "Tail",
+      "state": "Break*",
+      "values": [
+        50,
+        45,
+        45,
+        10,
+        20,
+        10,
+        10,
+        30,
+        0
+      ],
+      "previousValueMissing": false,
+      "previousSamePartValue": true,
+      "previousBrokenLabel": true,
+      "status": "preserved as RoboMechE break-state alternative"
+    },
+    {
+      "monster": "Nerscylla",
+      "index": 1,
+      "part": "Head",
+      "state": "Break*",
+      "values": [
+        50,
+        65,
+        50,
+        5,
+        0,
+        10,
+        5,
+        0,
+        100
+      ],
+      "previousValueMissing": true,
+      "previousSamePartValue": false,
+      "previousBrokenLabel": false,
+      "status": "preserved as RoboMechE break-state alternative"
+    },
+    {
+      "monster": "Nerscylla",
+      "index": 5,
+      "part": "Torso",
+      "state": "Break*",
+      "values": [
+        36,
+        36,
+        40,
+        5,
+        0,
+        25,
+        5,
+        0,
+        0
+      ],
+      "previousValueMissing": true,
+      "previousSamePartValue": false,
+      "previousBrokenLabel": false,
+      "status": "preserved as RoboMechE break-state alternative"
+    },
+    {
+      "monster": "Nerscylla",
+      "index": 9,
+      "part": "Belly",
+      "state": "Break*",
+      "values": [
+        65,
+        50,
+        45,
+        5,
+        0,
+        20,
+        5,
+        0,
+        0
+      ],
+      "previousValueMissing": true,
+      "previousSamePartValue": false,
+      "previousBrokenLabel": false,
+      "status": "preserved as RoboMechE break-state alternative"
+    },
+    {
+      "monster": "Nerscylla",
+      "index": 13,
+      "part": "Claw",
+      "state": "Break*",
+      "values": [
+        20,
+        30,
+        20,
+        5,
+        0,
+        10,
+        5,
+        0,
+        0
+      ],
+      "previousValueMissing": false,
+      "previousSamePartValue": true,
+      "previousBrokenLabel": false,
+      "status": "preserved as RoboMechE break-state alternative"
+    },
+    {
+      "monster": "Nerscylla",
+      "index": 18,
+      "part": "Foreleg",
+      "state": "Break*",
+      "values": [
+        35,
+        35,
+        25,
+        5,
+        0,
+        10,
+        5,
+        0,
+        0
+      ],
+      "previousValueMissing": false,
+      "previousSamePartValue": true,
+      "previousBrokenLabel": true,
+      "status": "preserved as RoboMechE break-state alternative"
+    },
+    {
+      "monster": "Nerscylla",
+      "index": 22,
+      "part": "Mantle",
+      "state": "Break*",
+      "values": [
+        45,
+        45,
+        25,
+        5,
+        0,
+        10,
+        5,
+        0,
+        0
+      ],
+      "previousValueMissing": false,
+      "previousSamePartValue": true,
+      "previousBrokenLabel": true,
+      "status": "preserved as RoboMechE break-state alternative"
+    },
+    {
+      "monster": "Nerscylla",
+      "index": 26,
+      "part": "HIDE",
+      "state": "Break*",
+      "values": [
+        45,
+        45,
+        25,
+        5,
+        0,
+        10,
+        5,
+        0,
+        0
+      ],
+      "previousValueMissing": false,
+      "previousSamePartValue": false,
+      "previousBrokenLabel": false,
+      "status": "preserved as RoboMechE break-state alternative"
+    },
+    {
+      "monster": "Nerscylla",
+      "index": 30,
+      "part": "Hind Leg",
+      "state": "Break*",
+      "values": [
+        45,
+        45,
+        35,
+        5,
+        0,
+        10,
+        5,
+        0,
+        0
+      ],
+      "previousValueMissing": false,
+      "previousSamePartValue": true,
+      "previousBrokenLabel": true,
+      "status": "preserved as RoboMechE break-state alternative"
+    },
+    {
+      "monster": "Nerscylla",
+      "index": 34,
+      "part": "Stinger",
+      "state": "Break*",
+      "values": [
+        28,
+        35,
+        65,
+        5,
+        0,
+        35,
+        5,
+        0,
+        0
+      ],
+      "previousValueMissing": false,
+      "previousSamePartValue": true,
+      "previousBrokenLabel": true,
+      "status": "preserved as RoboMechE break-state alternative"
+    },
+    {
+      "monster": "Nerscylla",
+      "index": 38,
+      "part": "HIDE",
+      "state": "Break*",
+      "values": [
+        28,
+        35,
+        65,
+        5,
+        0,
+        35,
+        5,
+        0,
+        0
+      ],
+      "previousValueMissing": false,
+      "previousSamePartValue": false,
+      "previousBrokenLabel": false,
+      "status": "preserved as RoboMechE break-state alternative"
+    },
+    {
+      "monster": "Gravios",
+      "index": 1,
+      "part": "Head",
+      "state": "Break*",
+      "values": [
+        25,
+        35,
+        25,
+        0,
+        15,
+        5,
+        5,
+        30,
+        100
+      ],
+      "previousValueMissing": false,
+      "previousSamePartValue": true,
+      "previousBrokenLabel": true,
+      "status": "preserved as RoboMechE break-state alternative"
+    },
+    {
+      "monster": "Gravios",
+      "index": 4,
+      "part": "Belly",
+      "state": "Break*",
+      "values": [
+        70,
+        70,
+        60,
+        15,
+        45,
+        5,
+        15,
+        40,
+        0
+      ],
+      "previousValueMissing": false,
+      "previousSamePartValue": true,
+      "previousBrokenLabel": true,
+      "status": "preserved as RoboMechE break-state alternative"
+    },
+    {
+      "monster": "Gravios",
+      "index": 6,
+      "part": "Back",
+      "state": "Break*",
+      "values": [
+        45,
+        45,
+        40,
+        5,
+        35,
+        5,
+        10,
+        15,
+        0
+      ],
+      "previousValueMissing": false,
+      "previousSamePartValue": true,
+      "previousBrokenLabel": true,
+      "status": "preserved as RoboMechE break-state alternative"
+    },
+    {
+      "monster": "Gravios",
+      "index": 9,
+      "part": "Leg",
+      "state": "Break*",
+      "values": [
+        30,
+        30,
+        25,
+        0,
+        30,
+        5,
+        5,
+        10,
+        0
+      ],
+      "previousValueMissing": false,
+      "previousSamePartValue": true,
+      "previousBrokenLabel": true,
+      "status": "preserved as RoboMechE break-state alternative"
+    },
+    {
+      "monster": "Gravios",
+      "index": 11,
+      "part": "Wing",
+      "state": "Break*",
+      "values": [
+        35,
+        35,
+        26,
+        0,
+        20,
+        5,
+        5,
+        15,
+        0
+      ],
+      "previousValueMissing": false,
+      "previousSamePartValue": true,
+      "previousBrokenLabel": true,
+      "status": "preserved as RoboMechE break-state alternative"
+    }
+  ]
+}

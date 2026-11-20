@@ -1329,5 +1329,13 @@
       "Zoh Shia",
       "Wingarm (Crystallized)"
     ]
-  ]
+  ],
+  "resolution": {
+    "date": "2026-11-20",
+    "status": "Added as selectable RoboMechE alternatives; Kuro defaults retained",
+    "reviewedRecords": 58,
+    "additionalPartKeys": 22,
+    "rawAlternativeRows": 120,
+    "breakStateRows": 23
+  }
 }

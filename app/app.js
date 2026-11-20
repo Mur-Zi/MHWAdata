@@ -363,7 +363,7 @@
   function monsterMeatSummary(m){
     if(monsterMeatSummaries.has(m.id))return monsterMeatSummaries.get(m.id);
     const kuro=window.MHWILD_KURO_HZV?.[m.name];
-    const meats=kuro?Object.values(kuro).flatMap(p=>(p.groups?.['普通']||[]).map(x=>x.m)):(m.data.Hitzones?.Rows||[]).filter(r=>!r.State&&r.Part!=='HIDE').map(r=>r.Meat).filter(Boolean);
+    const meats=kuro?Object.values(kuro).flatMap(p=>(p.groups?.['普通']||p.groups?.['软肉质']||[]).map(x=>x.m)):(m.data.Hitzones?.Rows||[]).filter(r=>!r.State&&r.Part!=='HIDE').map(r=>r.Meat).filter(Boolean);
     const summary=['Slash','Blow','Shot'].map(key=>meats.length?Math.max(...meats.map(meat=>Number(meat[key])||0)):null);
     monsterMeatSummaries.set(m.id,summary);return summary;
   }
@@ -468,15 +468,15 @@
       const stateGroups = [];
       kuroParts.forEach(([, p]) => Object.keys(p.groups).forEach((g) => { if (g !== '普通' && !stateGroups.includes(g)) stateGroups.push(g); }));
       const hasWounds=kuroParts.some(([,p])=>p.wounds?.length||p.wound);
-      const groups = ['普通', ...(isAT ? ['历战王'] : []), ...stateGroups, ...(hasWounds?['伤口']:[])];
-      const tabLabel = (g) => (g === '普通' ? '普通肉质' : g === '历战王' ? '历战王肉质' : g === '伤口' ? '伤口肉质' : g + '状态');
+      const groups = [...(kuroParts.some(([,p])=>p.groups['普通'])?['普通']:[]), ...(isAT ? ['历战王'] : []), ...stateGroups, ...(hasWounds?['伤口']:[])];
+      const tabLabel = (g) => (g === '普通' ? '普通肉质' : g === '历战王' ? '历战王肉质' : g === '伤口' ? '伤口肉质' : ['软肉质','硬肉质','原始数据库','原表破坏后'].includes(g)?g:g + '状态');
       const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
       const meatCell = (meat) => activeElements.map((e) => {
         const v = meat ? meat[e] : undefined;
         return `<td class="num ${e==='Stun'?'hzv-1':hzvClass(v, !['Slash','Blow','Shot'].includes(e))}">${fmt(v)}</td>`;
       }).join('');
       const makeRow = (pn, s, meat, g, note, extract) => {
-        const hidden = g === '普通' ? '' : ' hidden';
+        const hidden = g === groups[0] ? '' : ' hidden';
         const colour=({'赤':'红','白':'白','橙':'橙','緑':'绿'})[extract]||extract||'—';
         let out = `<tr data-hzv-row="${g}"${hidden}><td class="part-name fz1">${pn}${note ? '<span class="note-toggle" title="点击查看说明">ℹ</span>' : ''}</td><td class="state-tag fz2 state-col">${s}</td>${meatCell(meat)}<td>${esc(colour)}</td></tr>`;
         if (note) out += `<tr class="note-row" data-hzv-row="${g}" hidden><td colspan="${activeElements.length + 3}" class="note-text">${esc(note)}</td></tr>`;
@@ -547,6 +547,11 @@
 
     el.innerHTML = html;
 
+    const syncMeatStateColumn=mode=>{
+      const show=Array.from(el.querySelectorAll('[data-hzv-row]')).some(row=>row.dataset.hzvRow===mode&&row.querySelector('.state-col')?.textContent.trim());
+      el.querySelectorAll('.state-col').forEach(cell=>{cell.hidden=!show;});
+    };
+    syncMeatStateColumn(el.querySelector('[data-hzv].active')?.dataset.hzv);
     // HZV 切换
     el.querySelectorAll('[data-hzv]').forEach((b) => {
       b.addEventListener('click', () => {
@@ -561,9 +566,7 @@
             tr.hidden = (tr.dataset.hzvRow !== mode);
           }
         });
-        // Wounds can differ by phase, broken part or arch-tempered state.
-        const showState = true;
-        el.querySelectorAll('.state-col').forEach((c) => { c.hidden = !showState; });
+        syncMeatStateColumn(mode);
       });
     });
     // 补充说明（note）点击展开
@@ -1264,8 +1267,9 @@
       const sc = questScarRawOf(state.monster, id, Number(index) || 0, state.players);
       return { ...sc, legendary: state.quest ? sc.legendary : /伤痕/.test(currentMeatLabel()) };
     }
-    // 部位是否头部（只有头部累计晕厥）
+    // Explicit stun HZV also covers immune heads and non-head weak points.
     function currentIsHead() {
+      const meat=currentMeat();if(Number.isFinite(meat.Stun))return meat.Stun>0;
       const p = selectedPart();
       return !!(p && /head/i.test(p.key));
     }
@@ -1975,7 +1979,7 @@
         sharpGreen: sharpness.green || null,   // 狩猎笛响周波：斩味固定绿斩（用户拍板）
         hitzones: meat,
         target:{name:state.monster,part:state.part,label:currentMeatLabel(),questLevel:quests.find(q=>q.id===state.quest.split(':')[0])?.level||0,headOn:state.targetHeadOn,absorbFirst:state.targetAbsorbFirst},
-        isHead: currentIsHead(),        // 只有头部累计晕厥
+        isHead: currentIsHead(),        // 优先按所选肉质的昏厥有效性判定
         // 怪物发怒受击倍率（用户 2026-10-08）：数据库 AngryTable.PlDamage —— 作用最终伤害
         enrageMul: currentEnrageMul(),
         // 任务Difficulty._ScarRaw × 人数倍率；历战伤口加成用独立标记。

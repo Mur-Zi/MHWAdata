@@ -19,7 +19,12 @@ check(raw['Monster Data'][raw['Monster Names']['Guardian Arkveld']].CantCap,'gua
 const training=raw['Monster Data'][raw['Monster Names']['High Purrformance Barrel Puncher']];
 for(const r of training.Hitzones.Rows){eq(r.Meat.Slash,r.Part==='Back Panel'?20:80,'training physical override');eq(r.Meat.Fire,r.Part==='Back Panel'?5:30,'training element override');if(!['Front Panel','Side Panel'].includes(r.Part))check(!r.ScarMeat&&!r.Wound,'training wounds only on front/side');}
 const tp=k['High Purrformance Barrel Puncher'];check(Object.keys(tp).length===5,'five named training parts');
-for(const [part,p]of Object.entries(tp)){const a=p.groups['普通'];eq(a[0].m.Slash,part==='Back Panel'?20:80,'soft remains default');if(part!=='Back Panel'){check(a.length===2&&a[1].s==='硬肉质','hard mode selectable');for(const e of el.slice(0,3))eq(a[1].m[e],40,'hard physical');for(const e of el.slice(3,8))eq(a[1].m[e],15,'hard element');}else check(a.length===1,'back unchanged');check(!!p.wound===['Front Panel','Side Panel'].includes(part),'training wound availability unchanged');}
+for(const [part,p]of Object.entries(tp)){const a=p.groups['软肉质'],b=p.groups['硬肉质'];check(!p.groups['普通'],'training modes use separate directories');eq(a[0].m.Slash,part==='Back Panel'?20:80,'soft remains default');check(a.length===1&&b.length===1,'one row per mode');for(const e of el.slice(0,3))eq(b[0].m[e],part==='Back Panel'?20:40,'hard physical');for(const e of el.slice(3,8))eq(b[0].m[e],part==='Back Panel'?5:15,'hard element');check(!!p.wound===['Front Panel','Side Panel'].includes(part),'training wound availability unchanged');}
+const allRows=n=>Object.values(k[n]||{}).flatMap(p=>[...Object.values(p.groups).flat(),...(p.at||[]),...(p.wounds||[])]);
+const rawReview=JSON.parse(read('raw/hzv-source-differences-20261120.json')),rawSource=JSON.parse(read('raw/robomeche-hzv-20261120.json'));
+for(const r of rawReview.records)check(allRows(r.monster).some(x=>x.source==='robomeche'&&x.sourceIndex===r.index&&x.sourceField===r.field&&el.every((e,i)=>x.m[e]===r.values[i])),r.monster+' raw source record '+r.index+'/'+r.field);
+for(const [n,part]of rawReview.rawPartKeysNotSeparatelyListed)check(Object.values(k[n]).some(p=>Object.values(p.groups).flat().some(x=>x.rawPart===part)),n+' separately selectable '+part);
+let broken=0;for(const d of rawSource.monsters){if(d.name==='High Purrformance Barrel Puncher')continue;d.rows.forEach((r,index)=>{if(!r.Meat||!/break|sever|cut|destroy/i.test(r.State||''))return;broken++;check(allRows(d.name).some(x=>x.sourceIndex===index&&x.sourceField==='Meat'&&el.every(e=>x.m[e]===r.Meat[e])),d.name+' break row '+index);});}check(broken===23,'all 23 raw break-state rows covered');
 const C=createRequire(import.meta.url)('../app/calculator.js'),data=w.MHWCALC;
 const calc=(wid,name,target={},extra={})=>C.calculateCombo({weaponId:wid,moves:data.weaponMoves[wid],weaponGroups:data.weaponGroups,attack:200,element:200,elementType:'Fire',statusType:'None',affinity:0,sharpness:data.sharpness.white,hitzones:{Slash:50,Blow:50,Shot:50,Fire:30,Dragon:30},mode:'expected',combo:[{moveId:data.weaponMoves[wid].find(m=>m.name===name).id,rangedHits:3}],target,...extra});
 for(const wid of ['light_bowgun','heavy_bowgun'])for(const [ammo,t,mul]of [['Lv2火炎弹',{name:'Gogmazios'},.85],['Lv2灭龙弹',{name:'Gogmazios'},.35],['Lv2灭龙弹',{name:'Zoh Shia',questLevel:10},.7]]){
@@ -32,6 +37,9 @@ const plain=calc('great_sword',first.name),veil=calc('great_sword',first.name,{n
 eq(veil.totalRaw,plain.totalRaw*.4,'veil physical reduction');eq(veil.totalElement,plain.totalElement,'veil does not reduce element');
 const absorbed=calc('great_sword',first.name,{name:'Arkveld',label:'历战王·属性吸收状态',absorbFirst:true});eq(absorbed.hits[0].element,0,'first element absorbed');
 const noAbsorb=calc('great_sword',first.name,{name:'Arkveld',label:'历战王·属性吸收状态',absorbFirst:false});eq(noAbsorb.totalElement,plain.totalElement,'absorption optional');
+const stunMove=data.weaponMoves.hammer.find(m=>m.hits?.some(h=>h.stun>0));
+const stunResult=v=>calc('hammer',stunMove.name,{}, {isHead:true,hitzones:{Slash:50,Blow:50,Fire:30,Stun:v}});
+check(stunResult(100).totalStun>0,'stun fixture active');eq(stunResult(0).totalStun,0,'zero stun HZV prevents accumulation');eq(stunResult(30).totalStun,stunResult(100).totalStun*.3,'stun HZV scales accumulation');
 const fire=data.weaponMoves.light_bowgun.find(m=>m.name==='Lv2火炎弹');eq(calc('light_bowgun',fire.name,{name:'Ajarakan',part:'Head',label:'红莲',headOn:true}).totalDamage,0,'head-on projectile immunity');
 check(calc('light_bowgun',fire.name,{name:'Ajarakan',part:'Head',label:'普通',headOn:true}).totalDamage>0,'normal head not immune');
 // Veil also affects HZV-ignoring physical damage, while wound bursts stay independent.

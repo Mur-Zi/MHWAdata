@@ -814,7 +814,7 @@
         * chargeStatus;
 
     // 晕厥：只有命中头部才累计（其他部位不涨）
-    const stun = (p.isHead ? n(hit.stun) : 0) * st.stunMult * n(p.hammerChargeStunMult, 1);
+    const stun = (p.isHead ? n(hit.stun) : 0) * st.stunMult * n(p.hammerChargeStunMult, 1) * Math.max(0,n(p.hitzones?.Stun,100))/100;
 
     return {
       attackUsed:attack,attackCap:attackLimit,attackCapped:attackBeforeCap>=attackLimit,
@@ -924,7 +924,7 @@ function calculateBowgunCombo(p) {
       let targetElementMultiplier=immune?0:(targetRules.elements[eType]??1),elementAbsorbed=false;
       if(absorbPending&&element>0){targetElementMultiplier=0;absorbPending=false;elementAbsorbed=true;}
       const enrage=n(p.enrageMul,1);raw=round(Math.max(0,raw*enrage*targetPhysicalMultiplier));element=round(Math.max(0,element*enrage*targetElementMultiplier));
-      const stun=p.isHead?n(h.stun,0)*s.stunMult:0;
+      const stun=p.isHead?n(h.stun,0)*s.stunMult*Math.max(0,n(p.hitzones?.Stun,100))/100:0;
       const out={attackUsed:physicalAttack,attackCap:attackCap(p.attack),attackCapped:attack+ctx.physicalAdd>=attackCap(p.attack),moveId:m.id,moveName:m.name,comboIndex:ci,index:hits.length+1,fixedExtraDamage:round(n(h.fixedExtra)*enrage),raw,element,total:round(raw+element),status:0,stun,mv:h.mv,effectiveMv:h.mv*(h.mult??1)*(h.decay??1),elemRate:h.elementMotion?1:0,statusRate:0,type:h.type||'SHOT',fixed:!!h.fixed,noSharp:true,sharpCost:0,isWeak:zone>=45,affinityUsed:h.fixed?0:aff,charge:null,chargeUnit:null,mantle:!!h.mantle,wound:!!h.wound,hien:false,airborneMult:1,morphMult:1,projectile:h.projectile||1,bowgun:{...ctx.magazine,sequence:ctx.sequence,fullClip:ctx.fullClip,opening:ctx.opening,rapidMultiplier:ctx.rapid?factor('HunterSkill_045',1.05):1,projectile:h.projectile||1,tick:h.tick||1,decay:h.decay??1,distance,correction:h.mult??1,elementCorrection:h.elementCorrection??1,elementBase:b,elementBefore:elemBefore,elementCap:elemCap,elementCapped:elemBefore>elemCap+1e-8,elementType:eType,physicalAttack}};
       hits.push(out);totalMv+=h.mv;totalElemRate+=out.elemRate;totalStun+=stun;
       Object.assign(out,{targetPhysicalMultiplier,targetElementMultiplier,elementAbsorbed,damageBeforeTarget:beforeTarget});
@@ -1599,7 +1599,7 @@ function calculateBowgunCombo(p) {
             // 炮术只加榴弹瓶瓶爆（用户拍板）：招式伤害与红盾倍率都不受影响
             pr = Math.max(0, attackFinal * (n(hit.mv, 0) / 100) * redMul * chainMul * n(state.impactPhialPct, 1));
           }
-          const pStun = isHead ? n(hit.stun, 0) * n(state.stunMult, 1) : 0;
+          const pStun = isHead ? n(hit.stun, 0) * n(state.stunMult, 1)*Math.max(0,n(params.hitzones?.Stun,100))/100 : 0;
           const pr2 = Math.max(0, pr);
           const pe2 = Math.max(0, pe);
           hits.push({
@@ -2082,7 +2082,7 @@ function calculateBowgunCombo(p) {
     return Object.keys(kuroHZV).map(function (monName) {
       const parts = Object.keys(kuroHZV[monName] || {}).map(function (partKey) {
         const p = kuroHZV[monName][partKey] || {};
-        const grp = (p.groups && p.groups['普通']) || [];
+        const grp = p.groups?.['普通'] || p.groups?.['软肉质'] || Object.values(p.groups||{})[0] || [];
         const meat = (grp[0] && grp[0].m) || p.wound || (grp[0] && grp[0]) || {};
         return { key: partKey, meat: meat };
       });

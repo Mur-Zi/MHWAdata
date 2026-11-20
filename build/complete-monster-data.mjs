@@ -75,6 +75,36 @@ for(const d of Object.values(raw['Monster Data'])){
  }
 }
 Object.assign(tr.monster,{'Nerscylla Clone':'克隆影蜘蛛'});Object.assign(tr.part,{'Leg Tip':'脚尖','Whole Body':'全身'});
+// Retain reviewed raw-source alternatives without replacing the preferred Kuro rows.
+const rawSource=JSON.parse(read('raw/robomeche-hzv-20261120.json'));
+const review=JSON.parse(read('raw/hzv-source-differences-20261120.json'));
+const rawNames=new Set(review.rawPartKeysNotSeparatelyListed.map(([n,p])=>n+'|'+p));
+const reviewed=new Map(review.records.map(r=>[r.monster+'|'+r.index+'|'+r.field,r]));
+let rawAdded=0,brokenAdded=0;
+for(const d of rawSource.monsters){
+ if(d.name==='High Purrformance Barrel Puncher'||excludedSmall.has(d.name)||!result[d.name])continue;
+ d.rows.forEach((r,index)=>{
+  const broken=/break|sever|cut|destroy/i.test(r.State||''),separate=rawNames.has(d.name+'|'+r.Part);
+  for(const field of ['Meat','ScarMeat']){
+   const audited=reviewed.get(d.name+'|'+index+'|'+field);
+   if(!r[field]||!audited&&!separate&&!broken)continue;
+   const key=r.Part==='HIDE'?'RoboHidden'+(index+1):r.Part;
+   if(r.Part==='HIDE')tr.part[key]='隐藏条目 '+(index+1)+'（部位未确认）';
+   else if(/^Unmatched /.test(key))tr.part[key]='未辨识部位 '+key.replace('Unmatched ','');
+   const p=result[d.name][key]||={groups:{},at:null,wound:null,wounds:[]};
+   const wound=field==='ScarMeat'||/Wnd|Wound/i.test(r.State||'');
+   const state=r.State==='AT Wnd'?'AT Wnd（原表伤口）':r.State==='Break*'?'破坏后（Break*）':tr.state[r.State]||r.State||'普通';
+   let note='RoboMechE原表'+(r.State?'状态：'+r.State:'普通状态')+'。';
+   if(r.Part==='HIDE'||/^Unmatched /.test(r.Part))note+='实际部位尚未确认，按原始编号保留。';
+   if(audited?.cloneCovered)note+='克隆影蜘蛛已有同值；原表编号状态仍保留于影蜘蛛。';
+   if(audited?.onlyStunDiff)note+='与另一来源的对应数值仅昏厥肉质不同。';
+   const entry={s:wound?'RoboMechE·'+state:state,m:r[field],extract:({1:'赤',2:'白',3:'橙',4:'緑'})[r.KE]||'',note,source:'robomeche',sourceIndex:index,sourceField:field,rawPart:r.Part,rawState:r.State||''};
+   if(wound){p.wounds.push(entry);if(!p.wound)p.wound=entry.m;}
+   else (p.groups[broken?'原表破坏后':'原始数据库']||=[]).push(entry);
+   rawAdded++;if(broken)brokenAdded++;
+  }
+ });
+}
 const cloneNames=new Set(['Nerscylla Clone']);
 // Training target: user keeps soft HZV as default; hard mode is independently selectable.
 const trainingName='High Purrformance Barrel Puncher',training=raw['Monster Data'][raw['Monster Names'][trainingName]];
@@ -83,9 +113,9 @@ if(training){
  for(const r of training.Hitzones.Rows){
   if(!r.Meat)continue;
   const back=r.Part==='Back Panel',extract=({1:'赤',2:'白',3:'橙',4:'緑'})[r.KE]||'';
-  const rows=[{s:back?'普通':'软肉质',m:r.Meat,extract,note:''}];
-  if(!back){r.HardMeat={...r.Meat};for(const e of el.slice(0,3))r.HardMeat[e]=40;for(const e of el.slice(3,8))r.HardMeat[e]=15;rows.push({s:'硬肉质',m:r.HardMeat,extract,note:''});}
-  result[trainingName][r.Part]={groups:{普通:rows},at:null,wound:r.ScarMeat||null,wounds:r.ScarMeat?[{s:'软／硬肉质共用',m:r.ScarMeat,extract,note:''}]:[]};
+  const soft={s:'',m:r.Meat,extract,note:''};
+  r.HardMeat={...r.Meat};if(!back){for(const e of el.slice(0,3))r.HardMeat[e]=40;for(const e of el.slice(3,8))r.HardMeat[e]=15;}
+  result[trainingName][r.Part]={groups:{软肉质:[soft],硬肉质:[{s:'',m:r.HardMeat,extract,note:''}]},at:null,wound:r.ScarMeat||null,wounds:r.ScarMeat?[{s:'软／硬肉质共用',m:r.ScarMeat,extract,note:''}]:[]};
  }
 }
 for(const name of Object.keys(result))if(!raw['Monster Names'][name]){
@@ -99,4 +129,4 @@ raw['Quest Data']['25425']=JSON.parse(read('raw/quest-25425.json'));
 meta.monsterCount=Object.keys(raw['Monster Data']).length;meta.questCount=Object.keys(raw['Quest Data']).length;meta.generatedAt='2026-11-20T00:00:00.000Z';
 fs.writeFileSync(new URL('app/data.js',root),'/* Sources: RoboMechE + reviewed Kuroyonhon supplement; user overrides retained. */\n'+['RAW','TR','META'].map(k=>'window.MHWILD_'+k+' = '+JSON.stringify(w['MHWILD_'+k])+';').join('\n')+'\n');
 fs.writeFileSync(new URL('app/kuro-hzv.js',root),'// groups: conditional HZV; wounds: state-specific wound HZV; extract: kinsect colour.\nwindow.MHWILD_KURO_HZV = '+JSON.stringify(result)+';\n');
-console.log(JSON.stringify({monsters:meta.monsterCount,quests:meta.questCount,sourceRows:src.rows.length,supplemental},null,2));
+console.log(JSON.stringify({monsters:meta.monsterCount,quests:meta.questCount,sourceRows:src.rows.length,supplemental,rawAdded,brokenAdded},null,2));
