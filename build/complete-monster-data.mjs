@@ -3,6 +3,7 @@ import fs from 'node:fs';
 const root=new URL('../',import.meta.url),read=p=>fs.readFileSync(new URL(p,root),'utf8');
 const w={};for(const f of ['data.js','kuro-hzv.js'])new Function('window',read('app/'+f))(w);
 const src=JSON.parse(read('raw/kuro-monsters-20261120.json')),old=w.MHWILD_KURO_HZV;
+const excludedSmall=new Set([...Object.keys(w.MHWILD_TR.small),'Ceratonoth (Female)']);
 const {parts,groups,states,special,noteDelete}=src.mapping;
 Object.assign(parts,{'脚先端':'Leg Tip','体':'Torso','全身':'Whole Body'});
 Object.assign(states,{'防御態勢':'防御姿态','イベクエ「七色のかばね」':'活动任务「七色的尸骸」'});
@@ -21,6 +22,7 @@ const noteTranslations={
 };
 const result={};
 for(const r of src.rows){
+ if(excludedSmall.has(r.monster))continue;
  const n=r.monster,label=r.label,base=label.replace(/\([^)]*\)|\[[^\]]*\]/g,'').replace(/^ダウン中の|^水中にいる時の/,'');
  const sp=Object.entries(special).find(([k])=>label===k||label===k+'[傷]');
  const part=sp?sp[1].en:parts[base];if(!part)throw Error('Unmapped part '+n+': '+label);
@@ -56,6 +58,10 @@ for(const pp of Object.values(result))for(const p of Object.values(pp)){
  if(p.at)p.at=unique(p.at);p.wounds=unique(p.wounds);
 }
 const raw=w.MHWILD_RAW,tr=w.MHWILD_TR,meta=w.MHWILD_META;
+for(const [id,d]of Object.entries(raw['Monster Data']))if(d.SourceOnly&&d.Zako){
+ delete raw['Monster Data'][id];delete raw['Monster Names'][d.Name];delete tr.monster[d.Name];delete meta.imageMap[d.Name];
+ meta.monsterOrder=meta.monsterOrder.filter(n=>n!==d.Name);
+}
 // RAW-only anatomical parts must not disappear when the preferred source omits them.
 const supplemental=[];
 for(const d of Object.values(raw['Monster Data'])){
@@ -68,8 +74,7 @@ for(const d of Object.values(raw['Monster Data'])){
   pp[r.Part]={groups:{普通:rows},at:null,wound:r.ScarMeat||null,wounds:r.ScarMeat?[{s:'',m:r.ScarMeat}]:[]};supplemental.push(d.Name+'/'+r.Part);
  }
 }
-const smallNames={'Ceratonoth (Female)':'雷甲龙♀','Nerscylla Clone':'克隆影蜘蛛'};
-Object.assign(tr.monster,tr.small,smallNames);Object.assign(tr.part,{'Leg Tip':'脚尖','Whole Body':'全身'});
+Object.assign(tr.monster,{'Nerscylla Clone':'克隆影蜘蛛'});Object.assign(tr.part,{'Leg Tip':'脚尖','Whole Body':'全身'});
 const cloneNames=new Set(['Nerscylla Clone']);
 for(const name of Object.keys(result))if(!raw['Monster Names'][name]){
  const id='kuro-'+src.rows.find(r=>r.monster===name).id;

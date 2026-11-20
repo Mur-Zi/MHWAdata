@@ -8,7 +8,7 @@ let checks=0;const check=(v,msg)=>{assert.ok(v,msg);checks++;},eq=(a,b,msg)=>che
 // Every source label, numeric row and phase must survive; equal values cannot hide a lost condition.
 for(const r of source.rows){const candidates=Object.values(k[r.monster]).flatMap(p=>[...Object.values(p.groups).flat(),...(p.at||[]),...(p.wounds||[])]);
  check(candidates.some(x=>x.sourceLabel===r.label&&x.sourceSection===r.section&&el.every((e,i)=>x.m[e]===r.values[i])&&x.extract===r.extract),r.monster+'/'+r.section+'/'+r.label);}
-check(Object.keys(raw['Monster Data']).length===56,'56 monster records');check(w.MHWILD_META.monsterCount===56,'metadata monster count');check(Object.keys(raw['Quest Data']).length===602,'602 quests');
+check(Object.keys(raw['Monster Data']).length===36,'36 monster records');check(w.MHWILD_META.monsterCount===36,'metadata monster count');check(!Object.values(raw['Monster Data']).some(d=>d.SourceOnly&&d.Zako),'small monster records removed');check(!k['Omega Micros']&&!k.Dalthydon,'small monster HZV removed');check(Object.keys(raw['Quest Data']).length===602,'602 quests');
 const q=raw['Quest Data']['25425'];check(q?.Level===10&&Object.values(q.Targets).flat().every(t=>t.legendaryID===2&&raw.Difficulty._DifficultyRateArray._DataArray[t.diff]),'new arch-tempered task has valid difficulty');
 eq(k.Chatacabra.Tongue.groups['普通'][0].m.Slash,85,'tongue slash');eq(k.Chatacabra.Tongue.groups['普通'][0].m.Shot,90,'tongue shot');
 eq(k.Nerscylla['Leg Tip'].groups['普通'][0].m.Slash,28,'spider leg tip');
@@ -37,4 +37,4 @@ const gl=data.weaponMoves.gunlance.find(m=>m.id==='gl_shell');
 const ga=calc('gunlance',gl.name,{}, {gunlance:{type:'normal',level:1},shellTable:data.gunlanceShell});
 const gb=calc('gunlance',gl.name,{name:'Uth Duna',part:'Veil'}, {gunlance:{type:'normal',level:1},shellTable:data.gunlanceShell});
 check(ga.hits.some(h=>h.shelling&&h.raw>0),'shell fixture has actual damage');eq(gb.totalRaw,ga.totalRaw*.4,'veil shell physical reduction');eq(gb.totalElement,ga.totalElement,'veil shell fire unchanged');eq(gb.shelling.raw,gb.hits.filter(h=>h.shelling).reduce((a,h)=>a+h.raw,0),'shell aggregate matches details');
-console.log(`${checks} checks passed: all 1060 source rows, task linkage, records, overrides and conditional damage.`);
+console.log(`${checks} checks passed: all ${source.rows.length} source rows, task linkage, records, overrides and conditional damage.`);
