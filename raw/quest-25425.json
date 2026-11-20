@@ -1,0 +1,20 @@
+{
+  "ClearCond": 2,
+  "Env": "ABNORMAL",
+  "ID": 25425,
+  "Level": 10,
+  "MaxPlayer": 4,
+  "Name": "10★ The Proud Child of the Wilds",
+  "Stage": "ST105",
+  "Targets": {
+    "746996864": [
+      {
+        "diff": "6d893ac4-5f81-4850-b1ac-a2c23845cb15",
+        "diffAdjust": 0,
+        "legendaryID": 2,
+        "roleID": 0
+      }
+    ]
+  },
+  "Type": 5
+}

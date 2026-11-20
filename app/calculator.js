@@ -825,6 +825,7 @@
       stun: Math.max(0, stun),
       mv: mvValue,                               // 当前灯态下的表内动作值（三灯时取 mvLamp）
       fixed: isFixed,
+      constantDamage:hit.constantDamage,
       // 实际生效动作值（含飞燕 / 高速变形 / 蓄力 / 舞踏 / 力防倍率），用于连段汇总
       effectiveMv: mv * (p.hien ? st.airborneMult : 1) * n(p.morphMult, 1) * chargeMul * danceMul * forceGuardMul * tickDecay * 100,
       // 大剑集中贯穿斩：这一跳吃了第几档衰减（界面小字标「表内 10 ×0.934」用；未标记的 hit 为 null）
@@ -875,6 +876,7 @@
   }
 
 function calculateBowgunCombo(p) {
+    const targetRules=targetDamageRules(p);let absorbPending=targetRules.absorbFirst;
     const isLight=p.weaponId==='light_bowgun',specialIds=['HunterSkill_019','HunterSkill_035','HunterSkill_037','HunterSkill_038','HunterSkill_039','HunterSkill_040','HunterSkill_045','HunterSkill_197','HunterSkill_198','custom_bladescale_loading'];
     const selected=p.skills||[],level=id=>n(selected.find(x=>(x.skill||x).id===id)?.level,0);
     const coverage=id=>{const x=selected.find(x=>(x.skill||x).id===id);return x?(x.skill||x).coverage?clamp(n(x.coverage,100),0,100)/100:1:0;};
@@ -917,10 +919,16 @@ function calculateBowgunCombo(p) {
       const elemBefore=b*s.elementPct*s.convertElemMult+flat,elemCap=b*2.3;
       const ecrit=h.fixed?1:elementCritMultiplier(aff,s.elementCritMult,ctx.critMode);
       let element=h.fixedFire!=null?h.fixedFire*eZone/100:Math.min(elemBefore,elemCap)*eZone/100*ecrit*ctx.elementDamageMul*(ctx.rapid?factor('HunterSkill_045',1.05):1);
-      const enrage=n(p.enrageMul,1);raw=round(Math.max(0,raw*enrage));element=round(Math.max(0,element*enrage));
+      const beforeTarget={raw,element},immune=targetRules.projectileImmune&&!h.fixed&&(h.type||'SHOT')==='SHOT';
+      const targetPhysicalMultiplier=immune?0:targetRules.physical;
+      let targetElementMultiplier=immune?0:(targetRules.elements[eType]??1),elementAbsorbed=false;
+      if(absorbPending&&element>0){targetElementMultiplier=0;absorbPending=false;elementAbsorbed=true;}
+      const enrage=n(p.enrageMul,1);raw=round(Math.max(0,raw*enrage*targetPhysicalMultiplier));element=round(Math.max(0,element*enrage*targetElementMultiplier));
       const stun=p.isHead?n(h.stun,0)*s.stunMult:0;
       const out={attackUsed:physicalAttack,attackCap:attackCap(p.attack),attackCapped:attack+ctx.physicalAdd>=attackCap(p.attack),moveId:m.id,moveName:m.name,comboIndex:ci,index:hits.length+1,fixedExtraDamage:round(n(h.fixedExtra)*enrage),raw,element,total:round(raw+element),status:0,stun,mv:h.mv,effectiveMv:h.mv*(h.mult??1)*(h.decay??1),elemRate:h.elementMotion?1:0,statusRate:0,type:h.type||'SHOT',fixed:!!h.fixed,noSharp:true,sharpCost:0,isWeak:zone>=45,affinityUsed:h.fixed?0:aff,charge:null,chargeUnit:null,mantle:!!h.mantle,wound:!!h.wound,hien:false,airborneMult:1,morphMult:1,projectile:h.projectile||1,bowgun:{...ctx.magazine,sequence:ctx.sequence,fullClip:ctx.fullClip,opening:ctx.opening,rapidMultiplier:ctx.rapid?factor('HunterSkill_045',1.05):1,projectile:h.projectile||1,tick:h.tick||1,decay:h.decay??1,distance,correction:h.mult??1,elementCorrection:h.elementCorrection??1,elementBase:b,elementBefore:elemBefore,elementCap:elemCap,elementCapped:elemBefore>elemCap+1e-8,elementType:eType,physicalAttack}};
       hits.push(out);totalMv+=h.mv;totalElemRate+=out.elemRate;totalStun+=stun;
+      Object.assign(out,{targetPhysicalMultiplier,targetElementMultiplier,elementAbsorbed,damageBeforeTarget:beforeTarget});
+      out.fixedExtraDamage=round(n(h.fixedExtra)*enrage*targetPhysicalMultiplier);
     };
     for(let ci=0;ci<(p.combo||[]).length;ci++){
       const it=p.combo[ci],m=moves.find(x=>x.id===(it.moveId||it.id));if(!m)continue;
@@ -977,10 +985,41 @@ function calculateBowgunCombo(p) {
     const sum=k=>hits.reduce((a,h)=>a+n(h[k]),0),totalRaw=sum('raw'),totalElement=sum('element'),totalDamage=round(totalRaw+totalElement),fixed=hits.reduce((a,h)=>a+(h.fixed?h.raw:n(h.fixedExtraDamage)),0);
     contributions.forEach(c=>c.share=totalDamage?c.damage/totalDamage*100:0);
     const panel={...lastBase.panel,elementBase:0,elementAfter:0,statusBase:0,statusAfter:0,elementCapped:hits.some(h=>h.bowgun?.elementCapped),affinityAfter:lastBase.state.affinity,affinityVsTarget:hits.findLast(h=>h.affinityUsed!=null)?.affinityUsed??lastBase.state.affinity};
-    return {...base,totalRaw,totalElement,totalDamage,totalPhysical:totalRaw-fixed,totalFixed:fixed,totalStatus:0,totalStun,totalMotionValue:totalMv,totalElementRate:totalElemRate,totalMv,totalMvAfterHien:totalMv,totalMvEffective:sum('effectiveMv'),totalSharpCost:0,sharpKnives:0,moveContributions:contributions,hits,panel,state:lastBase.state,noElement:!hits.some(h=>h.element>0),noStatus:true,affinityVsTarget:panel.affinityVsTarget,attackFinal:panel.attackAfter,bowgun:true,bowgunStatusPending:(p.combo||[]).some(it=>/毒弾|麻痺弾|睡眠弾/.test(moves.find(m=>m.id===it.moveId)?.rangedAmmo||''))};
+    return {...base,totalRaw,totalElement,totalDamage,totalPhysical:totalRaw-fixed,totalFixed:fixed,totalStatus:0,totalStun,totalMotionValue:totalMv,totalElementRate:totalElemRate,totalMv,totalMvAfterHien:totalMv,totalMvEffective:sum('effectiveMv'),totalSharpCost:0,sharpKnives:0,moveContributions:contributions,hits,panel,state:lastBase.state,noElement:!hits.some(h=>h.element>0),noStatus:true,affinityVsTarget:panel.affinityVsTarget,attackFinal:panel.attackAfter,bowgun:true,targetDamageApplied:true,targetDamageRules:targetRules,bowgunStatusPending:(p.combo||[]).some(it=>/毒弾|麻痺弾|睡眠弾/.test(moves.find(m=>m.id===it.moveId)?.rangedAmmo||''))};
   }
 
+  // Source-specific target rules apply to final damage, never to attack or HZV.
+  function targetDamageRules(params) {
+    const t=params.target||{},bowgun=['light_bowgun','heavy_bowgun'].includes(params.weaponId);
+    return {physical:t.name==='Uth Duna'&&/^Veil/.test(t.part||'') ? 0.4 : 1,
+      elements:bowgun&&t.name==='Gogmazios'?{Fire:.85,Dragon:.35}:bowgun&&t.name==='Zoh Shia'&&Number(t.questLevel)===10?{Dragon:.7}:{},
+      projectileImmune:bowgun&&t.name==='Ajarakan'&&t.part==='Head'&&/红莲|高温/.test(t.label||'')&&!!t.headOn,
+      absorbFirst:t.name==='Arkveld'&&/属性吸收/.test(t.label||'')&&t.absorbFirst!==false};
+  }
   function calculateCombo(params) {
+    const result=calculateComboBase(params),rules=targetDamageRules(params);
+    if(result.targetDamageApplied||params._bowgunInternal||rules.physical===1&&!Object.keys(rules.elements).length&&!rules.projectileImmune&&!rules.absorbFirst)return result;
+    let absorb=rules.absorbFirst;
+    for(const h of result.hits){
+      if(h.cancelled||h.woundBurst||h.constantDamage!=null)continue;
+      const type=h.bowgun?.elementType||params.elementType,immune=rules.projectileImmune&&h.type==='SHOT';
+      const rm=immune?0:rules.physical;let em=immune?0:(rules.elements[type]??1);
+      if(absorb&&h.element>0){em=0;absorb=false;h.elementAbsorbed=true;}
+      h.targetPhysicalMultiplier=rm;h.targetElementMultiplier=em;
+      const round=v=>result.bowgun?Math.round((v+1e-10)*10)/10:v;
+      h.raw=round(h.raw*rm);h.element=round(h.element*em);h.total=round(h.raw+h.element);
+      if(h.fixedExtraDamage!=null)h.fixedExtraDamage=round(h.fixedExtraDamage*rm);
+      if(h.shellElement!=null)h.shellElement=h.element;
+    }
+    const sum=(key,predicate=()=>true)=>result.hits.filter(predicate).reduce((a,h)=>a+n(h[key]),0);
+    const fixed=h=>!!(h.fixed||h.woundBurst||(h.phial&&h.phialKind==='impact')||(h.shelling&&!h.shellSpark));
+    result.totalRaw=sum('raw');result.totalElement=sum('element');result.totalDamage=result.totalRaw+result.totalElement;
+    result.totalFixed=sum('raw',fixed)+sum('fixedExtraDamage',h=>!fixed(h));result.totalPhysical=result.totalRaw-result.totalFixed;
+    for(const c of result.moveContributions||[]){const hs=result.hits.filter(h=>h.comboIndex===c.comboIndex);c.damage=hs.reduce((a,h)=>a+h.total,0);c.fixed=hs.reduce((a,h)=>a+(fixed(h)?h.raw:n(h.fixedExtraDamage)),0);c.physical=hs.reduce((a,h)=>a+h.raw,0)-c.fixed;c.element=hs.reduce((a,h)=>a+h.element,0);c.share=result.totalDamage?c.damage/result.totalDamage*100:0;}
+    for(const [key,pred]of [['kinsect',h=>h.kinsect],['sound',h=>h.hornSound],['shelling',h=>h.shelling]])if(result[key]){result[key].raw=sum('raw',pred);result[key].element=sum('element',pred);result[key].damage=result[key].raw+result[key].element;}
+    result.targetDamageRules=rules;return result;
+  }
+  function calculateComboBase(params) {
     if(!params._bowgunInternal && ["light_bowgun","heavy_bowgun"].includes(params.weaponId)) return calculateBowgunCombo(params);
     const moves = params.moves || [];
     const moveById = new Map(moves.map(function (m) { return [m.id, m]; }));
@@ -2160,7 +2199,7 @@ function calculateBowgunCombo(p) {
     SHARPNESS_ORDER, SHARPNESS_CN,
     ELEMENT_CAP_RATE, ELEMENT_CAP_MIN, elementCap, floorAtk,
     groupValue, conditionActive, applySkills, attackCap, cappedAttack, rawCritMultiplier, elementCritMultiplier,
-    calcHit, calculateCombo, lightBowgunMagazinePlan, buildMonsterParts,rangedNextMoves,rangedVariantChoices,rangedWholeMove,migrateRangedCombo,
+    calcHit, calculateCombo, targetDamageRules, lightBowgunMagazinePlan, buildMonsterParts,rangedNextMoves,rangedVariantChoices,rangedWholeMove,migrateRangedCombo,
     kinsectPowerMult, kinsectMultipliers, KINSECT_MUL: {
       base: KINSECT_BASE, sever: KINSECT_SEVER, extract: KINSECT_EXTRACT,
       link: KINSECT_LINK, linkElem: KINSECT_LINK_ELEM, charged: KINSECT_CHARGED,

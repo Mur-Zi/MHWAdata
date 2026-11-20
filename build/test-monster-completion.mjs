@@ -1,0 +1,40 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+const root=new URL('../',import.meta.url),read=p=>fs.readFileSync(new URL(p,root),'utf8'),w={};
+for(const f of ['data.js','kuro-hzv.js','calc-data.js'])new Function('window',read('app/'+f))(w);
+const source=JSON.parse(read('raw/kuro-monsters-20261120.json')),k=w.MHWILD_KURO_HZV,raw=w.MHWILD_RAW,el=['Slash','Blow','Shot','Fire','Water','Thunder','Ice','Dragon','Stun'];
+let checks=0;const check=(v,msg)=>{assert.ok(v,msg);checks++;},eq=(a,b,msg)=>check(Math.abs(a-b)<1e-7,`${msg}: ${a} != ${b}`);
+// Every source label, numeric row and phase must survive; equal values cannot hide a lost condition.
+for(const r of source.rows){const candidates=Object.values(k[r.monster]).flatMap(p=>[...Object.values(p.groups).flat(),...(p.at||[]),...(p.wounds||[])]);
+ check(candidates.some(x=>x.sourceLabel===r.label&&x.sourceSection===r.section&&el.every((e,i)=>x.m[e]===r.values[i])&&x.extract===r.extract),r.monster+'/'+r.section+'/'+r.label);}
+check(Object.keys(raw['Monster Data']).length===56,'56 monster records');check(w.MHWILD_META.monsterCount===56,'metadata monster count');check(Object.keys(raw['Quest Data']).length===602,'602 quests');
+const q=raw['Quest Data']['25425'];check(q?.Level===10&&Object.values(q.Targets).flat().every(t=>t.legendaryID===2&&raw.Difficulty._DifficultyRateArray._DataArray[t.diff]),'new arch-tempered task has valid difficulty');
+eq(k.Chatacabra.Tongue.groups['普通'][0].m.Slash,85,'tongue slash');eq(k.Chatacabra.Tongue.groups['普通'][0].m.Shot,90,'tongue shot');
+eq(k.Nerscylla['Leg Tip'].groups['普通'][0].m.Slash,28,'spider leg tip');
+eq(k['Omega Planetes'].Head.groups['普通'][0].m.Slash,45,'omega before failure');eq(k['Omega Planetes'].Head.groups['克隆影蜘蛛讨伐失败后'][0].m.Slash,40,'omega after failure');
+check(k['Zoh Shia'].Head.wounds.some(x=>x.m.Slash===70)&&k['Zoh Shia'].Head.wounds.some(x=>x.m.Slash===75),'state-specific wounds retained');
+for(const n of w.MHWILD_META.monsterOrder){const d=raw['Monster Data'][raw['Monster Names'][n]];check(!!d,n+' reachable');check(fs.existsSync(new URL('app/'+w.MHWILD_META.imageMap[n].icon,root)),n+' icon exists');if(d.SourceOnly)check(!('BHP' in d)&&d.CantCap===null,n+' no fabricated thresholds');}
+check(raw['Monster Data'][raw['Monster Names']['Guardian Arkveld']].CantCap,'guardian Arkveld not capturable');
+const training=raw['Monster Data'][raw['Monster Names']['High Purrformance Barrel Puncher']];
+for(const r of training.Hitzones.Rows){eq(r.Meat.Slash,r.Part==='Back Panel'?20:80,'training physical override');eq(r.Meat.Fire,r.Part==='Back Panel'?5:30,'training element override');if(!['Front Panel','Side Panel'].includes(r.Part))check(!r.ScarMeat&&!r.Wound,'training wounds only on front/side');}
+const C=createRequire(import.meta.url)('../app/calculator.js'),data=w.MHWCALC;
+const calc=(wid,name,target={},extra={})=>C.calculateCombo({weaponId:wid,moves:data.weaponMoves[wid],weaponGroups:data.weaponGroups,attack:200,element:200,elementType:'Fire',statusType:'None',affinity:0,sharpness:data.sharpness.white,hitzones:{Slash:50,Blow:50,Shot:50,Fire:30,Dragon:30},mode:'expected',combo:[{moveId:data.weaponMoves[wid].find(m=>m.name===name).id,rangedHits:3}],target,...extra});
+for(const wid of ['light_bowgun','heavy_bowgun'])for(const [ammo,t,mul]of [['Lv2火炎弹',{name:'Gogmazios'},.85],['Lv2灭龙弹',{name:'Gogmazios'},.35],['Lv2灭龙弹',{name:'Zoh Shia',questLevel:10},.7]]){
+ const moves=data.weaponMoves[wid],chosen=moves.find(m=>m.name===ammo)||moves.find(m=>m.name.includes(ammo.replace('Lv2','')));check(!!chosen,ammo+' exists');
+ const a=calc(wid,chosen.name),b=calc(wid,chosen.name,t);eq(a.totalRaw,b.totalRaw,'element resistance does not change raw');
+ b.hits.forEach((h,i)=>eq(h.element,Math.round((a.hits[i].damageBeforeTarget.element*mul+1e-10)*10)/10,'element resistance before final rounding'));eq(b.totalDamage,b.hits.reduce((s,h)=>s+h.total,0),'damage summary matches hits');
+}
+const first=data.weaponMoves.great_sword.find(m=>m.hits?.length&&!m.hits[0].shelling);
+const plain=calc('great_sword',first.name),veil=calc('great_sword',first.name,{name:'Uth Duna',part:'Veil'});
+eq(veil.totalRaw,plain.totalRaw*.4,'veil physical reduction');eq(veil.totalElement,plain.totalElement,'veil does not reduce element');
+const absorbed=calc('great_sword',first.name,{name:'Arkveld',label:'历战王·属性吸收状态',absorbFirst:true});eq(absorbed.hits[0].element,0,'first element absorbed');
+const noAbsorb=calc('great_sword',first.name,{name:'Arkveld',label:'历战王·属性吸收状态',absorbFirst:false});eq(noAbsorb.totalElement,plain.totalElement,'absorption optional');
+const fire=data.weaponMoves.light_bowgun.find(m=>m.name==='Lv2火炎弹');eq(calc('light_bowgun',fire.name,{name:'Ajarakan',part:'Head',label:'红莲',headOn:true}).totalDamage,0,'head-on projectile immunity');
+check(calc('light_bowgun',fire.name,{name:'Ajarakan',part:'Head',label:'普通',headOn:true}).totalDamage>0,'normal head not immune');
+// Veil also affects HZV-ignoring physical damage, while wound bursts stay independent.
+const gl=data.weaponMoves.gunlance.find(m=>m.id==='gl_shell');
+const ga=calc('gunlance',gl.name,{}, {gunlance:{type:'normal',level:1},shellTable:data.gunlanceShell});
+const gb=calc('gunlance',gl.name,{name:'Uth Duna',part:'Veil'}, {gunlance:{type:'normal',level:1},shellTable:data.gunlanceShell});
+check(ga.hits.some(h=>h.shelling&&h.raw>0),'shell fixture has actual damage');eq(gb.totalRaw,ga.totalRaw*.4,'veil shell physical reduction');eq(gb.totalElement,ga.totalElement,'veil shell fire unchanged');eq(gb.shelling.raw,gb.hits.filter(h=>h.shelling).reduce((a,h)=>a+h.raw,0),'shell aggregate matches details');
+console.log(`${checks} checks passed: all 1060 source rows, task linkage, records, overrides and conditional damage.`);

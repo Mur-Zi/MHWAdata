@@ -98,8 +98,6 @@
   const PART_OVERRIDE = CONFIG.PART_OVERRIDE || {};
   const partName = (monName, key) => (PART_OVERRIDE[monName] && PART_OVERRIDE[monName][key]) || zh(TR.part, key, key);
   const ELEMENTS = ['Slash', 'Blow', 'Shot', 'Fire', 'Water', 'Thunder', 'Ice', 'Dragon', 'Stun'];
-  // 历战王个体（仅 3 只，有独立历战王肉质变化）
-  const AT_MONSTERS = ['Arkveld', 'Uth Duna', 'Jin Dahaad'];
   // 炸膛数据：见 config.js 的 BLOWOUT（内置兜底），在线更新可覆盖
   const BLOWOUT = CONFIG.BLOWOUT || {};
   const STATUS_COLS = ['Poison', 'Sleep', 'Paralyze', 'Blast', 'Stun', 'Exhaust', 'Mount', 'Parry', 'Flayer', 'ConEle'];
@@ -436,8 +434,10 @@
     const img = META.imageMap[m.name];
     const d = m.data;
     const chips = [];
-    chips.push(d.CantCap ? '不可捕获' : '可捕获');
+    chips.push(d.CantCap == null ? '捕获资料未提供' : d.CantCap ? '不可捕获' : '可捕获');
     if (d.Zako) chips.push('小型怪物');
+    if(d.RWT&&String(d.RWT).includes('|')){const levels=String(d.RWT).split('|'),names=['咆哮','风压','震动'];levels.slice(0,3).forEach((v,i)=>chips.push(names[i]+'：'+(v==='0'?'无':v+'级')));}
+    if(d.SourceOnly)chips.push('已收录肉质；血量、异常阈值未提供');
     const hzRows = d.Hitzones ? (d.Hitzones.Rows || []) : [];
     const condRows = d.ConditionTable ? (d.ConditionTable.Rows || []) : [];
     const toolRows = d.ToolTable ? (d.ToolTable.Rows || []) : [];
@@ -459,35 +459,39 @@
         for (const g of Object.values(p.groups)) arr.push(...g.map((x) => x.m));
         if (p.at) arr.push(...p.at.map((x) => x.m));
         if (p.wound) arr.push(p.wound);
+        if(p.wounds)arr.push(...p.wounds.map(x=>x.m));
         return arr;
       });
       const activeElements = ELEMENTS.filter((e) => allMeats.some((meat) => typeof meat[e] === 'number' && meat[e] !== 0));
-      const isAT = AT_MONSTERS.includes(m.name);
+      const isAT = kuroParts.some(([,p])=>p.at?.length);
       // 组 tab 顺序：普通 → 历战王 → 状态组 → 伤口
       const stateGroups = [];
       kuroParts.forEach(([, p]) => Object.keys(p.groups).forEach((g) => { if (g !== '普通' && !stateGroups.includes(g)) stateGroups.push(g); }));
-      const groups = ['普通', ...(isAT ? ['历战王'] : []), ...stateGroups, '伤口'];
+      const hasWounds=kuroParts.some(([,p])=>p.wounds?.length||p.wound);
+      const groups = ['普通', ...(isAT ? ['历战王'] : []), ...stateGroups, ...(hasWounds?['伤口']:[])];
       const tabLabel = (g) => (g === '普通' ? '普通肉质' : g === '历战王' ? '历战王肉质' : g === '伤口' ? '伤口肉质' : g + '状态');
       const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
       const meatCell = (meat) => activeElements.map((e) => {
         const v = meat ? meat[e] : undefined;
         return `<td class="num ${e==='Stun'?'hzv-1':hzvClass(v, !['Slash','Blow','Shot'].includes(e))}">${fmt(v)}</td>`;
       }).join('');
-      const makeRow = (pn, s, meat, g, note) => {
+      const makeRow = (pn, s, meat, g, note, extract) => {
         const hidden = g === '普通' ? '' : ' hidden';
-        let out = `<tr data-hzv-row="${g}"${hidden}><td class="part-name fz1">${pn}${note ? '<span class="note-toggle" title="点击查看说明">ℹ</span>' : ''}</td><td class="state-tag fz2 state-col">${s}</td>${meatCell(meat)}</tr>`;
-        if (note) out += `<tr class="note-row" data-hzv-row="${g}" hidden><td colspan="${activeElements.length + 2}" class="note-text">${esc(note)}</td></tr>`;
+        const colour=({'赤':'红','白':'白','橙':'橙','緑':'绿'})[extract]||extract||'—';
+        let out = `<tr data-hzv-row="${g}"${hidden}><td class="part-name fz1">${pn}${note ? '<span class="note-toggle" title="点击查看说明">ℹ</span>' : ''}</td><td class="state-tag fz2 state-col">${s}</td>${meatCell(meat)}<td>${esc(colour)}</td></tr>`;
+        if (note) out += `<tr class="note-row" data-hzv-row="${g}" hidden><td colspan="${activeElements.length + 3}" class="note-text">${esc(note)}</td></tr>`;
         return out;
       };
       html += `<section class="section"><h2>肉质（HZV）</h2>
         <div class="toggle-group">${groups.map((g, i) => `<button class="toggle-btn${i === 0 ? ' active' : ''}" data-hzv="${g}">${tabLabel(g)}</button>`).join('')}</div>
-        <div class="tbl-wrap"><table><thead><tr><th class="fz1">部位</th><th class="fz2 state-col">状态</th>${activeElements.map((e) => `<th title="${zh(TR.element, e)}">${elementIcon(e)}</th>`).join('')}</tr></thead>
+        <div class="tbl-wrap"><table><thead><tr><th class="fz1">部位</th><th class="fz2 state-col">状态</th>${activeElements.map((e) => `<th title="${zh(TR.element, e)}">${elementIcon(e)}</th>`).join('')}<th>猎虫精华</th></tr></thead>
         <tbody>${kuroParts.map(([en, p]) => {
           const pn = partName(m.name, en);
           let rows = '';
-          for (const g of Object.keys(p.groups)) rows += p.groups[g].map((x) => makeRow(pn, x.s, x.m, g, x.note)).join('');
-          if (p.at) rows += p.at.map((x) => makeRow(pn, x.s, x.m, '历战王', x.note)).join('');
-          if (p.wound) rows += makeRow(pn, '', p.wound, '伤口', '');
+          for (const g of Object.keys(p.groups)) rows += p.groups[g].map((x) => makeRow(pn, x.s, x.m, g, x.note,x.extract)).join('');
+          if (p.at) rows += p.at.map((x) => makeRow(pn, x.s, x.m, '历战王', x.note,x.extract)).join('');
+          if(p.wounds?.length)rows+=p.wounds.map(x=>makeRow(pn,x.s,x.m,'伤口',x.note,x.extract)).join('');
+          else if (p.wound) rows += makeRow(pn, '', p.wound, '伤口', '');
           return rows;
         }).join('')}</tbody></table></div></section>`;
     } else {
@@ -508,10 +512,10 @@
           <button class="toggle-btn active" data-hzv="normal">普通肉质</button>
           <button class="toggle-btn" data-hzv="scar">伤口肉质</button>
         </div>
-        <div class="tbl-wrap"><table><thead><tr><th class="fz1">部位</th>${activeElements.map((e) => `<th title="${zh(TR.element, e)}">${elementIcon(e)}</th>`).join('')}</tr></thead>
+        <div class="tbl-wrap"><table><thead><tr><th class="fz1">部位</th>${activeElements.map((e) => `<th title="${zh(TR.element, e)}">${elementIcon(e)}</th>`).join('')}<th>猎虫精华</th></tr></thead>
         <tbody>${baseRows.map((r) => {
           const part = partName(m.name, r.Part);
-          const mCell = (src) => activeElements.map((e) => `<td class="num ${e==='Stun'?'hzv-1':hzvClass(src ? src[e] : undefined, !['Slash','Blow','Shot'].includes(e))}">${fmt(src ? src[e] : undefined)}</td>`).join('');
+          const mCell = (src) => activeElements.map((e) => `<td class="num ${e==='Stun'?'hzv-1':hzvClass(src ? src[e] : undefined, !['Slash','Blow','Shot'].includes(e))}">${fmt(src ? src[e] : undefined)}</td>`).join('')+'<td>'+(({1:'红',2:'白',3:'橙',4:'绿'})[r.KE]||'—')+'</td>';
           return `<tr data-hzv-row="normal"><td class="part-name fz1">${part}</td>${mCell(r.Meat)}</tr>
                   ${r.ScarMeat ? `<tr data-hzv-row="scar" hidden><td class="part-name fz1">${part}</td>${mCell(r.ScarMeat)}</tr>` : ''}`;
         }).join('')}</tbody></table></div></section>`;
@@ -557,8 +561,8 @@
             tr.hidden = (tr.dataset.hzvRow !== mode);
           }
         });
-        // 伤口肉质无「状态」维度，隐藏状态列
-        const showState = mode !== '伤口';
+        // Wounds can differ by phase, broken part or arch-tempered state.
+        const showState = true;
         el.querySelectorAll('.state-col').forEach((c) => { c.hidden = !showState; });
       });
     });
@@ -620,11 +624,12 @@
     const partRows = hzRows.filter((r) => {
       if (r.Part === 'HIDE') return false;
       const w = r.Wound || {};
-      return hasVal(r.Flinch) || hasVal(r.Break) || hasVal(w.Normal) || hasVal(w.RawScar) || hasVal(w.Tear) || hasVal(w.Number);
+      return hasVal(r.Flinch) || hasVal(r.Break) || hasVal(r.Sever) || hasVal(w.Normal) || hasVal(w.RawScar) || hasVal(w.Tear) || hasVal(w.Number);
     });
     const partCols = [
       ['硬直', (r) => Array.isArray(r.Flinch) ? r.Flinch.some((x) => x) : r.Flinch],
       ['破坏', (r) => Array.isArray(r.Break) ? r.Break.some((x) => x) : r.Break],
+      ['断尾（切断）', (r) => Array.isArray(r.Sever) ? r.Sever.some((x) => x) : r.Sever],
       ['打出绽伤血量', (r) => { const w = r.Wound || {}; return Array.isArray(w.Normal) ? w.Normal.some((x) => x) : w.Normal; }],
       ['绽伤血量', (r) => { const w = r.Wound || {}; return Array.isArray(w.Tear) ? w.Tear.some((x) => x) : w.Tear; }],
       ['伤口血量', (r) => { const w = r.Wound || {}; return Array.isArray(w.RawScar) ? w.RawScar.some((x) => x) : w.RawScar; }],
@@ -634,6 +639,7 @@
       const w = r.Wound || {};
       if (label === '硬直') return fmt(scaleArr(r.Flinch, fParts));
       if (label === '破坏') return fmt(scaleArr(r.Break, fParts));
+      if (label === '断尾（切断）') return fmt(scaleArr(r.Sever, fParts));
       if (label === '打出绽伤血量') return fmt(scaleArr(w.Normal, fScarNT));
       if (label === '绽伤血量') return fmt(scaleArr(w.Tear, fTear));
       if (label === '伤口血量') return fmt(scaleArr(w.RawScar, fScarRaw));
@@ -686,6 +692,10 @@
     }
     html += `</section>`;
 
+    const multi=d.Hitzones?.MultiPart;
+    const cutRows=(Array.isArray(multi)?multi:Object.values(multi||{})).filter(r=>r.TYPES?.ACTION&&r.PARTS?.some(p=>p!=='HIDE')&&r.VITALS?.some(v=>v>0&&v<9999));
+    if(cutRows.length)html+=`<section class="section" data-detail-group="vital" data-vital-extra><h2>切断 / 部位累计条件</h2><div class="tbl-wrap"><table><thead><tr><th>参与部位</th><th>伤害类型</th><th>累计阈值</th></tr></thead><tbody>${cutRows.map(r=>'<tr><td>'+r.PARTS.filter(p=>p!=='HIDE').map(p=>partName(m.name,p)).join(' / ')+'</td><td>'+({SLASH:'切断',BLOW:'打击',SHOT:'弹'})[r.TYPES.ACTION]+'</td><td class="num">'+fmt(scaleArr(r.VITALS,fParts))+'</td></tr>').join('')}</tbody></table></div></section>`;
+
     // 炸膛（多部位爆破，血量随任务难度 ×fParts 缩放）
     const blowout = BLOWOUT[m.name];
     if (blowout && blowout.length) {
@@ -724,13 +734,13 @@
     // 道具效果（不随难度缩放）
     const activeTools = toolRows.length ? activeCols(toolRows, TOOL_COLS) : [];
     if (activeTools.length) {
-      html += `<section class="section" data-detail-group="tools"><h2>道具效果</h2>
+      html += `<section class="section" data-detail-group="tools"><h2>道具效果${f?.legendaryID===2?'（历战王）':''}</h2>
         <div class="tbl-wrap"><table><thead><tr><th class="fz1">项目</th>${activeTools.map((s) => '<th>' + zh(TR.tool, s) + '</th>').join('')}</tr></thead>
         <tbody>${toolRows.map((r) => {
           const label = r.Label !== undefined ? zh(TR.toolRow, r.Label, r.Label) : '';
           return `<tr><td class="row-label fz1">${label}</td>${activeTools.map((s) => {
             const v = r[s];
-            const val = (v && typeof v === 'object' && 'Normal' in v) ? v.Normal : v;
+            const val = (v && typeof v === 'object' && 'Normal' in v) ? (f?.legendaryID===2 ? (v.King??v.Normal) : v.Normal) : v;
             return '<td class="num">' + fmt(val) + '</td>';
           }).join('')}</tr>`;
         }).join('')}</tbody></table></div></section>`;
@@ -844,6 +854,7 @@
         fHealthMin,
         fHealthMax,
         strength,
+        legendaryID: lid,
         status,
       };
     }
@@ -1105,14 +1116,15 @@
           if (g === '普通') label = s || '普通';
           else if (!s || s === g) label = g;
           else label = g + '·' + s;
-          out.push({ label, meat: e.m });
+          out.push({ label, meat: e.m, note:e.note, extract:e.extract });
         });
       });
       ((raw && raw.at) || []).forEach((e) => {
         if (!e || !e.m) return;
         out.push({ label: e.s ? '历战王·' + e.s : '历战王', meat: e.m });
       });
-      if (raw && raw.wound) out.push({ label: '伤口', meat: raw.wound, isWound: true });
+      if(raw?.wounds?.length)raw.wounds.forEach(e=>out.push({label:'伤口'+(e.s?'·'+e.s:''),meat:e.m,isWound:true,note:e.note,extract:e.extract}));
+      else if (raw && raw.wound) out.push({ label: '伤口', meat: raw.wound, isWound: true });
       if (!out.length) out.push({ label: '普通', meat: {} });
       return out;
     }
@@ -1125,6 +1137,7 @@
       monster: monsters[0] ? monsters[0].name : '',
       part: '', meatIdx: 0,
       quest: '', players: 1,
+      targetHeadOn:false, targetAbsorbFirst:true,
       mode: 'expected', expectedCrit: true,
       weakSpot: false, monsterEnraged: false, fullHealth: true, wound: false, overcomeFrenzy: false, clash: false,
       ateMeat: false, festival: false, warCry: false,   // 套装技能条件：食用烤熟的肉 / 祭典期间 / 咆哮后
@@ -1791,6 +1804,11 @@
           if(b.rapidMultiplier>1)tags.push('速射强化：物理／属性最终伤害×'+rd2(b.rapidMultiplier));
           if(g.hits.some(h=>h.bowgun?.elementCapped))tags.push('属性已达上限');
         }
+        const targetRaw=[...new Set(g.hits.map(h=>h.targetPhysicalMultiplier).filter(v=>v!=null&&v!==1))];
+        const targetElem=[...new Set(g.hits.filter(h=>!h.elementAbsorbed).map(h=>h.targetElementMultiplier).filter(v=>v!=null&&v!==1))];
+        if(targetRaw.length)tags.push('怪物物理受击×'+targetRaw.join('/'));
+        if(targetElem.length)tags.push('怪物属性受击×'+targetElem.join('/'));
+        if(g.hits.some(h=>h.elementAbsorbed))tags.push('首个属性hit被吸收');
         const mantleHits = blade.filter((h) => h.mantle);
         if (mantleHits.length) {
           const mmv = mantleHits.reduce((a, h) => a + (Number(h.mv) || 0), 0);
@@ -1956,6 +1974,7 @@
         sharpness: isRangedWeapon(source) ? { raw: 1, element: 1 } : sharpness[source.sharpness] || { raw: 1, element: 1 },
         sharpGreen: sharpness.green || null,   // 狩猎笛响周波：斩味固定绿斩（用户拍板）
         hitzones: meat,
+        target:{name:state.monster,part:state.part,label:currentMeatLabel(),questLevel:quests.find(q=>q.id===state.quest.split(':')[0])?.level||0,headOn:state.targetHeadOn,absorbFirst:state.targetAbsorbFirst},
         isHead: currentIsHead(),        // 只有头部累计晕厥
         // 怪物发怒受击倍率（用户 2026-10-08）：数据库 AngryTable.PlDamage —— 作用最终伤害
         enrageMul: currentEnrageMul(),
@@ -4112,6 +4131,19 @@
       // 只列斩/打/弹三种肉质 + 属性吸收（面板选「无」属性时不写属性那一项）
       hint.textContent = `${label}：斩 ${m.Slash ?? '—'} · 打 ${m.Blow ?? '—'} · 弹 ${m.Shot ?? m.Bullet ?? '—'}`
         + (state.elementType === 'None' ? '' : ` · ${EL_CN[state.elementType] || state.elementType}属性吸收 ${m[state.elementType] ?? '—'}`);
+      let extra=$('#calc-target-conditions');
+      if(!extra){extra=document.createElement('div');extra.id='calc-target-conditions';hint.after(extra);}
+      const row=meatStates(part.raw)[state.meatIdx],notes=[];
+      if(row?.note)notes.push(row.note);
+      if(state.monster==='Gogmazios'&&['light_bowgun','heavy_bowgun'].includes(state.weaponId))notes.push('弩的火炎弹属性伤害×0.85，灭龙弹属性伤害×0.35。');
+      if(state.monster==='Uth Duna'&&/^Veil/.test(state.part))notes.push('帷幕：物理及炮击、榴弹瓶等肉质无视伤害×0.4。');
+      if(state.monster==='Zoh Shia'&&!state.quest&&['light_bowgun','heavy_bowgun'].includes(state.weaponId))notes.push('选择10★任务后，灭龙弹属性伤害自动×0.7。');
+      if(state.monster==='Zoh Shia'&&quests.find(q=>q.id===state.quest.split(':')[0])?.level===10&&['light_bowgun','heavy_bowgun'].includes(state.weaponId))notes.push('10★个体：灭龙弹属性伤害×0.7。');
+      extra.replaceChildren();
+      for(const text of [...new Set(notes)]){const p=document.createElement('p');p.className='calc-hint';p.textContent=text;extra.append(p);}
+      const check=(key,text)=>{const l=document.createElement('label');l.className='calc-check';const c=document.createElement('input');c.type='checkbox';c.checked=state[key];c.addEventListener('change',()=>{state[key]=c.checked;recalc();});l.append(c,document.createTextNode(text));extra.append(l);};
+      if(state.monster==='Ajarakan'&&state.part==='Head'&&/红莲|高温/.test(label)&&['light_bowgun','heavy_bowgun'].includes(state.weaponId))check('targetHeadOn','正面射击头顶（弹击无效）');
+      if(state.monster==='Arkveld'&&/属性吸收/.test(label))check('targetAbsorbFirst','首个属性hit被吸收（后续正常计算）');
     }
 
     // 怪物发怒（用户 2026-10-08）：从「状态与条件」挪到「怪物 / 部位」栏；勾上后按数据库的受击倍率
@@ -4130,7 +4162,7 @@
     }
 
     $('select#calc-monster').addEventListener('change', (e) => { state.monster = e.target.value; refreshParts(); refreshQuestOptions(); refreshEnrageNote(); recalc(); });
-    $('select#calc-quest').addEventListener('change', (e) => { state.quest = e.target.value; refreshPlayerOptions(); refreshComboUI(); });
+    $('select#calc-quest').addEventListener('change', (e) => { state.quest = e.target.value; refreshPlayerOptions(); refreshMeatHint(); refreshComboUI(); });
     $('select#calc-players').addEventListener('change', (e) => { state.players = Number(e.target.value) || 1; refreshScarRawNote(); refreshComboUI(); });
     $('select#calc-part').addEventListener('change', (e) => { state.part = e.target.value; refreshMeatStates(); recalc(); });
     $('select#calc-meat-state').addEventListener('change', (e) => { state.meatIdx = Number(e.target.value) || 0; refreshMeatHint(); refreshEnrageNote(); recalc(); });
