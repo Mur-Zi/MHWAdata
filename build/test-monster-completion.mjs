@@ -6,7 +6,9 @@ for(const f of ['data.js','kuro-hzv.js','calc-data.js'])new Function('window',re
 const source=JSON.parse(read('raw/kuro-monsters-20261120.json')),k=w.MHWILD_KURO_HZV,raw=w.MHWILD_RAW,el=['Slash','Blow','Shot','Fire','Water','Thunder','Ice','Dragon','Stun'];
 let checks=0;const check=(v,msg)=>{assert.ok(v,msg);checks++;},eq=(a,b,msg)=>check(Math.abs(a-b)<1e-7,`${msg}: ${a} != ${b}`);
 // Every source label, numeric row and phase must survive; equal values cannot hide a lost condition.
-for(const r of source.rows){const candidates=Object.values(k[r.monster]).flatMap(p=>[...Object.values(p.groups).flat(),...(p.at||[]),...(p.wounds||[])]);
+for(const r of source.rows){
+ if(r.monster==='Guardian Arkveld'&&['頭','鎖翼刃'].includes(r.label))continue; // Explicit user replacements.
+ const candidates=Object.values(k[r.monster]).flatMap(p=>[...Object.values(p.groups).flat(),...(p.at||[]),...(p.wounds||[])]);
  check(candidates.some(x=>x.sourceLabel===r.label&&x.sourceSection===r.section&&el.every((e,i)=>x.m[e]===r.values[i])&&x.extract===r.extract),r.monster+'/'+r.section+'/'+r.label);}
 check(Object.keys(raw['Monster Data']).length===36,'36 monster records');check(w.MHWILD_META.monsterCount===36,'metadata monster count');check(!Object.values(raw['Monster Data']).some(d=>d.SourceOnly&&d.Zako),'small monster records removed');check(!k['Omega Micros']&&!k.Dalthydon,'small monster HZV removed');check(Object.keys(raw['Quest Data']).length===602,'602 quests');
 const q=raw['Quest Data']['25425'];check(q?.Level===10&&Object.values(q.Targets).flat().every(t=>t.legendaryID===2&&raw.Difficulty._DifficultyRateArray._DataArray[t.diff]),'new arch-tempered task has valid difficulty');
@@ -27,7 +29,20 @@ for(const [n,pp]of Object.entries(k))for(const [p,v]of Object.entries(pp)){
  check(!Object.keys(v.groups).some(g=>/原始数据库|原表破坏后/.test(g)),n+' no source directories');
  for(const x of [...Object.values(v.groups).flat(),...(v.wounds||[])])check(!/State [0-9]|状态 [0-9]|AT Wnd|RoboMechE·/.test(x.s),n+' no undecided state');
 }
-for(const part of ['Head','Torso','Belly'])check(k.Nerscylla[part].groups['普通'].some(x=>x.s==='破坏后'&&x.source==='robomeche'),'Nerscylla '+part+' break integrated');
+for(const part of ['Head','Torso','Belly'])check(!k.Nerscylla[part].groups['普通'].some(x=>x.s==='破坏后'),'Nerscylla '+part+' no speculative break mapping');
+for(const n of ['Nerscylla','Nerscylla Clone'])check(k[n]['Leg Root']&&k[n]['Leg Tip']&&!k[n].Foreleg&&!k[n]['Hind Leg'],'spider anatomy follows Japanese classification');
+eq(k.Chatacabra.Foreleg.groups['普通'].find(x=>x.reviewed).m.Blow,70,'confirmed frog broken foreleg');
+eq(k['Guardian Arkveld'].Head.groups['普通'][0].m.Fire,10,'guardian ordinary head replaced');
+eq(k['Guardian Arkveld'].Chainblade.groups['普通'][0].m.Dragon,20,'guardian ordinary chainblade replaced');
+for(const [n,parts]of [['Arkveld',['Head','Chainblade','Torso','Leg','Tail']],['Uth Duna',['Head','Torso','Foreleg','Hind Leg','Tail']]])for(const part of parts){
+ const p=k[n][part],at=p.wounds.filter(x=>x.archTempered&&x.tempered);check(at.length===1,n+'/'+part+' one AT tempered wound');
+ check(p.wounds.some(x=>!x.archTempered),n+'/'+part+' ordinary wound retained');
+}
+check(!k.Arkveld.Wing.wounds.some(x=>x.archTempered),'Arkveld other-parts mapping uses user list');
+check(!k['Uth Duna'].Veil.wounds.some(x=>x.archTempered),'veil is not a wound target');
+eq(k.Arkveld.Chainblade.wounds.find(x=>x.archTempered).m.Dragon,30,'AT chainblade dragon30');
+eq(k['Uth Duna'].Head.wounds.find(x=>x.archTempered).m.Shot,70,'AT Uth head shot70');
+eq(k.Gogmazios.Waist.groups['普通'][0].m.Slash,20,'Gog waist no longer conflated with back');
 eq(k.Seregios.Neck.wound.Slash,60,'conflicting neck wound unchanged pending decision');
 check(k['Omega Planetes']['Rear Power Unit'].wounds.some(x=>x.m.Slash===80&&x.m.Shot===20),'known rear power unit wound integrated');
 const pending=JSON.parse(read('raw/hzv-pending-decisions-20261121.json'));

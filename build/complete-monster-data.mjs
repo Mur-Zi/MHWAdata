@@ -25,7 +25,7 @@ for(const r of src.rows){
  if(excludedSmall.has(r.monster))continue;
  const n=r.monster,label=r.label,base=label.replace(/\([^)]*\)|\[[^\]]*\]/g,'').replace(/^ダウン中の|^水中にいる時の/,'');
  const sp=Object.entries(special).find(([k])=>label===k||label===k+'[傷]');
- const part=sp?sp[1].en:parts[base];if(!part)throw Error('Unmapped part '+n+': '+label);
+ const part=n==='Gogmazios'&&base==='腰'?'Waist':sp?sp[1].en:parts[base];if(!part)throw Error('Unmapped part '+n+': '+label);
  const words=[...label.matchAll(/\(([^)]*)\)/g)].flatMap(x=>x[1].split('、'));
  let group=phase[r.section]||r.section,state=sp?sp[1].state:words.filter(x=>!x.includes('歴戦王')).map(x=>states[x]||x).join('·')||'普通';
  const at=words.some(x=>x.includes('歴戦王')),wound=label.includes('[傷]'),weak=label.includes('弱');
@@ -85,7 +85,9 @@ for(const d of rawSource.monsters){
   if(/^(HIDE|Unmatched|Weak Point|All Others|Others)/.test(r.Part))continue;
   const p=result[d.name][r.Part];if(!p)continue;
   const equal=m=>Object.values(p.groups).flat().some(x=>el.every(e=>x.m[e]===m[e]));
-  if(r.State==='Break*'&&r.Meat&&!equal(r.Meat)){
+  // Nerscylla follows the Japanese anatomical classification; raw break flags
+  // are not evidence that the named anatomical part itself was broken.
+  if(d.name!=='Nerscylla'&&r.State==='Break*'&&r.Meat&&!equal(r.Meat)){
    const existing=Object.values(p.groups).flat().filter(x=>/破坏|破壊|切断/.test(x.s));
    if(!existing.length){(p.groups['普通']||=[]).push({s:'破坏后',m:r.Meat,extract:({1:'赤',2:'白',3:'橙',4:'緑'})[r.KE]||'',note:'',source:'robomeche',sourceIndex:index,sourceField:'Meat'});rawAdded++;brokenAdded++;}
   }
@@ -96,6 +98,37 @@ for(const d of rawSource.monsters){
   }
  }
 }
+// User-reviewed mappings, 2026-11-21. Keep provenance without exposing raw keys.
+const reviewedRow=(name,index,label)=>{
+ const r=rawSource.monsters.find(d=>d.name===name).rows[index];
+ return {s:label,m:r.Meat,extract:({1:'赤',2:'白',3:'橙',4:'緑'})[r.KE]||'',note:'',source:'robomeche',sourceIndex:index,sourceField:'Meat',reviewed:true};
+};
+const frogRows=result.Chatacabra.Foreleg.groups['普通'];
+frogRows.find(x=>x.s==='破坏后').s='破坏后（75／75／75）';
+frogRows.push(reviewedRow('Chatacabra',6,'破坏后（55／70／55）'));
+for(const [part,index]of [['Head',1],['Chainblade',9]]){
+ const p=result['Guardian Arkveld'][part],row=reviewedRow('Guardian Arkveld',index,'普通');
+ row.extract=p.groups['普通'][0].extract;p.groups['普通'][0]=row;
+}
+// AT is the arch-tempered template; these are tempered wounds, not ordinary wounds.
+for(const [name,indexes,otherParts]of [
+ ['Arkveld',[12,13,14],['Torso','Leg','Tail']],
+ ['Uth Duna',[15,16],Object.keys(result['Uth Duna']).filter(p=>!['Head','Veil'].includes(p))]
+])for(const index of indexes){
+ const r=rawSource.monsters.find(d=>d.name===name).rows[index];
+ const targets=r.Part==='All Others'?otherParts:[r.Part];
+ for(const part of targets){const p=result[name][part],row=reviewedRow(name,index,'历战王·历战伤口');row.extract=p.groups['普通']?.[0]?.extract||'';row.tempered=true;row.archTempered=true;p.wounds.push(row);}
+}
+// These names describe regions, not separate front/hind legs.
+Object.assign(tr.part,{'Leg Tip':'脚尖'});
+for(const name of ['Nerscylla','Nerscylla Clone']){
+ const pp=result[name];pp['Leg Root']=pp.Leg;delete pp.Leg;
+ for(const x of pp['Leg Root'].groups['普通'])x.note='腿的根部；后腿根部很难命中。';
+ for(const x of pp.Mantle.groups['普通'])x.note=x.s==='普通'?'覆盖腿部的毒怪鸟皮。':'外套膜破坏后，腿部中段采用此肉质。';
+ for(const x of pp['Leg Tip'].groups['普通'])x.note='没有外套膜覆盖的脚尖部分。';
+ for(const x of pp.Belly.groups['普通'])x.note='吐丝的腹部；毒刺尚在时为无毒刺的腹部下侧，毒刺两阶段破坏后为整个腹部。';
+}
+tr.part['Leg Root']='腿根';tr.part.Waist='腰部';
 for(const key of Object.keys(tr.part))if(/^RoboHidden/.test(key))delete tr.part[key];
 const cloneNames=new Set(['Nerscylla Clone']);
 // Training target: user keeps soft HZV as default; hard mode is independently selectable.

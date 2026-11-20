@@ -1332,9 +1332,10 @@
   ],
   "resolution": {
     "date": "2026-11-21",
-    "status": "Confirmed gaps integrated into existing categories; ambiguous states and conflicts withheld pending user decisions",
-    "directlyMerged": 4,
+    "status": "User comments applied; AT tempered wounds merged into existing parts; Nerscylla anatomy follows Japanese source; B excluded and C kept unchanged",
+    "directlyMerged": 9,
     "sourceDirectoriesRemoved": true,
-    "decisionReport": "hzv-pending-decisions-20261121.html"
+    "decisionReport": "hzv-pending-decisions-20261121.html",
+    "reviewDecisions": "hzv-review-decisions-20261121.json"
   }
 }

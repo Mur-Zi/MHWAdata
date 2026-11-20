@@ -189,7 +189,8 @@
       "previousValueMissing": true,
       "previousSamePartValue": false,
       "previousBrokenLabel": false,
-      "status": "integrated_in_existing_break_state"
+      "status": "withheld_follow_Japanese_anatomical_classification",
+      "resolution": "Use Japanese named conditions; do not infer a break state from raw key"
     },
     {
       "monster": "Nerscylla",
@@ -210,7 +211,8 @@
       "previousValueMissing": true,
       "previousSamePartValue": false,
       "previousBrokenLabel": false,
-      "status": "integrated_in_existing_break_state"
+      "status": "withheld_follow_Japanese_anatomical_classification",
+      "resolution": "Use Japanese named conditions; do not infer a break state from raw key"
     },
     {
       "monster": "Nerscylla",
@@ -231,7 +233,8 @@
       "previousValueMissing": true,
       "previousSamePartValue": false,
       "previousBrokenLabel": false,
-      "status": "integrated_in_existing_break_state"
+      "status": "withheld_follow_Japanese_anatomical_classification",
+      "resolution": "Use Japanese named conditions; do not infer a break state from raw key"
     },
     {
       "monster": "Nerscylla",
@@ -273,7 +276,8 @@
       "previousValueMissing": false,
       "previousSamePartValue": true,
       "previousBrokenLabel": true,
-      "status": "withheld_pending_part_or_state_mapping"
+      "status": "withheld_follow_Japanese_anatomical_classification",
+      "resolution": "Use Japanese named conditions; do not infer a break state from raw key"
     },
     {
       "monster": "Nerscylla",
@@ -336,7 +340,8 @@
       "previousValueMissing": false,
       "previousSamePartValue": true,
       "previousBrokenLabel": true,
-      "status": "withheld_pending_part_or_state_mapping"
+      "status": "withheld_follow_Japanese_anatomical_classification",
+      "resolution": "Use Japanese named conditions; do not infer a break state from raw key"
     },
     {
       "monster": "Nerscylla",

@@ -1126,7 +1126,7 @@
         if (!e || !e.m) return;
         out.push({ label: e.s ? '历战王·' + e.s : '历战王', meat: e.m });
       });
-      if(raw?.wounds?.length)raw.wounds.forEach(e=>out.push({label:'伤口'+(e.s?'·'+e.s:''),meat:e.m,isWound:true,note:e.note,extract:e.extract}));
+      if(raw?.wounds?.length)raw.wounds.forEach(e=>out.push({label:e.tempered?e.s:'伤口'+(e.s?'·'+e.s:''),meat:e.m,isWound:true,tempered:!!e.tempered,note:e.note,extract:e.extract}));
       else if (raw && raw.wound) out.push({ label: '伤口', meat: raw.wound, isWound: true });
       if (!out.length) out.push({ label: '普通', meat: {} });
       return out;
@@ -1265,7 +1265,7 @@
     function scarRawOf() {
       const [id, index] = state.quest.split(':');
       const sc = questScarRawOf(state.monster, id, Number(index) || 0, state.players);
-      return { ...sc, legendary: state.quest ? sc.legendary : /伤痕/.test(currentMeatLabel()) };
+      return { ...sc, legendary: /历战伤口/.test(currentMeatLabel()) || (state.quest ? sc.legendary : /伤痕/.test(currentMeatLabel())) };
     }
     // Explicit stun HZV also covers immune heads and non-head weak points.
     function currentIsHead() {
