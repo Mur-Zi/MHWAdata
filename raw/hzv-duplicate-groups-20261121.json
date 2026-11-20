@@ -1,0 +1,48 @@
+{
+  "checkedMonsters": 36,
+  "removedGroups": [
+    {
+      "monster": "Ajarakan",
+      "monsterZh": "赫猿兽",
+      "removedGroup": "发怒",
+      "keptGroup": "普通",
+      "removedRows": 11
+    },
+    {
+      "monster": "Lala Barina",
+      "monsterZh": "刺花蜘蛛",
+      "removedGroup": "发怒",
+      "keptGroup": "普通",
+      "removedRows": 11
+    },
+    {
+      "monster": "Quematrice",
+      "monsterZh": "炎尾龙",
+      "removedGroup": "发怒",
+      "keptGroup": "普通",
+      "removedRows": 9
+    },
+    {
+      "monster": "Zoh Shia",
+      "monsterZh": "白炽龙",
+      "removedGroup": "发怒（挑战者判定）",
+      "keptGroup": "普通",
+      "removedRows": 13
+    },
+    {
+      "monster": "Gogmazios",
+      "monsterZh": "巨戟龙",
+      "removedGroup": "发怒",
+      "keptGroup": "普通",
+      "removedRows": 9
+    }
+  ],
+  "removedInvalidRows": [
+    {
+      "monster": "Arkveld",
+      "part": "Chainblade",
+      "sourceLabel": "鎖翼刃[弱点](歴戦王)",
+      "reason": "User correction: nonexistent AT row, physical50/50/45 and all elements12"
+    }
+  ]
+}

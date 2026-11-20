@@ -8,8 +8,9 @@ let checks=0;const check=(v,msg)=>{assert.ok(v,msg);checks++;},eq=(a,b,msg)=>che
 // Every source label, numeric row and phase must survive; equal values cannot hide a lost condition.
 for(const r of source.rows){
  if(r.monster==='Guardian Arkveld'&&['頭','鎖翼刃'].includes(r.label))continue; // Explicit user replacements.
+ if(r.monster==='Arkveld'&&r.label==='鎖翼刃[弱点](歴戦王)')continue; // User deleted nonexistent row.
  const candidates=Object.values(k[r.monster]).flatMap(p=>[...Object.values(p.groups).flat(),...(p.at||[]),...(p.wounds||[])]);
- check(candidates.some(x=>x.sourceLabel===r.label&&x.sourceSection===r.section&&el.every((e,i)=>x.m[e]===r.values[i])&&x.extract===r.extract),r.monster+'/'+r.section+'/'+r.label);}
+ check(candidates.some(x=>[x,...(x.sourceAliases||[])].some(a=>a.sourceLabel===r.label&&a.sourceSection===r.section)&&el.every((e,i)=>x.m[e]===r.values[i])&&x.extract===r.extract),r.monster+'/'+r.section+'/'+r.label);}
 check(Object.keys(raw['Monster Data']).length===36,'36 monster records');check(w.MHWILD_META.monsterCount===36,'metadata monster count');check(!Object.values(raw['Monster Data']).some(d=>d.SourceOnly&&d.Zako),'small monster records removed');check(!k['Omega Micros']&&!k.Dalthydon,'small monster HZV removed');check(Object.keys(raw['Quest Data']).length===602,'602 quests');
 const q=raw['Quest Data']['25425'];check(q?.Level===10&&Object.values(q.Targets).flat().every(t=>t.legendaryID===2&&raw.Difficulty._DifficultyRateArray._DataArray[t.diff]),'new arch-tempered task has valid difficulty');
 eq(k.Chatacabra.Tongue.groups['普通'][0].m.Slash,85,'tongue slash');eq(k.Chatacabra.Tongue.groups['普通'][0].m.Shot,90,'tongue shot');
@@ -46,6 +47,14 @@ check(!k['Uth Duna'].Veil.wounds.some(x=>x.archTempered),'veil is not a wound ta
 eq(k.Arkveld.Chainblade.wounds.find(x=>x.archTempered).m.Dragon,30,'AT chainblade dragon30');
 eq(k['Uth Duna'].Head.wounds.find(x=>x.archTempered).m.Shot,70,'AT Uth head shot70');
 eq(k.Gogmazios.Waist.groups['普通'][0].m.Slash,20,'Gog waist no longer conflated with back');
+for(const n of ['Gogmazios','Ajarakan','Lala Barina','Quematrice','Zoh Shia']){
+ check(Object.values(k[n]).every(p=>!p.groups['发怒']&&!p.groups['发怒（挑战者判定）']),n+' duplicate rage directory removed');
+ check(Object.values(k[n]).every(p=>p.wounds.every(x=>!/^发怒/.test(x.s))),n+' redundant rage wounds merged');
+}
+check(k.Gogmazios.Head.groups['附油']&&k.Gogmazios.Head.groups['气态']&&k.Gogmazios.Head.groups['红温'],'Gog actual transformations preserved');
+check(k['Zoh Shia'].Head.groups['最终形态']&&k.Ajarakan.Head.groups['红莲'],'distinct forms preserved');
+check(!k.Arkveld.Chainblade.at.some(x=>x.m.Fire===12&&x.m.Dragon===12),'nonexistent AT chainblade row deleted');
+check(k.Arkveld.Chainblade.at.length===4,'four actual AT chainblade states retained');
 eq(k.Seregios.Neck.wound.Slash,60,'conflicting neck wound unchanged pending decision');
 check(k['Omega Planetes']['Rear Power Unit'].wounds.some(x=>x.m.Slash===80&&x.m.Shot===20),'known rear power unit wound integrated');
 const pending=JSON.parse(read('raw/hzv-pending-decisions-20261121.json'));

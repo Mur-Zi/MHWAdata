@@ -24,6 +24,8 @@ const result={};
 for(const r of src.rows){
  if(excludedSmall.has(r.monster))continue;
  const n=r.monster,label=r.label,base=label.replace(/\([^)]*\)|\[[^\]]*\]/g,'').replace(/^ダウン中の|^水中にいる時の/,'');
+ // User correction: this source row does not represent an actual AT HZV.
+ if(n==='Arkveld'&&label==='鎖翼刃[弱点](歴戦王)')continue;
  const sp=Object.entries(special).find(([k])=>label===k||label===k+'[傷]');
  const part=n==='Gogmazios'&&base==='腰'?'Waist':sp?sp[1].en:parts[base];if(!part)throw Error('Unmapped part '+n+': '+label);
  const words=[...label.matchAll(/\(([^)]*)\)/g)].flatMap(x=>x[1].split('、'));
@@ -65,6 +67,7 @@ for(const [id,d]of Object.entries(raw['Monster Data']))if(d.SourceOnly&&d.Zako){
 // RAW-only anatomical parts must not disappear when the preferred source omits them.
 const supplemental=[];
 for(const d of Object.values(raw['Monster Data'])){
+ if(d.SourceOnly)continue;
  const pp=result[d.Name];if(!pp)continue;
  for(const r of d.Hitzones?.Rows||[]){
   if(d.Name==='Nerscylla'&&['Foreleg','Hind Leg'].includes(r.Part))continue;
@@ -158,6 +161,38 @@ if(training){
   result[trainingName][r.Part]={groups:{软肉质:[soft],硬肉质:[{s:'',m:r.HardMeat,extract,note:''}]},at:null,wound:r.ScarMeat||null,wounds:r.ScarMeat?[{s:'软／硬肉质共用',m:r.ScarMeat,extract,note:''}]:[]};
  }
 }
+// Collapse rage-only HZV directories only when every part, substate, value
+// and kinsect extract equals the ordinary directory. Enrage damage modifiers
+// remain independent of these HZV display groups.
+const duplicateAudit=[];
+const rowKey=r=>JSON.stringify([r.s,el.map(e=>r.m[e]),r.extract||'']);
+const mergeSource=(keep,removed)=>{
+ const aliases=[...(keep.sourceAliases||[]),{source:removed.source,sourceLabel:removed.sourceLabel,sourceSection:removed.sourceSection},...(removed.sourceAliases||[])];
+ keep.sourceAliases=aliases.filter((r,i)=>r.sourceLabel&&aliases.findIndex(x=>JSON.stringify(x)===JSON.stringify(r))===i);
+ if(removed.note&&removed.note!==keep.note)keep.note=[...new Set([keep.note,removed.note].filter(Boolean))].join('\n');
+};
+for(const [name,pp]of Object.entries(result)){
+ const groupKey=g=>JSON.stringify(Object.entries(pp).flatMap(([part,p])=>(p.groups[g]||[]).map(r=>JSON.stringify([part,rowKey(r)]))).sort());
+ for(const group of ['发怒','发怒（挑战者判定）']){
+  if(!Object.values(pp).some(p=>p.groups[group]?.length)||groupKey(group)!==groupKey('普通'))continue;
+  let removedRows=0;
+  for(const p of Object.values(pp)){
+   for(const r of p.groups[group]||[]){mergeSource(p.groups['普通'].find(x=>rowKey(x)===rowKey(r)),r);removedRows++;}
+   delete p.groups[group];
+   for(const rows of [...Object.values(p.groups),p.wounds])for(const r of rows){
+    const plain=r.s===group?'':r.s.startsWith(group+'·')?r.s.slice(group.length+1):null;
+    if(plain!==null&&rows.some(x=>x!==r&&rowKey(x)===rowKey({...r,s:plain})))r.s=plain;
+   }
+  }
+  duplicateAudit.push({monster:name,monsterZh:tr.monster[name]||name,removedGroup:group,keptGroup:'普通',removedRows});
+ }
+ for(const p of Object.values(pp))for(const rows of [...Object.values(p.groups),p.at||[],p.wounds]){
+  const unique=[];
+  for(const r of rows){const prior=unique.find(x=>rowKey(x)===rowKey(r));if(prior)mergeSource(prior,r);else unique.push(r);}
+  rows.splice(0,rows.length,...unique);
+ }
+}
+fs.writeFileSync(new URL('raw/hzv-duplicate-groups-20261121.json',root),JSON.stringify({checkedMonsters:Object.keys(result).length,removedGroups:duplicateAudit,removedInvalidRows:[{monster:'Arkveld',part:'Chainblade',sourceLabel:'鎖翼刃[弱点](歴戦王)',reason:'User correction: nonexistent AT row, physical50/50/45 and all elements12'}]},null,2));
 for(const name of Object.keys(result))if(!raw['Monster Names'][name]){
  const id='kuro-'+src.rows.find(r=>r.monster===name).id;
  raw['Monster Names'][name]=id;
