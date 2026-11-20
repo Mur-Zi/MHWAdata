@@ -32,6 +32,9 @@ for(const [n,pp]of Object.entries(k))for(const [p,v]of Object.entries(pp)){
 for(const part of ['Head','Torso','Belly'])check(!k.Nerscylla[part].groups['普通'].some(x=>x.s==='破坏后'),'Nerscylla '+part+' no speculative break mapping');
 for(const n of ['Nerscylla','Nerscylla Clone'])check(k[n]['Leg Root']&&k[n]['Leg Tip']&&!k[n].Foreleg&&!k[n]['Hind Leg'],'spider anatomy follows Japanese classification');
 eq(k.Chatacabra.Foreleg.groups['普通'].find(x=>x.reviewed).m.Blow,70,'confirmed frog broken foreleg');
+check(k.Chatacabra.Foreleg.groups['普通'].some(x=>x.s==='缠石'&&x.m.Slash===50),'frog intact stone condition');
+check(k.Chatacabra.Foreleg.groups['普通'].some(x=>x.s==='破坏后·缠石'&&x.m.Slash===55),'frog broken stone condition');
+check(k.Chatacabra.Foreleg.groups['普通'].some(x=>x.s==='破坏后'&&x.m.Slash===75),'frog other broken HZV retained');
 eq(k['Guardian Arkveld'].Head.groups['普通'][0].m.Fire,10,'guardian ordinary head replaced');
 eq(k['Guardian Arkveld'].Chainblade.groups['普通'][0].m.Dragon,20,'guardian ordinary chainblade replaced');
 for(const [n,parts]of [['Arkveld',['Head','Chainblade','Torso','Leg','Tail']],['Uth Duna',['Head','Torso','Foreleg','Hind Leg','Tail']]])for(const part of parts){

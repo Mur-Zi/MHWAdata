@@ -104,8 +104,11 @@ const reviewedRow=(name,index,label)=>{
  return {s:label,m:r.Meat,extract:({1:'赤',2:'白',3:'橙',4:'緑'})[r.KE]||'',note:'',source:'robomeche',sourceIndex:index,sourceField:'Meat',reviewed:true};
 };
 const frogRows=result.Chatacabra.Foreleg.groups['普通'];
-frogRows.find(x=>x.s==='破坏后').s='破坏后（75／75／75）';
-frogRows.push(reviewedRow('Chatacabra',6,'破坏后（55／70／55）'));
+for(const x of [...frogRows,...result.Chatacabra.Foreleg.wounds])x.s=x.s.replaceAll('粘着','缠石');
+frogRows.find(x=>x.s==='破坏后').note='未缠石时的破坏后肉质；历战个体破坏前腿后不会变成此肉质。缠石时使用“破坏后·缠石”肉质。';
+const brokenStone=reviewedRow('Chatacabra',6,'破坏后·缠石');
+brokenStone.note='前腿已破坏且处于缠石状态时使用；未破坏的缠石前腿斩击肉质为50。';
+frogRows.push(brokenStone);
 for(const [part,index]of [['Head',1],['Chainblade',9]]){
  const p=result['Guardian Arkveld'][part],row=reviewedRow('Guardian Arkveld',index,'普通');
  row.extract=p.groups['普通'][0].extract;p.groups['普通'][0]=row;
