@@ -76,6 +76,18 @@ for(const d of Object.values(raw['Monster Data'])){
 }
 Object.assign(tr.monster,{'Nerscylla Clone':'克隆影蜘蛛'});Object.assign(tr.part,{'Leg Tip':'脚尖','Whole Body':'全身'});
 const cloneNames=new Set(['Nerscylla Clone']);
+// Training target: user keeps soft HZV as default; hard mode is independently selectable.
+const trainingName='High Purrformance Barrel Puncher',training=raw['Monster Data'][raw['Monster Names'][trainingName]];
+if(training){
+ result[trainingName]={};
+ for(const r of training.Hitzones.Rows){
+  if(!r.Meat)continue;
+  const back=r.Part==='Back Panel',extract=({1:'赤',2:'白',3:'橙',4:'緑'})[r.KE]||'';
+  const rows=[{s:back?'普通':'软肉质',m:r.Meat,extract,note:''}];
+  if(!back){r.HardMeat={...r.Meat};for(const e of el.slice(0,3))r.HardMeat[e]=40;for(const e of el.slice(3,8))r.HardMeat[e]=15;rows.push({s:'硬肉质',m:r.HardMeat,extract,note:''});}
+  result[trainingName][r.Part]={groups:{普通:rows},at:null,wound:r.ScarMeat||null,wounds:r.ScarMeat?[{s:'软／硬肉质共用',m:r.ScarMeat,extract,note:''}]:[]};
+ }
+}
 for(const name of Object.keys(result))if(!raw['Monster Names'][name]){
  const id='kuro-'+src.rows.find(r=>r.monster===name).id;
  raw['Monster Names'][name]=id;

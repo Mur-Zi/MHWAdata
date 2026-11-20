@@ -1,0 +1,1333 @@
+{
+  "source": "https://github.com/RoboMechE/MHWilds-Database/blob/main/monster/assets/json/MHWilds_Data_compact.json.gz",
+  "checkedAt": "2026-11-20",
+  "scope": "Large monsters; training hard HZV added separately; small monsters excluded by user request",
+  "valueOrder": [
+    "Slash",
+    "Blow",
+    "Shot",
+    "Fire",
+    "Water",
+    "Thunder",
+    "Ice",
+    "Dragon",
+    "Stun"
+  ],
+  "summary": {
+    "仅昏厥不同": 5,
+    "已命名部位/状态差异": 23,
+    "部位未辨识": 18,
+    "隐藏条目": 8,
+    "克隆影蜘蛛已有同值": 4
+  },
+  "records": [
+    {
+      "monster": "Balahara",
+      "index": 6,
+      "part": "Weak Points",
+      "state": "Weak",
+      "field": "Meat",
+      "values": [
+        80,
+        80,
+        75,
+        10,
+        0,
+        20,
+        5,
+        5,
+        0
+      ],
+      "onlyStunDiff": true,
+      "cloneCovered": false,
+      "category": "仅昏厥不同"
+    },
+    {
+      "monster": "Seregios",
+      "index": 1,
+      "part": "Neck",
+      "state": "",
+      "field": "ScarMeat",
+      "values": [
+        50,
+        45,
+        45,
+        0,
+        5,
+        15,
+        10,
+        0,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "已命名部位/状态差异"
+    },
+    {
+      "monster": "Rathian",
+      "index": 6,
+      "part": "Unmatched 1",
+      "state": "",
+      "field": "Meat",
+      "values": [
+        40,
+        45,
+        35,
+        0,
+        0,
+        5,
+        0,
+        15,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "部位未辨识"
+    },
+    {
+      "monster": "Chatacabra",
+      "index": 1,
+      "part": "Head",
+      "state": "Weak",
+      "field": "Meat",
+      "values": [
+        90,
+        90,
+        95,
+        10,
+        5,
+        30,
+        15,
+        0,
+        0
+      ],
+      "onlyStunDiff": true,
+      "cloneCovered": false,
+      "category": "仅昏厥不同"
+    },
+    {
+      "monster": "Chatacabra",
+      "index": 6,
+      "part": "Foreleg",
+      "state": "State 3",
+      "field": "Meat",
+      "values": [
+        55,
+        70,
+        55,
+        0,
+        5,
+        15,
+        10,
+        0,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "已命名部位/状态差异"
+    },
+    {
+      "monster": "Gogmazios",
+      "index": 1,
+      "part": "Head",
+      "state": "Weak",
+      "field": "Meat",
+      "values": [
+        65,
+        65,
+        60,
+        20,
+        0,
+        5,
+        0,
+        55,
+        100
+      ],
+      "onlyStunDiff": true,
+      "cloneCovered": false,
+      "category": "仅昏厥不同"
+    },
+    {
+      "monster": "Gogmazios",
+      "index": 29,
+      "part": "HIDE",
+      "state": "",
+      "field": "Meat",
+      "values": [
+        65,
+        65,
+        50,
+        20,
+        0,
+        5,
+        0,
+        55,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "隐藏条目"
+    },
+    {
+      "monster": "Gogmazios",
+      "index": 31,
+      "part": "Head",
+      "state": "Liq. Wound",
+      "field": "Meat",
+      "values": [
+        50,
+        50,
+        50,
+        15,
+        0,
+        0,
+        0,
+        30,
+        100
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "已命名部位/状态差异"
+    },
+    {
+      "monster": "Gogmazios",
+      "index": 32,
+      "part": "Head",
+      "state": "Gas Wound",
+      "field": "Meat",
+      "values": [
+        60,
+        60,
+        50,
+        5,
+        0,
+        5,
+        0,
+        55,
+        100
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "已命名部位/状态差异"
+    },
+    {
+      "monster": "Gogmazios",
+      "index": 33,
+      "part": "Others",
+      "state": "Liq. Wound",
+      "field": "Meat",
+      "values": [
+        50,
+        50,
+        50,
+        15,
+        0,
+        0,
+        0,
+        30,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "已命名部位/状态差异"
+    },
+    {
+      "monster": "Gogmazios",
+      "index": 34,
+      "part": "Others",
+      "state": "Gas Wound",
+      "field": "Meat",
+      "values": [
+        60,
+        60,
+        50,
+        5,
+        0,
+        5,
+        0,
+        55,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "已命名部位/状态差异"
+    },
+    {
+      "monster": "Omega Planetes",
+      "index": 11,
+      "part": "Rear Power Unit",
+      "state": "",
+      "field": "ScarMeat",
+      "values": [
+        80,
+        100,
+        20,
+        0,
+        5,
+        15,
+        5,
+        30,
+        30
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "已命名部位/状态差异"
+    },
+    {
+      "monster": "Omega Planetes",
+      "index": 15,
+      "part": "Unmatched 1",
+      "state": "",
+      "field": "Meat",
+      "values": [
+        55,
+        75,
+        15,
+        0,
+        5,
+        15,
+        5,
+        30,
+        30
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "部位未辨识"
+    },
+    {
+      "monster": "Omega Planetes",
+      "index": 16,
+      "part": "Unmatched 2",
+      "state": "",
+      "field": "Meat",
+      "values": [
+        40,
+        45,
+        40,
+        0,
+        5,
+        15,
+        5,
+        10,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "部位未辨识"
+    },
+    {
+      "monster": "Omega Planetes",
+      "index": 18,
+      "part": "Unmatched 4",
+      "state": "",
+      "field": "Meat",
+      "values": [
+        30,
+        35,
+        30,
+        0,
+        5,
+        15,
+        5,
+        10,
+        100
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "部位未辨识"
+    },
+    {
+      "monster": "Omega Planetes",
+      "index": 19,
+      "part": "Unmatched 5",
+      "state": "",
+      "field": "Meat",
+      "values": [
+        33,
+        45,
+        40,
+        0,
+        5,
+        15,
+        5,
+        10,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "部位未辨识"
+    },
+    {
+      "monster": "Omega Planetes",
+      "index": 20,
+      "part": "Unmatched 6",
+      "state": "",
+      "field": "Meat",
+      "values": [
+        40,
+        33,
+        33,
+        0,
+        5,
+        15,
+        5,
+        10,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "部位未辨识"
+    },
+    {
+      "monster": "Mizutsune",
+      "index": 13,
+      "part": "Unmatched 1",
+      "state": "",
+      "field": "Meat",
+      "values": [
+        43,
+        43,
+        40,
+        8,
+        0,
+        10,
+        5,
+        8,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "部位未辨识"
+    },
+    {
+      "monster": "Mizutsune",
+      "index": 14,
+      "part": "Unmatched 2",
+      "state": "",
+      "field": "Meat",
+      "values": [
+        28,
+        28,
+        10,
+        5,
+        0,
+        30,
+        15,
+        30,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "部位未辨识"
+    },
+    {
+      "monster": "Mizutsune",
+      "index": 15,
+      "part": "Unmatched 3",
+      "state": "",
+      "field": "Meat",
+      "values": [
+        50,
+        45,
+        45,
+        5,
+        0,
+        15,
+        5,
+        5,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "部位未辨识"
+    },
+    {
+      "monster": "Hirabami",
+      "index": 7,
+      "part": "Unmatched 1",
+      "state": "",
+      "field": "Meat",
+      "values": [
+        65,
+        70,
+        60,
+        20,
+        5,
+        15,
+        0,
+        5,
+        100
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "部位未辨识"
+    },
+    {
+      "monster": "Arkveld",
+      "index": 11,
+      "part": "Unmatched 1",
+      "state": "",
+      "field": "Meat",
+      "values": [
+        65,
+        65,
+        65,
+        25,
+        25,
+        25,
+        25,
+        35,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "部位未辨识"
+    },
+    {
+      "monster": "Arkveld",
+      "index": 12,
+      "part": "Head",
+      "state": "AT Wnd",
+      "field": "Meat",
+      "values": [
+        65,
+        68,
+        62,
+        10,
+        10,
+        10,
+        10,
+        10,
+        100
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "已命名部位/状态差异"
+    },
+    {
+      "monster": "Arkveld",
+      "index": 13,
+      "part": "Chainblade",
+      "state": "AT Wnd",
+      "field": "Meat",
+      "values": [
+        70,
+        70,
+        68,
+        30,
+        30,
+        30,
+        30,
+        30,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "已命名部位/状态差异"
+    },
+    {
+      "monster": "Arkveld",
+      "index": 14,
+      "part": "All Others",
+      "state": "AT Wnd",
+      "field": "Meat",
+      "values": [
+        60,
+        62,
+        65,
+        10,
+        10,
+        10,
+        10,
+        10,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "已命名部位/状态差异"
+    },
+    {
+      "monster": "Ajarakan",
+      "index": 11,
+      "part": "HIDE",
+      "state": "",
+      "field": "Meat",
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "隐藏条目"
+    },
+    {
+      "monster": "Uth Duna",
+      "index": 1,
+      "part": "Head",
+      "state": "Weak",
+      "field": "Meat",
+      "values": [
+        90,
+        90,
+        86,
+        15,
+        0,
+        25,
+        5,
+        5,
+        0
+      ],
+      "onlyStunDiff": true,
+      "cloneCovered": false,
+      "category": "仅昏厥不同"
+    },
+    {
+      "monster": "Uth Duna",
+      "index": 15,
+      "part": "Head",
+      "state": "AT Wnd",
+      "field": "Meat",
+      "values": [
+        88,
+        90,
+        70,
+        15,
+        0,
+        20,
+        5,
+        5,
+        100
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "已命名部位/状态差异"
+    },
+    {
+      "monster": "Uth Duna",
+      "index": 16,
+      "part": "All Others",
+      "state": "AT Wnd",
+      "field": "Meat",
+      "values": [
+        80,
+        80,
+        65,
+        15,
+        0,
+        20,
+        5,
+        5,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "已命名部位/状态差异"
+    },
+    {
+      "monster": "Lagiacrus",
+      "index": 12,
+      "part": "HIDE",
+      "state": "",
+      "field": "Meat",
+      "values": [
+        55,
+        55,
+        55,
+        10,
+        0,
+        0,
+        10,
+        10,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "隐藏条目"
+    },
+    {
+      "monster": "Lagiacrus",
+      "index": 14,
+      "part": "HIDE",
+      "state": "",
+      "field": "Meat",
+      "values": [
+        25,
+        25,
+        25,
+        5,
+        0,
+        0,
+        5,
+        5,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "隐藏条目"
+    },
+    {
+      "monster": "Lagiacrus",
+      "index": 15,
+      "part": "HIDE",
+      "state": "",
+      "field": "Meat",
+      "values": [
+        25,
+        25,
+        25,
+        10,
+        0,
+        0,
+        5,
+        5,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "隐藏条目"
+    },
+    {
+      "monster": "Lagiacrus",
+      "index": 16,
+      "part": "HIDE",
+      "state": "",
+      "field": "Meat",
+      "values": [
+        38,
+        38,
+        38,
+        10,
+        0,
+        0,
+        5,
+        5,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "隐藏条目"
+    },
+    {
+      "monster": "Nerscylla",
+      "index": 1,
+      "part": "Head",
+      "state": "Break*",
+      "field": "Meat",
+      "values": [
+        50,
+        65,
+        50,
+        5,
+        0,
+        10,
+        5,
+        0,
+        100
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "已命名部位/状态差异"
+    },
+    {
+      "monster": "Nerscylla",
+      "index": 2,
+      "part": "Head",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        50,
+        50,
+        50,
+        25,
+        0,
+        0,
+        5,
+        0,
+        100
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": true,
+      "category": "克隆影蜘蛛已有同值"
+    },
+    {
+      "monster": "Nerscylla",
+      "index": 3,
+      "part": "Head",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        50,
+        50,
+        50,
+        5,
+        0,
+        10,
+        5,
+        0,
+        100
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "已命名部位/状态差异"
+    },
+    {
+      "monster": "Nerscylla",
+      "index": 5,
+      "part": "Torso",
+      "state": "Break*",
+      "field": "Meat",
+      "values": [
+        36,
+        36,
+        40,
+        5,
+        0,
+        25,
+        5,
+        0,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "已命名部位/状态差异"
+    },
+    {
+      "monster": "Nerscylla",
+      "index": 7,
+      "part": "Torso",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        36,
+        36,
+        40,
+        5,
+        0,
+        25,
+        5,
+        0,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "已命名部位/状态差异"
+    },
+    {
+      "monster": "Nerscylla",
+      "index": 9,
+      "part": "Belly",
+      "state": "Break*",
+      "field": "Meat",
+      "values": [
+        65,
+        50,
+        45,
+        5,
+        0,
+        20,
+        5,
+        0,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "已命名部位/状态差异"
+    },
+    {
+      "monster": "Nerscylla",
+      "index": 10,
+      "part": "Belly",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        45,
+        45,
+        45,
+        25,
+        0,
+        10,
+        5,
+        0,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": true,
+      "category": "克隆影蜘蛛已有同值"
+    },
+    {
+      "monster": "Nerscylla",
+      "index": 11,
+      "part": "Belly",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        45,
+        45,
+        45,
+        5,
+        0,
+        20,
+        5,
+        0,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "已命名部位/状态差异"
+    },
+    {
+      "monster": "Nerscylla",
+      "index": 14,
+      "part": "Claw",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        30,
+        30,
+        30,
+        5,
+        0,
+        5,
+        5,
+        0,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": true,
+      "category": "克隆影蜘蛛已有同值"
+    },
+    {
+      "monster": "Nerscylla",
+      "index": 15,
+      "part": "Claw",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        30,
+        30,
+        30,
+        5,
+        0,
+        10,
+        5,
+        0,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "已命名部位/状态差异"
+    },
+    {
+      "monster": "Nerscylla",
+      "index": 35,
+      "part": "Stinger",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        30,
+        30,
+        30,
+        25,
+        0,
+        0,
+        5,
+        0,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": true,
+      "category": "克隆影蜘蛛已有同值"
+    },
+    {
+      "monster": "Nerscylla",
+      "index": 36,
+      "part": "Stinger",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        30,
+        30,
+        30,
+        5,
+        0,
+        35,
+        5,
+        0,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "已命名部位/状态差异"
+    },
+    {
+      "monster": "Nerscylla",
+      "index": 39,
+      "part": "HIDE",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        30,
+        30,
+        30,
+        25,
+        0,
+        0,
+        5,
+        0,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": true,
+      "category": "隐藏条目"
+    },
+    {
+      "monster": "Nerscylla",
+      "index": 40,
+      "part": "HIDE",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        30,
+        30,
+        30,
+        5,
+        0,
+        35,
+        5,
+        0,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "隐藏条目"
+    },
+    {
+      "monster": "Rey Dau",
+      "index": 8,
+      "part": "Unmatched 1",
+      "state": "",
+      "field": "Meat",
+      "values": [
+        45,
+        50,
+        35,
+        5,
+        5,
+        0,
+        10,
+        5,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "部位未辨识"
+    },
+    {
+      "monster": "Zoh Shia",
+      "index": 19,
+      "part": "Unmatched 1",
+      "state": "",
+      "field": "Meat",
+      "values": [
+        60,
+        60,
+        60,
+        10,
+        5,
+        5,
+        5,
+        20,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "部位未辨识"
+    },
+    {
+      "monster": "Guardian Arkveld",
+      "index": 1,
+      "part": "Head",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        45,
+        48,
+        45,
+        10,
+        10,
+        10,
+        10,
+        10,
+        100
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "已命名部位/状态差异"
+    },
+    {
+      "monster": "Guardian Arkveld",
+      "index": 7,
+      "part": "Chainblade",
+      "state": "Weak",
+      "field": "Meat",
+      "values": [
+        50,
+        50,
+        45,
+        20,
+        20,
+        20,
+        20,
+        20,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "已命名部位/状态差异"
+    },
+    {
+      "monster": "Guardian Arkveld",
+      "index": 9,
+      "part": "Chainblade",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        50,
+        50,
+        45,
+        20,
+        20,
+        20,
+        20,
+        20,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "已命名部位/状态差异"
+    },
+    {
+      "monster": "Guardian Arkveld",
+      "index": 11,
+      "part": "Unmatched 1",
+      "state": "",
+      "field": "Meat",
+      "values": [
+        65,
+        65,
+        65,
+        25,
+        25,
+        25,
+        25,
+        35,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "部位未辨识"
+    },
+    {
+      "monster": "Guardian Arkveld",
+      "index": 12,
+      "part": "Unmatched 2",
+      "state": "",
+      "field": "Meat",
+      "values": [
+        65,
+        68,
+        62,
+        5,
+        5,
+        10,
+        5,
+        15,
+        100
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "部位未辨识"
+    },
+    {
+      "monster": "Guardian Arkveld",
+      "index": 13,
+      "part": "Unmatched 3",
+      "state": "",
+      "field": "Meat",
+      "values": [
+        65,
+        68,
+        62,
+        10,
+        10,
+        10,
+        10,
+        10,
+        100
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "部位未辨识"
+    },
+    {
+      "monster": "Guardian Arkveld",
+      "index": 14,
+      "part": "Unmatched 4",
+      "state": "",
+      "field": "Meat",
+      "values": [
+        70,
+        70,
+        68,
+        30,
+        30,
+        30,
+        30,
+        30,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "部位未辨识"
+    },
+    {
+      "monster": "Guardian Arkveld",
+      "index": 15,
+      "part": "Unmatched 5",
+      "state": "",
+      "field": "Meat",
+      "values": [
+        60,
+        62,
+        65,
+        10,
+        10,
+        10,
+        10,
+        10,
+        0
+      ],
+      "onlyStunDiff": false,
+      "cloneCovered": false,
+      "category": "部位未辨识"
+    },
+    {
+      "monster": "Gore Magala",
+      "index": 1,
+      "part": "Head",
+      "state": "Weak",
+      "field": "Meat",
+      "values": [
+        75,
+        70,
+        50,
+        15,
+        0,
+        15,
+        5,
+        15,
+        0
+      ],
+      "onlyStunDiff": true,
+      "cloneCovered": false,
+      "category": "仅昏厥不同"
+    }
+  ],
+  "rawPartKeysNotSeparatelyListed": [
+    [
+      "Gogmazios",
+      "Leg"
+    ],
+    [
+      "Gogmazios",
+      "Belly"
+    ],
+    [
+      "Gogmazios",
+      "Tail Tip"
+    ],
+    [
+      "Mizutsune",
+      "Leg"
+    ],
+    [
+      "Guardian Fulgur Anjanath",
+      "Left Leg"
+    ],
+    [
+      "Guardian Fulgur Anjanath",
+      "Leg"
+    ],
+    [
+      "Guardian Fulgur Anjanath",
+      "Right Leg"
+    ],
+    [
+      "Rompopolo",
+      "Torso"
+    ],
+    [
+      "Xu Wu",
+      "Front Arm"
+    ],
+    [
+      "Xu Wu",
+      "Middle Arm"
+    ],
+    [
+      "Xu Wu",
+      "Rear Arm"
+    ],
+    [
+      "Uth Duna",
+      "Veil:Head"
+    ],
+    [
+      "Uth Duna",
+      "Veil:Foreleg"
+    ],
+    [
+      "Uth Duna",
+      "Veil:Tail (Middle)"
+    ],
+    [
+      "Jin Dahaad",
+      "Leg"
+    ],
+    [
+      "Nu Udra",
+      "Front Arm"
+    ],
+    [
+      "Nu Udra",
+      "Middle Arm"
+    ],
+    [
+      "Nu Udra",
+      "Rear Arm"
+    ],
+    [
+      "Nerscylla",
+      "Left Claw"
+    ],
+    [
+      "Nerscylla",
+      "Right Claw"
+    ],
+    [
+      "Zoh Shia",
+      "Head (Crystallized)"
+    ],
+    [
+      "Zoh Shia",
+      "Wingarm (Crystallized)"
+    ]
+  ]
+}
