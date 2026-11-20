@@ -15,7 +15,15 @@ try{for(const width of [1440,412]){
   const change=(id,value)=>{q(id).value=String(value);q(id).dispatchEvent(new Event('change',{bubbles:true}));};
   for(const m of D.monsters){D.openMonster(m.name);const el=q('view-monster-detail');check(m.name+' detail renders',el.querySelectorAll('[data-hzv-row]').length>0);check(m.name+' no source directories',!el.querySelector('[data-hzv="原始数据库"],[data-hzv="原表破坏后"]'));}
   for(const n of ['Gogmazios','Ajarakan','Lala Barina','Quematrice','Zoh Shia']){D.openMonster(n);const el=q('view-monster-detail');check(n+' duplicate rage tab absent',!el.querySelector('[data-hzv="发怒"],[data-hzv="发怒（挑战者判定）"]'));}
-  D.openMonster('Arkveld');q('view-monster-detail').querySelector('[data-hzv='+'历战王'+']').click();check('AT chainblade invalid last row absent',Array.from(q('view-monster-detail').querySelectorAll('[data-hzv-row="历战王"]:not(.note-row)')).filter(r=>r.querySelector('.part-name')?.textContent==='锁翼刃').length===4);
+  D.openMonster('Arkveld');q('view-monster-detail').querySelector('[data-hzv='+'历战王'+']').click();check('AT chainblade invalid last row absent',Array.from(q('view-monster-detail').querySelectorAll('[data-hzv-row="历战王"]:not(.note-row)')).filter(r=>r.querySelector('.part-name')?.textContent==='锁翼刃').length===3);
+  for(const m of D.monsters){
+   D.openMonster(m.name);const el=q('view-monster-detail'),pp=window.MHWILD_KURO_HZV[m.name];
+   const expected=Object.values(pp).flatMap(p=>[...Object.values(p.groups).flat(),...(p.at||[])]).filter(r=>(r.s||'').split('·').includes('伤痕')).length;
+   check(m.name+' scar tab only when needed',!!el.querySelector('[data-hzv="伤痕"]')===(expected>0));
+   check(m.name+' scar rows separated',el.querySelectorAll('[data-hzv-row="伤痕"]:not(.note-row)').length===expected);
+   check(m.name+' no scar marker in condition column',Array.from(el.querySelectorAll('.state-tag')).every(c=>!c.textContent.includes('伤痕')));
+  }
+  D.openMonster('Arkveld');let scarDetail=q('view-monster-detail');scarDetail.querySelector('[data-hzv="伤痕"]').click();check('AT identity retained in scar directory',Array.from(scarDetail.querySelectorAll('[data-hzv-row="伤痕"]:not(.note-row)')).some(r=>r.querySelector('.state-tag').textContent==='历战王·锁刃2根时'));check('scar directory active',scarDetail.querySelector('[data-hzv="伤痕"]').classList.contains('active'));
   D.openMonster('Chatacabra');check('tongue on monster page',q('view-monster-detail').textContent.includes('舌'));check('extract column',q('view-monster-detail').textContent.includes('猎虫精华'));
   D.openMonster('Zoh Shia');q('view-monster-detail').querySelector('[data-hzv="伤口"]').click();check('wound state column visible',!q('view-monster-detail').querySelector('.state-col').hidden);check('final form tab',q('view-monster-detail').querySelector('[data-hzv="最终形态"]'));
   D.openMonster('Rey Dau');let detail=q('view-monster-detail');check('sever threshold header',detail.textContent.includes('断尾（切断）'));check('sever 500',Array.from(detail.querySelectorAll('table tr')).some(r=>/尾/.test(r.textContent)&&r.textContent.includes('500')));

@@ -463,13 +463,15 @@
         return arr;
       });
       const activeElements = ELEMENTS.filter((e) => allMeats.some((meat) => typeof meat[e] === 'number' && meat[e] !== 0));
-      const isAT = kuroParts.some(([,p])=>p.at?.length);
-      // 组 tab 顺序：普通 → 历战王 → 状态组 → 伤口
+      const isScar = (row) => (row.s || '').split('·').includes('伤痕');
+      const isAT = kuroParts.some(([,p])=>p.at?.some(row=>!isScar(row)));
+      const hasScars = kuroParts.some(([,p])=>[...Object.values(p.groups).flat(),...(p.at||[])].some(isScar));
+      // Separate scars from ordinary/AT conditions in the monster HZV table.
       const stateGroups = [];
-      kuroParts.forEach(([, p]) => Object.keys(p.groups).forEach((g) => { if (g !== '普通' && !stateGroups.includes(g)) stateGroups.push(g); }));
+      kuroParts.forEach(([, p]) => Object.keys(p.groups).forEach((g) => { if (g !== '普通' && p.groups[g].some(row=>!isScar(row)) && !stateGroups.includes(g)) stateGroups.push(g); }));
       const hasWounds=kuroParts.some(([,p])=>p.wounds?.length||p.wound);
-      const groups = [...(kuroParts.some(([,p])=>p.groups['普通'])?['普通']:[]), ...(isAT ? ['历战王'] : []), ...stateGroups, ...(hasWounds?['伤口']:[])];
-      const tabLabel = (g) => (g === '普通' ? '普通肉质' : g === '历战王' ? '历战王肉质' : g === '伤口' ? '伤口肉质' : ['软肉质','硬肉质','原始数据库','原表破坏后'].includes(g)?g:g + '状态');
+      const groups = [...(kuroParts.some(([,p])=>p.groups['普通']?.some(row=>!isScar(row)))?['普通']:[]), ...(isAT ? ['历战王'] : []), ...stateGroups, ...(hasScars?['伤痕']:[]), ...(hasWounds?['伤口']:[])];
+      const tabLabel = (g) => (g === '普通' ? '普通肉质' : g === '历战王' ? '历战王肉质' : g === '伤口' ? '伤口肉质' : g === '伤痕' ? '伤痕肉质' : ['软肉质','硬肉质','原始数据库','原表破坏后'].includes(g)?g:g + '状态');
       const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
       const meatCell = (meat) => activeElements.map((e) => {
         const v = meat ? meat[e] : undefined;
@@ -482,14 +484,19 @@
         if (note) out += `<tr class="note-row" data-hzv-row="${g}" hidden><td colspan="${activeElements.length + 3}" class="note-text">${esc(note)}</td></tr>`;
         return out;
       };
+      const conditionRow = (pn, row, group) => {
+        if (!isScar(row)) return makeRow(pn,row.s,row.m,group,row.note,row.extract);
+        const condition = [...(group==='普通'?[]:[group]),...(row.s||'').split('·').filter(s=>s&&s!=='伤痕'&&s!=='普通')].join('·') || '普通';
+        return makeRow(pn,condition,row.m,'伤痕',row.note,row.extract);
+      };
       html += `<section class="section"><h2>肉质（HZV）</h2>
         <div class="toggle-group">${groups.map((g, i) => `<button class="toggle-btn${i === 0 ? ' active' : ''}" data-hzv="${g}">${tabLabel(g)}</button>`).join('')}</div>
         <div class="tbl-wrap"><table><thead><tr><th class="fz1">部位</th><th class="fz2 state-col">状态</th>${activeElements.map((e) => `<th title="${zh(TR.element, e)}">${elementIcon(e)}</th>`).join('')}<th>猎虫精华</th></tr></thead>
         <tbody>${kuroParts.map(([en, p]) => {
           const pn = partName(m.name, en);
           let rows = '';
-          for (const g of Object.keys(p.groups)) rows += p.groups[g].map((x) => makeRow(pn, x.s, x.m, g, x.note,x.extract)).join('');
-          if (p.at) rows += p.at.map((x) => makeRow(pn, x.s, x.m, '历战王', x.note,x.extract)).join('');
+          for (const g of Object.keys(p.groups)) rows += p.groups[g].map((x) => conditionRow(pn,x,g)).join('');
+          if (p.at) rows += p.at.map((x) => conditionRow(pn,x,'历战王')).join('');
           if(p.wounds?.length)rows+=p.wounds.map(x=>makeRow(pn,x.s,x.m,'伤口',x.note,x.extract)).join('');
           else if (p.wound) rows += makeRow(pn, '', p.wound, '伤口', '');
           return rows;
