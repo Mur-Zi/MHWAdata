@@ -50,7 +50,8 @@ eq(k.Seregios.Neck.wound.Slash,60,'conflicting neck wound unchanged pending deci
 check(k['Omega Planetes']['Rear Power Unit'].wounds.some(x=>x.m.Slash===80&&x.m.Shot===20),'known rear power unit wound integrated');
 const pending=JSON.parse(read('raw/hzv-pending-decisions-20261121.json'));
 check(pending.states.length===83,'all 83 numbered/AT states listed for review');check(pending.unknown.length===50,'all unnamed and hidden rows listed');
-check(pending.pending.map(r=>r.id).join(',')==='A54,A56,A58,A60,A62,A68,A70','only seven unmatched spider State2 rows need confirmation; IDs stable');
+check(pending.pending.length===0,'mixed clone State2 records no longer require confirmation');
+for(const id of ['A54','A56','A58','A60','A62','A68','A70'])check(pending.resolved.some(r=>r.id===id&&r.status==='resolved'),id+' resolved by paired clone grouping');
 check(pending.pending.every(r=>!r.matchingExisting.length&&r.status==='pending'),'no covered rows in pending queue');
 check(pending.resolved.some(r=>r.id==='A01'&&r.status==='covered')&&pending.resolved.some(r=>r.id==='A03'&&r.status==='covered'),'frog stone and Gog down matches need no reconfirmation');
 const spiderBase={
@@ -67,6 +68,14 @@ for(const [ni,n]of ['Nerscylla','Nerscylla Clone'].entries()){
   const p=k[n][part],v=vs[ni]||vs[0];check(el.every((e,i)=>p.groups['普通'][0].m[e]===v[i]),n+'/'+part+' ordinary values equal approved comparison');
   const wound=part==='Head'?[75,75,75,25,0,15,15,0,100]:[55,55,45,25,0,25,15,0,0];
   check(el.every((e,i)=>p.wound[e]===wound[i]),n+'/'+part+' wound equals approved comparison');
+ }
+}
+const mixedRows=rawSource.monsters.find(d=>d.name==='Nerscylla').rows;
+for(const [part,normalIndex,cloneIndex]of [['Head',1,3],['Torso',5,7],['Belly',9,11],['Claw',13,15],['Leg Root',18,20],['Mantle',22,24],['Leg Tip',30,32],['Stinger',34,36]]){
+ for(const [n,index]of [['Nerscylla',normalIndex],['Nerscylla Clone',cloneIndex]]){
+  const row=k[n][part].groups['破坏后'];check(row?.length===1,n+'/'+part+' one grouped broken variant');
+  check(el.every(e=>row[0].m[e]===mixedRows[index].Meat[e]),n+'/'+part+' broken values from correct paired source');
+  check(row[0].sourceIndex===index,n+'/'+part+' correct source provenance');
  }
 }
 const cloneFallback=raw['Monster Data'][raw['Monster Names']['Nerscylla Clone']].Hitzones.Rows;

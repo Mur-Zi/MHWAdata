@@ -31,6 +31,7 @@ try{for(const width of [1440,412]){
    change('calc-monster',n);check(n+' exactly eight picker parts',q('calc-part').options.length===8);
    const pp=window.MHWILD_KURO_HZV[n];
    for(const part of Object.keys(pp)){change('calc-part',part);change('calc-meat-state',0);const m=pp[part].groups['普通'][0].m;check(n+'/'+part+' calculator uses reviewed physical values',q('calc-meat-hint').textContent.includes('斩 '+m.Slash)&&q('calc-meat-hint').textContent.includes('打 '+m.Blow)&&q('calc-meat-hint').textContent.includes('弹 '+m.Shot));}
+   change('calc-part','Head');const broken=Array.from(q('calc-meat-state').options).find(o=>o.text==='破坏后·普通');check(n+' grouped broken variant selectable',broken);change('calc-meat-state',broken.value);check(n+' correct broken head physical values',q('calc-meat-hint').textContent.includes('打 '+(n==='Nerscylla'?65:50)));
    D.openMonster(n);const detail=q('view-monster-detail');check(n+' eight ordinary detail rows',Array.from(detail.querySelectorAll('[data-hzv-row="普通"]:not(.note-row)')).filter(r=>r.querySelector('.state-tag')?.textContent==='普通').length===8);q('nav-calculator').click();
   }
   change('calc-weapon','light_bowgun');change('calc-monster','Ajarakan');change('calc-part','Head');const hot=Array.from(q('calc-meat-state').options).find(o=>o.text.includes('红莲'));change('calc-meat-state',hot.value);check('head-on shot condition shown',q('calc-target-conditions').textContent.includes('正面射击头顶'));

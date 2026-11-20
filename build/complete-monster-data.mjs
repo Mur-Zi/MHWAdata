@@ -133,6 +133,17 @@ for(const name of ['Nerscylla','Nerscylla Clone']){
  if(name==='Nerscylla Clone')for(const x of pp.Stinger.groups['普通'])x.note='毒刺一阶段破坏后肉质不变；两阶段破坏后消失，露出腹部。';
 }
 tr.part['Leg Root']='腿根';tr.part.Waist='腰部';
+// The upstream Nerscylla entry contains two monsters, each with a paired
+// intact/broken set. State 1 is the clone intact set, State 2 its broken set.
+// Keep the break condition at monster scope, not as a claim that every part
+// (for example the head) can be independently broken.
+const spiderPairs=[['Head',1,3],['Torso',5,7],['Belly',9,11],['Claw',13,15],['Leg Root',18,20],['Mantle',22,24],['Leg Tip',30,32],['Stinger',34,36]];
+for(const [part,normalIndex,cloneIndex]of spiderPairs)for(const [name,index]of [['Nerscylla',normalIndex],['Nerscylla Clone',cloneIndex]]){
+ const p=result[name][part],row=reviewedRow('Nerscylla',index,'普通');
+ row.extract=p.groups['普通'][0].extract;row.sourceMonster='Nerscylla';
+ row.note='原始数据库将影蜘蛛与克隆影蜘蛛合并存储；此行为'+(name==='Nerscylla Clone'?'克隆影蜘蛛':'影蜘蛛')+'的整组破坏状态，不表示此部位可单独破坏。';
+ p.groups['破坏后']=[row];
+}
 for(const key of Object.keys(tr.part))if(/^RoboHidden/.test(key))delete tr.part[key];
 const cloneNames=new Set(['Nerscylla Clone']);
 // Training target: user keeps soft HZV as default; hard mode is independently selectable.
