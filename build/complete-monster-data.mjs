@@ -130,6 +130,7 @@ for(const name of ['Nerscylla','Nerscylla Clone']){
  for(const x of pp.Mantle.groups['普通'])x.note=x.s==='普通'?'覆盖腿部的毒怪鸟皮。':'外套膜破坏后，腿部中段采用此肉质。';
  for(const x of pp['Leg Tip'].groups['普通'])x.note='没有外套膜覆盖的脚尖部分。';
  for(const x of pp.Belly.groups['普通'])x.note='吐丝的腹部；毒刺尚在时为无毒刺的腹部下侧，毒刺两阶段破坏后为整个腹部。';
+ if(name==='Nerscylla Clone')for(const x of pp.Stinger.groups['普通'])x.note='毒刺一阶段破坏后肉质不变；两阶段破坏后消失，露出腹部。';
 }
 tr.part['Leg Root']='腿根';tr.part.Waist='腰部';
 for(const key of Object.keys(tr.part))if(/^RoboHidden/.test(key))delete tr.part[key];
@@ -152,6 +153,14 @@ for(const name of Object.keys(result))if(!raw['Monster Names'][name]){
  raw['Monster Data'][id]={Name:name,Zako:!cloneNames.has(name),CantCap:null,SourceOnly:true,Hitzones:{Rows:Object.entries(result[name]).map(([Part,p])=>({Part,Meat:p.groups['普通']?.[0]?.m||Object.values(p.groups)[0]?.[0]?.m})),MultiPart:[]}};
  if(!meta.monsterOrder.includes(name))meta.monsterOrder.push(name);
  meta.imageMap[name]={slug:name.replaceAll(' ','_'),icon:cloneNames.has(name)?'img/icon/Nerscylla_Icon.png':'img/icon/Small_Monster.svg'};
+}
+// The source-only clone has no upstream threshold metadata. Its fallback HZV
+// must use the same reviewed anatomy and conditions as the visible database.
+for(const name of cloneNames){
+ const d=raw['Monster Data'][raw['Monster Names'][name]];
+ if(d.SourceOnly)d.Hitzones.Rows=Object.entries(result[name]).flatMap(([Part,p])=>
+  Object.entries(p.groups).flatMap(([g,rows])=>rows.map(x=>({Part,State:g==='普通'?(x.s==='普通'?'':x.s):g+(x.s==='普通'?'':'·'+x.s),Meat:x.m,...(p.wound?{ScarMeat:p.wound}:{})})))
+ );
 }
 raw['Quest Data']['25425']=JSON.parse(read('raw/quest-25425.json'));
 meta.monsterCount=Object.keys(raw['Monster Data']).length;meta.questCount=Object.keys(raw['Quest Data']).length;meta.generatedAt='2026-11-20T00:00:00.000Z';

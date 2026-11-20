@@ -46,18 +46,407 @@
   "checkedAt": "2026-11-21",
   "source": "https://raw.githubusercontent.com/RoboMechE/MHWilds-Database/refs/heads/main/monster/assets/json/MHWilds_Data_compact.json.gz",
   "notes": [
-    "State/AT的中文匹配仅按数值提示，不代表已确认触发条件。",
-    "未确认条目和来源冲突不进入正式选择列表。",
-    "训练靶的软硬肉质和仅前板/侧板伤口设置按用户要求保留。"
+    "已有对应条件和已确认条目不再要求用户确认；原A编号保持不变。",
+    "未匹配的State条目暂不加入正式选择；B组暂不收录，C组不处理。",
+    "影蜘蛛与克隆影蜘蛛的正式数据库采用本页已应用的日文分类对比数据。"
   ],
   "counts": {
+    "pending": 7,
+    "resolved": 76,
     "states": 83,
     "unknown": 50,
     "conflicts": 11,
     "mapping": 24,
     "added": 9
   },
-  "states": [
+  "pending": [
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 3,
+      "part": "Head",
+      "partZh": "头部",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        50,
+        50,
+        50,
+        5,
+        0,
+        10,
+        5,
+        0,
+        100
+      ],
+      "woundSlots": null,
+      "matchingExisting": [],
+      "reference": [
+        {
+          "label": "头部·普通·普通",
+          "values": [
+            50,
+            65,
+            50,
+            15,
+            0,
+            0,
+            5,
+            0,
+            100
+          ]
+        },
+        {
+          "label": "头部·伤口",
+          "values": [
+            75,
+            75,
+            75,
+            25,
+            0,
+            15,
+            15,
+            0,
+            100
+          ]
+        }
+      ],
+      "id": "A54",
+      "status": "pending",
+      "decision": "尚无对应的已命名条件，需说明实际触发状态。"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 7,
+      "part": "Torso",
+      "partZh": "躯干",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        36,
+        36,
+        40,
+        5,
+        0,
+        25,
+        5,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [],
+      "reference": [
+        {
+          "label": "躯干·普通·普通",
+          "values": [
+            36,
+            36,
+            40,
+            25,
+            0,
+            0,
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "躯干·伤口",
+          "values": [
+            55,
+            55,
+            45,
+            25,
+            0,
+            25,
+            15,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A56",
+      "status": "pending",
+      "decision": "尚无对应的已命名条件，需说明实际触发状态。"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 11,
+      "part": "Belly",
+      "partZh": "腹部",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        45,
+        45,
+        45,
+        5,
+        0,
+        20,
+        5,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [],
+      "reference": [
+        {
+          "label": "腹部·普通·普通",
+          "values": [
+            65,
+            50,
+            45,
+            15,
+            0,
+            20,
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "腹部·伤口",
+          "values": [
+            55,
+            55,
+            45,
+            25,
+            0,
+            25,
+            15,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A58",
+      "status": "pending",
+      "decision": "尚无对应的已命名条件，需说明实际触发状态。"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 15,
+      "part": "Claw",
+      "partZh": "爪",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        30,
+        30,
+        30,
+        5,
+        0,
+        10,
+        5,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [],
+      "reference": [
+        {
+          "label": "爪·普通·普通",
+          "values": [
+            20,
+            30,
+            20,
+            5,
+            0,
+            10,
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "爪·伤口",
+          "values": [
+            55,
+            55,
+            45,
+            25,
+            0,
+            25,
+            15,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A60",
+      "status": "pending",
+      "decision": "尚无对应的已命名条件，需说明实际触发状态。"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 20,
+      "part": "Foreleg",
+      "partZh": "前腿",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        35,
+        35,
+        25,
+        5,
+        0,
+        10,
+        5,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [],
+      "reference": [
+        {
+          "label": "外套膜·普通·破坏后",
+          "values": [
+            45,
+            45,
+            25,
+            5,
+            0,
+            10,
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "腿根·普通·普通",
+          "values": [
+            35,
+            35,
+            25,
+            20,
+            0,
+            0,
+            5,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A62",
+      "status": "pending",
+      "decision": "尚无对应的已命名条件，需说明实际触发状态。"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 32,
+      "part": "Hind Leg",
+      "partZh": "后腿",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        45,
+        45,
+        35,
+        5,
+        0,
+        10,
+        5,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [],
+      "reference": [
+        {
+          "label": "外套膜·普通·破坏后",
+          "values": [
+            45,
+            45,
+            25,
+            5,
+            0,
+            10,
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "外套膜·普通·普通",
+          "values": [
+            45,
+            45,
+            35,
+            20,
+            0,
+            0,
+            5,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A68",
+      "status": "pending",
+      "decision": "尚无对应的已命名条件，需说明实际触发状态。"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 36,
+      "part": "Stinger",
+      "partZh": "毒刺",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        30,
+        30,
+        30,
+        5,
+        0,
+        35,
+        5,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [],
+      "reference": [
+        {
+          "label": "毒刺·普通·1阶破坏后",
+          "values": [
+            28,
+            35,
+            65,
+            5,
+            0,
+            35,
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "毒刺·普通·普通",
+          "values": [
+            28,
+            35,
+            65,
+            25,
+            0,
+            0,
+            5,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A70",
+      "status": "pending",
+      "decision": "尚无对应的已命名条件，需说明实际触发状态。"
+    }
+  ],
+  "resolved": [
     {
       "monster": "Chatacabra",
       "monsterZh": "缠蛙",
@@ -111,7 +500,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A01",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：前腿·普通·缠石。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Chatacabra",
@@ -166,6 +557,8 @@
           ]
         }
       ],
+      "id": "A02",
+      "status": "resolved",
       "decision": "已确认：前腿破坏后且缠石，55/70/55；未破坏的缠石前腿斩击肉质50。保留原75/75/75破坏后数据，以条件名称区分。"
     },
     {
@@ -222,7 +615,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A03",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：背部·普通·第二形态倒地；背部·发怒·第二形态倒地。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Omega Planetes",
@@ -277,7 +672,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A04",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：头部·克隆影蜘蛛讨伐失败后·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Omega Planetes",
@@ -332,7 +729,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A05",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：前腿·克隆影蜘蛛讨伐失败后·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Omega Planetes",
@@ -387,7 +786,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A06",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：后腿·克隆影蜘蛛讨伐失败后·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Omega Planetes",
@@ -442,7 +843,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A07",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：躯干·克隆影蜘蛛讨伐失败后·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Omega Planetes",
@@ -497,7 +900,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A08",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：背部单元·克隆影蜘蛛讨伐失败后·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Omega Planetes",
@@ -552,7 +957,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A09",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：背部·克隆影蜘蛛讨伐失败后·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Mizutsune",
@@ -607,7 +1014,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A10",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：头部·天眼·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Mizutsune",
@@ -663,7 +1072,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A11",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：前腿·天眼·普通（异名部位，仅同值）；爪·发怒·破坏后+形态变化（异名部位，仅同值）。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Mizutsune",
@@ -718,7 +1129,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A12",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：爪·发怒·破坏后+形态变化。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Mizutsune",
@@ -774,7 +1187,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A13",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：尾巴·普通·普通；尾巴·发怒·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Guardian Fulgur Anjanath",
@@ -829,7 +1244,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A14",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：头部·带电·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Guardian Fulgur Anjanath",
@@ -884,7 +1301,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A15",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：鼻部·带电·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Guardian Fulgur Anjanath",
@@ -939,7 +1358,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A16",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：颈部·带电·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Guardian Fulgur Anjanath",
@@ -994,7 +1415,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A17",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：躯干·带电·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Guardian Fulgur Anjanath",
@@ -1049,7 +1472,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A18",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：翅膀·带电·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Guardian Fulgur Anjanath",
@@ -1104,7 +1529,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A19",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：后腿·带电·普通（异名部位，仅同值）。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Guardian Fulgur Anjanath",
@@ -1159,7 +1586,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A20",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：后腿·普通·破坏后（异名部位，仅同值）。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Guardian Fulgur Anjanath",
@@ -1214,7 +1643,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A21",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：尾巴·带电·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Guardian Fulgur Anjanath",
@@ -1269,7 +1700,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A22",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：尾巴·普通·切断后。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Rompopolo",
@@ -1324,7 +1757,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A23",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：头部·普通·瘪掉。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Rompopolo",
@@ -1379,7 +1814,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A24",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：背部·普通·瘪掉。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Rompopolo",
@@ -1434,7 +1871,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A25",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：尾巴·普通·瘪掉。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Arkveld",
@@ -1489,7 +1928,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A26",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：头部·历战王·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Arkveld",
@@ -1545,7 +1986,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A27",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：锁翼刃·普通·普通；锁翼刃·历战王·锁刃1根时·属性吸收状态。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Arkveld",
@@ -1600,6 +2043,8 @@
           ]
         }
       ],
+      "id": "A28",
+      "status": "resolved",
       "decision": "已覆盖：历战王·锁刃2根时（AT代表历战王模板）"
     },
     {
@@ -1655,6 +2100,8 @@
           ]
         }
       ],
+      "id": "A29",
+      "status": "resolved",
       "decision": "已补入：锁刃龙头部·历战王·历战伤口"
     },
     {
@@ -1710,6 +2157,8 @@
           ]
         }
       ],
+      "id": "A30",
+      "status": "resolved",
       "decision": "已补入：锁刃龙锁翼刃·历战王·历战伤口"
     },
     {
@@ -1767,6 +2216,8 @@
           ]
         }
       ],
+      "id": "A31",
+      "status": "resolved",
       "decision": "已补入：锁刃龙躯干、腿（左右共用）、尾巴·历战王·历战伤口"
     },
     {
@@ -1822,7 +2273,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A32",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：头部·红莲·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Ajarakan",
@@ -1877,7 +2330,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A33",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：前腿·红莲·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Ajarakan",
@@ -1932,7 +2387,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A34",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：腹部·红莲·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Uth Duna",
@@ -1987,7 +2444,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A35",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：前腿·历战王·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Uth Duna",
@@ -2042,7 +2501,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A36",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：后腿·历战王·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Uth Duna",
@@ -2097,7 +2558,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A37",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：水膜·历战王·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Uth Duna",
@@ -2152,6 +2615,8 @@
           ]
         }
       ],
+      "id": "A38",
+      "status": "resolved",
       "decision": "已覆盖：水膜·历战王；只显示一个水膜部位"
     },
     {
@@ -2207,7 +2672,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A39",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：水膜·历战王·普通（异名部位，仅同值）。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Uth Duna",
@@ -2262,6 +2729,8 @@
           ]
         }
       ],
+      "id": "A40",
+      "status": "resolved",
       "decision": "已补入：波衣龙头部·历战王·历战伤口"
     },
     {
@@ -2320,6 +2789,8 @@
           ]
         }
       ],
+      "id": "A41",
+      "status": "resolved",
       "decision": "已补入：波衣龙躯干、前腿、后腿、尾巴·历战王·历战伤口；水膜不作为伤口部位"
     },
     {
@@ -2376,7 +2847,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A42",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：前腿·历战王·普通（异名部位，仅同值）；后腿·历战王·普通（异名部位，仅同值）。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Nu Udra",
@@ -2431,7 +2904,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A43",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：头部·附油·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Nu Udra",
@@ -2486,7 +2961,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A44",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：头部·附炎·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Nu Udra",
@@ -2541,7 +3018,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A45",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：触腕·附油·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Nu Udra",
@@ -2596,7 +3075,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A46",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：触腕·附炎·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Nu Udra",
@@ -2651,7 +3132,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A47",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：伞膜·附油·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Nu Udra",
@@ -2706,7 +3189,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A48",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：伞膜·附炎·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Nu Udra",
@@ -2761,7 +3246,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A49",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：躯干·附油·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Nu Udra",
@@ -2816,7 +3303,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A50",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：躯干·附炎·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Nu Udra",
@@ -2871,7 +3360,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A51",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：腕·附油·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Nu Udra",
@@ -2926,7 +3417,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A52",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：腕·附炎·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Nerscylla",
@@ -2981,60 +3474,9 @@
           ]
         }
       ],
-      "decision": "影蜘蛛与克隆影蜘蛛分别按日文网站的八个解剖部位收录；移除上次仅凭RAW Break标记添加的头、躯干、腹部破坏后条目。State1仅部分等于克隆数据，State2未明确，不自动套用。"
-    },
-    {
-      "monster": "Nerscylla",
-      "monsterZh": "影蜘蛛",
-      "index": 3,
-      "part": "Head",
-      "partZh": "头部",
-      "state": "State 2",
-      "field": "Meat",
-      "values": [
-        50,
-        50,
-        50,
-        5,
-        0,
-        10,
-        5,
-        0,
-        100
-      ],
-      "woundSlots": null,
-      "matchingExisting": [],
-      "reference": [
-        {
-          "label": "头部·普通·普通",
-          "values": [
-            50,
-            65,
-            50,
-            15,
-            0,
-            0,
-            5,
-            0,
-            100
-          ]
-        },
-        {
-          "label": "头部·伤口",
-          "values": [
-            75,
-            75,
-            75,
-            25,
-            0,
-            15,
-            15,
-            0,
-            100
-          ]
-        }
-      ],
-      "decision": "影蜘蛛与克隆影蜘蛛分别按日文网站的八个解剖部位收录；移除上次仅凭RAW Break标记添加的头、躯干、腹部破坏后条目。State1仅部分等于克隆数据，State2未明确，不自动套用。"
+      "id": "A53",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：克隆影蜘蛛·头部·普通·普通（仅同值）。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Nerscylla",
@@ -3090,60 +3532,9 @@
           ]
         }
       ],
-      "decision": "影蜘蛛与克隆影蜘蛛分别按日文网站的八个解剖部位收录；移除上次仅凭RAW Break标记添加的头、躯干、腹部破坏后条目。State1仅部分等于克隆数据，State2未明确，不自动套用。"
-    },
-    {
-      "monster": "Nerscylla",
-      "monsterZh": "影蜘蛛",
-      "index": 7,
-      "part": "Torso",
-      "partZh": "躯干",
-      "state": "State 2",
-      "field": "Meat",
-      "values": [
-        36,
-        36,
-        40,
-        5,
-        0,
-        25,
-        5,
-        0,
-        0
-      ],
-      "woundSlots": null,
-      "matchingExisting": [],
-      "reference": [
-        {
-          "label": "躯干·普通·普通",
-          "values": [
-            36,
-            36,
-            40,
-            25,
-            0,
-            0,
-            5,
-            0,
-            0
-          ]
-        },
-        {
-          "label": "躯干·伤口",
-          "values": [
-            55,
-            55,
-            45,
-            25,
-            0,
-            25,
-            15,
-            0,
-            0
-          ]
-        }
-      ],
-      "decision": "影蜘蛛与克隆影蜘蛛分别按日文网站的八个解剖部位收录；移除上次仅凭RAW Break标记添加的头、躯干、腹部破坏后条目。State1仅部分等于克隆数据，State2未明确，不自动套用。"
+      "id": "A55",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：躯干·普通·普通；克隆影蜘蛛·躯干·普通·普通（仅同值）。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Nerscylla",
@@ -3198,60 +3589,9 @@
           ]
         }
       ],
-      "decision": "影蜘蛛与克隆影蜘蛛分别按日文网站的八个解剖部位收录；移除上次仅凭RAW Break标记添加的头、躯干、腹部破坏后条目。State1仅部分等于克隆数据，State2未明确，不自动套用。"
-    },
-    {
-      "monster": "Nerscylla",
-      "monsterZh": "影蜘蛛",
-      "index": 11,
-      "part": "Belly",
-      "partZh": "腹部",
-      "state": "State 2",
-      "field": "Meat",
-      "values": [
-        45,
-        45,
-        45,
-        5,
-        0,
-        20,
-        5,
-        0,
-        0
-      ],
-      "woundSlots": null,
-      "matchingExisting": [],
-      "reference": [
-        {
-          "label": "腹部·普通·普通",
-          "values": [
-            65,
-            50,
-            45,
-            15,
-            0,
-            20,
-            5,
-            0,
-            0
-          ]
-        },
-        {
-          "label": "腹部·伤口",
-          "values": [
-            55,
-            55,
-            45,
-            25,
-            0,
-            25,
-            15,
-            0,
-            0
-          ]
-        }
-      ],
-      "decision": "影蜘蛛与克隆影蜘蛛分别按日文网站的八个解剖部位收录；移除上次仅凭RAW Break标记添加的头、躯干、腹部破坏后条目。State1仅部分等于克隆数据，State2未明确，不自动套用。"
+      "id": "A57",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：克隆影蜘蛛·腹部·普通·普通（仅同值）。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Nerscylla",
@@ -3306,60 +3646,9 @@
           ]
         }
       ],
-      "decision": "影蜘蛛与克隆影蜘蛛分别按日文网站的八个解剖部位收录；移除上次仅凭RAW Break标记添加的头、躯干、腹部破坏后条目。State1仅部分等于克隆数据，State2未明确，不自动套用。"
-    },
-    {
-      "monster": "Nerscylla",
-      "monsterZh": "影蜘蛛",
-      "index": 15,
-      "part": "Claw",
-      "partZh": "爪",
-      "state": "State 2",
-      "field": "Meat",
-      "values": [
-        30,
-        30,
-        30,
-        5,
-        0,
-        10,
-        5,
-        0,
-        0
-      ],
-      "woundSlots": null,
-      "matchingExisting": [],
-      "reference": [
-        {
-          "label": "爪·普通·普通",
-          "values": [
-            20,
-            30,
-            20,
-            5,
-            0,
-            10,
-            5,
-            0,
-            0
-          ]
-        },
-        {
-          "label": "爪·伤口",
-          "values": [
-            55,
-            55,
-            45,
-            25,
-            0,
-            25,
-            15,
-            0,
-            0
-          ]
-        }
-      ],
-      "decision": "影蜘蛛与克隆影蜘蛛分别按日文网站的八个解剖部位收录；移除上次仅凭RAW Break标记添加的头、躯干、腹部破坏后条目。State1仅部分等于克隆数据，State2未明确，不自动套用。"
+      "id": "A59",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：克隆影蜘蛛·爪·普通·普通（仅同值）。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Nerscylla",
@@ -3414,60 +3703,9 @@
           ]
         }
       ],
-      "decision": "影蜘蛛与克隆影蜘蛛分别按日文网站的八个解剖部位收录；移除上次仅凭RAW Break标记添加的头、躯干、腹部破坏后条目。State1仅部分等于克隆数据，State2未明确，不自动套用。"
-    },
-    {
-      "monster": "Nerscylla",
-      "monsterZh": "影蜘蛛",
-      "index": 20,
-      "part": "Foreleg",
-      "partZh": "前腿",
-      "state": "State 2",
-      "field": "Meat",
-      "values": [
-        35,
-        35,
-        25,
-        5,
-        0,
-        10,
-        5,
-        0,
-        0
-      ],
-      "woundSlots": null,
-      "matchingExisting": [],
-      "reference": [
-        {
-          "label": "外套膜·普通·破坏后",
-          "values": [
-            45,
-            45,
-            25,
-            5,
-            0,
-            10,
-            5,
-            0,
-            0
-          ]
-        },
-        {
-          "label": "腿根·普通·普通",
-          "values": [
-            35,
-            35,
-            25,
-            20,
-            0,
-            0,
-            5,
-            0,
-            0
-          ]
-        }
-      ],
-      "decision": "影蜘蛛与克隆影蜘蛛分别按日文网站的八个解剖部位收录；移除上次仅凭RAW Break标记添加的头、躯干、腹部破坏后条目。State1仅部分等于克隆数据，State2未明确，不自动套用。"
+      "id": "A61",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：腿根·普通·普通（异名部位，仅同值）。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Nerscylla",
@@ -3523,7 +3761,9 @@
           ]
         }
       ],
-      "decision": "影蜘蛛与克隆影蜘蛛分别按日文网站的八个解剖部位收录；移除上次仅凭RAW Break标记添加的头、躯干、腹部破坏后条目。State1仅部分等于克隆数据，State2未明确，不自动套用。"
+      "id": "A63",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：外套膜·普通·普通；克隆影蜘蛛·外套膜·普通·普通（仅同值）。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Nerscylla",
@@ -3579,7 +3819,9 @@
           ]
         }
       ],
-      "decision": "影蜘蛛与克隆影蜘蛛分别按日文网站的八个解剖部位收录；移除上次仅凭RAW Break标记添加的头、躯干、腹部破坏后条目。State1仅部分等于克隆数据，State2未明确，不自动套用。"
+      "id": "A64",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：外套膜·普通·破坏后；克隆影蜘蛛·外套膜·普通·破坏后（仅同值）。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Nerscylla",
@@ -3634,7 +3876,9 @@
           ]
         }
       ],
-      "decision": "影蜘蛛与克隆影蜘蛛分别按日文网站的八个解剖部位收录；移除上次仅凭RAW Break标记添加的头、躯干、腹部破坏后条目。State1仅部分等于克隆数据，State2未明确，不自动套用。"
+      "id": "A65",
+      "status": "excluded",
+      "decision": "按用户要求暂不收录"
     },
     {
       "monster": "Nerscylla",
@@ -3689,7 +3933,9 @@
           ]
         }
       ],
-      "decision": "影蜘蛛与克隆影蜘蛛分别按日文网站的八个解剖部位收录；移除上次仅凭RAW Break标记添加的头、躯干、腹部破坏后条目。State1仅部分等于克隆数据，State2未明确，不自动套用。"
+      "id": "A66",
+      "status": "excluded",
+      "decision": "按用户要求暂不收录"
     },
     {
       "monster": "Nerscylla",
@@ -3744,60 +3990,9 @@
           ]
         }
       ],
-      "decision": "影蜘蛛与克隆影蜘蛛分别按日文网站的八个解剖部位收录；移除上次仅凭RAW Break标记添加的头、躯干、腹部破坏后条目。State1仅部分等于克隆数据，State2未明确，不自动套用。"
-    },
-    {
-      "monster": "Nerscylla",
-      "monsterZh": "影蜘蛛",
-      "index": 32,
-      "part": "Hind Leg",
-      "partZh": "后腿",
-      "state": "State 2",
-      "field": "Meat",
-      "values": [
-        45,
-        45,
-        35,
-        5,
-        0,
-        10,
-        5,
-        0,
-        0
-      ],
-      "woundSlots": null,
-      "matchingExisting": [],
-      "reference": [
-        {
-          "label": "外套膜·普通·破坏后",
-          "values": [
-            45,
-            45,
-            25,
-            5,
-            0,
-            10,
-            5,
-            0,
-            0
-          ]
-        },
-        {
-          "label": "外套膜·普通·普通",
-          "values": [
-            45,
-            45,
-            35,
-            20,
-            0,
-            0,
-            5,
-            0,
-            0
-          ]
-        }
-      ],
-      "decision": "影蜘蛛与克隆影蜘蛛分别按日文网站的八个解剖部位收录；移除上次仅凭RAW Break标记添加的头、躯干、腹部破坏后条目。State1仅部分等于克隆数据，State2未明确，不自动套用。"
+      "id": "A67",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：脚尖·普通·普通（异名部位，仅同值）。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Nerscylla",
@@ -3852,60 +4047,9 @@
           ]
         }
       ],
-      "decision": "影蜘蛛与克隆影蜘蛛分别按日文网站的八个解剖部位收录；移除上次仅凭RAW Break标记添加的头、躯干、腹部破坏后条目。State1仅部分等于克隆数据，State2未明确，不自动套用。"
-    },
-    {
-      "monster": "Nerscylla",
-      "monsterZh": "影蜘蛛",
-      "index": 36,
-      "part": "Stinger",
-      "partZh": "毒刺",
-      "state": "State 2",
-      "field": "Meat",
-      "values": [
-        30,
-        30,
-        30,
-        5,
-        0,
-        35,
-        5,
-        0,
-        0
-      ],
-      "woundSlots": null,
-      "matchingExisting": [],
-      "reference": [
-        {
-          "label": "毒刺·普通·1阶破坏后",
-          "values": [
-            28,
-            35,
-            65,
-            5,
-            0,
-            35,
-            5,
-            0,
-            0
-          ]
-        },
-        {
-          "label": "毒刺·普通·普通",
-          "values": [
-            28,
-            35,
-            65,
-            25,
-            0,
-            0,
-            5,
-            0,
-            0
-          ]
-        }
-      ],
-      "decision": "影蜘蛛与克隆影蜘蛛分别按日文网站的八个解剖部位收录；移除上次仅凭RAW Break标记添加的头、躯干、腹部破坏后条目。State1仅部分等于克隆数据，State2未明确，不自动套用。"
+      "id": "A69",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：克隆影蜘蛛·毒刺·普通·普通（仅同值）。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Nerscylla",
@@ -3958,7 +4102,9 @@
           ]
         }
       ],
-      "decision": "影蜘蛛与克隆影蜘蛛分别按日文网站的八个解剖部位收录；移除上次仅凭RAW Break标记添加的头、躯干、腹部破坏后条目。State1仅部分等于克隆数据，State2未明确，不自动套用。"
+      "id": "A71",
+      "status": "excluded",
+      "decision": "按用户要求暂不收录"
     },
     {
       "monster": "Nerscylla",
@@ -4011,7 +4157,9 @@
           ]
         }
       ],
-      "decision": "影蜘蛛与克隆影蜘蛛分别按日文网站的八个解剖部位收录；移除上次仅凭RAW Break标记添加的头、躯干、腹部破坏后条目。State1仅部分等于克隆数据，State2未明确，不自动套用。"
+      "id": "A72",
+      "status": "excluded",
+      "decision": "按用户要求暂不收录"
     },
     {
       "monster": "Zoh Shia",
@@ -4068,7 +4216,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A73",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：翼腕·普通·黑化·翼腕倒地后；翼腕·发怒（挑战者判定）·黑化·翼腕倒地后；翼腕·最终形态·翼腕倒地后。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Zoh Shia",
@@ -4124,7 +4274,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A74",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：翼腕·普通·结晶剥落·翼腕倒地后；翼腕·发怒（挑战者判定）·结晶剥落·翼腕倒地后。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Zoh Shia",
@@ -4179,7 +4331,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A75",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：前腿·最终形态·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Zoh Shia",
@@ -4234,7 +4388,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A76",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：后腿·最终形态·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Zoh Shia",
@@ -4289,7 +4445,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A77",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：颈部·最终形态·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Zoh Shia",
@@ -4344,7 +4502,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A78",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：躯干·最终形态·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Zoh Shia",
@@ -4399,7 +4559,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A79",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：尾巴·最终形态·普通。无需再次确认，不新增重复状态。"
     },
     {
       "monster": "Guardian Arkveld",
@@ -4454,6 +4616,8 @@
           ]
         }
       ],
+      "id": "A80",
+      "status": "resolved",
       "decision": "已替换护锁刃龙普通头部肉质"
     },
     {
@@ -4507,7 +4671,9 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A81",
+      "status": "superseded",
+      "decision": "已按用户要求采用A82作为普通锁翼刃；旧普通值不再另行确认。"
     },
     {
       "monster": "Guardian Arkveld",
@@ -4562,6 +4728,8 @@
           ]
         }
       ],
+      "id": "A82",
+      "status": "resolved",
       "decision": "已替换护锁刃龙普通锁翼刃肉质"
     },
     {
@@ -4618,7 +4786,4739 @@
           ]
         }
       ],
-      "decision": "待确认"
+      "id": "A83",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：翼腕·普通·特殊；翼腕·发怒·特殊。无需再次确认，不新增重复状态。"
+    }
+  ],
+  "states": [
+    {
+      "monster": "Chatacabra",
+      "monsterZh": "缠蛙",
+      "index": 5,
+      "part": "Foreleg",
+      "partZh": "前腿",
+      "state": "State",
+      "field": "Meat",
+      "values": [
+        50,
+        65,
+        50,
+        0,
+        0,
+        15,
+        10,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "前腿·普通·缠石"
+      ],
+      "reference": [
+        {
+          "label": "前腿·普通·缠石",
+          "values": [
+            50,
+            65,
+            50,
+            0,
+            0,
+            15,
+            10,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "前腿·伤口",
+          "values": [
+            80,
+            80,
+            80,
+            0,
+            0,
+            15,
+            10,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A01",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：前腿·普通·缠石。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Chatacabra",
+      "monsterZh": "缠蛙",
+      "index": 6,
+      "part": "Foreleg",
+      "partZh": "前腿",
+      "state": "State 3",
+      "field": "Meat",
+      "values": [
+        55,
+        70,
+        55,
+        0,
+        5,
+        15,
+        10,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "前腿·普通·破坏后·缠石"
+      ],
+      "reference": [
+        {
+          "label": "前腿·普通·破坏后·缠石",
+          "values": [
+            55,
+            70,
+            55,
+            0,
+            5,
+            15,
+            10,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "前腿·普通·普通",
+          "values": [
+            60,
+            60,
+            65,
+            5,
+            5,
+            15,
+            10,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A02",
+      "status": "resolved",
+      "decision": "已确认：前腿破坏后且缠石，55/70/55；未破坏的缠石前腿斩击肉质50。保留原75/75/75破坏后数据，以条件名称区分。"
+    },
+    {
+      "monster": "Gogmazios",
+      "monsterZh": "巨戟龙",
+      "index": 10,
+      "part": "Back",
+      "partZh": "背部",
+      "state": "State 4",
+      "field": "Meat",
+      "values": [
+        45,
+        45,
+        45,
+        15,
+        0,
+        0,
+        0,
+        30,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "背部·普通·第二形态倒地",
+        "背部·发怒·第二形态倒地"
+      ],
+      "reference": [
+        {
+          "label": "背部·普通·第二形态倒地",
+          "values": [
+            45,
+            45,
+            45,
+            15,
+            0,
+            0,
+            0,
+            30,
+            0
+          ]
+        },
+        {
+          "label": "背部·发怒·第二形态倒地",
+          "values": [
+            45,
+            45,
+            45,
+            15,
+            0,
+            0,
+            0,
+            30,
+            0
+          ]
+        }
+      ],
+      "id": "A03",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：背部·普通·第二形态倒地；背部·发怒·第二形态倒地。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Omega Planetes",
+      "monsterZh": "游星欧米茄",
+      "index": 2,
+      "part": "Head",
+      "partZh": "头部",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        40,
+        45,
+        40,
+        0,
+        10,
+        25,
+        5,
+        20,
+        100
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "头部·克隆影蜘蛛讨伐失败后·普通"
+      ],
+      "reference": [
+        {
+          "label": "头部·克隆影蜘蛛讨伐失败后·普通",
+          "values": [
+            40,
+            45,
+            40,
+            0,
+            10,
+            25,
+            5,
+            20,
+            100
+          ]
+        },
+        {
+          "label": "头部·普通·克隆影蜘蛛讨伐失败前",
+          "values": [
+            45,
+            50,
+            45,
+            0,
+            10,
+            25,
+            5,
+            20,
+            100
+          ]
+        }
+      ],
+      "id": "A04",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：头部·克隆影蜘蛛讨伐失败后·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Omega Planetes",
+      "monsterZh": "游星欧米茄",
+      "index": 5,
+      "part": "Foreleg",
+      "partZh": "前腿",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        28,
+        40,
+        35,
+        0,
+        5,
+        15,
+        5,
+        10,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "前腿·克隆影蜘蛛讨伐失败后·普通"
+      ],
+      "reference": [
+        {
+          "label": "前腿·克隆影蜘蛛讨伐失败后·普通",
+          "values": [
+            28,
+            40,
+            35,
+            0,
+            5,
+            15,
+            5,
+            10,
+            0
+          ]
+        },
+        {
+          "label": "前腿·临时弱点·克隆影蜘蛛讨伐失败前·普通",
+          "values": [
+            45,
+            70,
+            65,
+            0,
+            5,
+            15,
+            5,
+            10,
+            0
+          ]
+        }
+      ],
+      "id": "A05",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：前腿·克隆影蜘蛛讨伐失败后·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Omega Planetes",
+      "monsterZh": "游星欧米茄",
+      "index": 8,
+      "part": "Hind Leg",
+      "partZh": "后腿",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        35,
+        28,
+        28,
+        0,
+        5,
+        15,
+        5,
+        10,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "后腿·克隆影蜘蛛讨伐失败后·普通"
+      ],
+      "reference": [
+        {
+          "label": "后腿·克隆影蜘蛛讨伐失败后·普通",
+          "values": [
+            35,
+            28,
+            28,
+            0,
+            5,
+            15,
+            5,
+            10,
+            0
+          ]
+        },
+        {
+          "label": "后腿·临时弱点·克隆影蜘蛛讨伐失败前·普通",
+          "values": [
+            65,
+            45,
+            45,
+            0,
+            5,
+            15,
+            5,
+            10,
+            0
+          ]
+        }
+      ],
+      "id": "A06",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：后腿·克隆影蜘蛛讨伐失败后·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Omega Planetes",
+      "monsterZh": "游星欧米茄",
+      "index": 10,
+      "part": "Torso",
+      "partZh": "躯干",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        10,
+        10,
+        5,
+        0,
+        5,
+        5,
+        0,
+        5,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "躯干·克隆影蜘蛛讨伐失败后·普通"
+      ],
+      "reference": [
+        {
+          "label": "躯干·克隆影蜘蛛讨伐失败后·普通",
+          "values": [
+            10,
+            10,
+            5,
+            0,
+            5,
+            5,
+            0,
+            5,
+            0
+          ]
+        },
+        {
+          "label": "躯干·普通·克隆影蜘蛛讨伐失败前",
+          "values": [
+            20,
+            20,
+            5,
+            0,
+            5,
+            5,
+            0,
+            5,
+            0
+          ]
+        }
+      ],
+      "id": "A07",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：躯干·克隆影蜘蛛讨伐失败后·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Omega Planetes",
+      "monsterZh": "游星欧米茄",
+      "index": 12,
+      "part": "Rear Power Unit",
+      "partZh": "背部单元",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        40,
+        65,
+        5,
+        0,
+        5,
+        10,
+        5,
+        20,
+        30
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "背部单元·克隆影蜘蛛讨伐失败后·普通"
+      ],
+      "reference": [
+        {
+          "label": "背部单元·克隆影蜘蛛讨伐失败后·普通",
+          "values": [
+            40,
+            65,
+            5,
+            0,
+            5,
+            10,
+            5,
+            20,
+            30
+          ]
+        },
+        {
+          "label": "背部单元·普通·克隆影蜘蛛讨伐失败前",
+          "values": [
+            75,
+            100,
+            10,
+            0,
+            5,
+            15,
+            5,
+            30,
+            30
+          ]
+        }
+      ],
+      "id": "A08",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：背部单元·克隆影蜘蛛讨伐失败后·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Omega Planetes",
+      "monsterZh": "游星欧米茄",
+      "index": 14,
+      "part": "Back",
+      "partZh": "背部",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        30,
+        20,
+        20,
+        0,
+        5,
+        20,
+        5,
+        15,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "背部·克隆影蜘蛛讨伐失败后·普通"
+      ],
+      "reference": [
+        {
+          "label": "背部·克隆影蜘蛛讨伐失败后·普通",
+          "values": [
+            30,
+            20,
+            20,
+            0,
+            5,
+            20,
+            5,
+            15,
+            0
+          ]
+        },
+        {
+          "label": "背部·普通·克隆影蜘蛛讨伐失败前",
+          "values": [
+            45,
+            30,
+            30,
+            0,
+            5,
+            20,
+            5,
+            15,
+            0
+          ]
+        }
+      ],
+      "id": "A09",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：背部·克隆影蜘蛛讨伐失败后·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Mizutsune",
+      "monsterZh": "泡狐龙",
+      "index": 1,
+      "part": "Head",
+      "partZh": "头部",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        68,
+        68,
+        48,
+        10,
+        0,
+        15,
+        5,
+        10,
+        100
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "头部·天眼·普通"
+      ],
+      "reference": [
+        {
+          "label": "头部·天眼·普通",
+          "values": [
+            68,
+            68,
+            48,
+            10,
+            0,
+            15,
+            5,
+            10,
+            100
+          ]
+        },
+        {
+          "label": "头部·伤口",
+          "values": [
+            70,
+            70,
+            60,
+            10,
+            0,
+            15,
+            10,
+            10,
+            100
+          ]
+        }
+      ],
+      "id": "A10",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：头部·天眼·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Mizutsune",
+      "monsterZh": "泡狐龙",
+      "index": 3,
+      "part": "Leg",
+      "partZh": "腿",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        45,
+        45,
+        20,
+        10,
+        0,
+        15,
+        5,
+        10,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "前腿·天眼·普通（异名部位，仅同值）",
+        "爪·发怒·破坏后+形态变化（异名部位，仅同值）"
+      ],
+      "reference": [
+        {
+          "label": "前腿·天眼·普通",
+          "values": [
+            45,
+            45,
+            20,
+            10,
+            0,
+            15,
+            5,
+            10,
+            0
+          ]
+        },
+        {
+          "label": "爪·发怒·破坏后+形态变化",
+          "values": [
+            45,
+            45,
+            20,
+            10,
+            0,
+            15,
+            5,
+            10,
+            0
+          ]
+        }
+      ],
+      "id": "A11",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：前腿·天眼·普通（异名部位，仅同值）；爪·发怒·破坏后+形态变化（异名部位，仅同值）。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Mizutsune",
+      "monsterZh": "泡狐龙",
+      "index": 6,
+      "part": "Claw",
+      "partZh": "爪",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        45,
+        45,
+        20,
+        10,
+        0,
+        15,
+        5,
+        10,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "爪·发怒·破坏后+形态变化"
+      ],
+      "reference": [
+        {
+          "label": "爪·发怒·破坏后+形态变化",
+          "values": [
+            45,
+            45,
+            20,
+            10,
+            0,
+            15,
+            5,
+            10,
+            0
+          ]
+        },
+        {
+          "label": "爪·伤口",
+          "values": [
+            50,
+            50,
+            50,
+            10,
+            0,
+            30,
+            20,
+            30,
+            0
+          ]
+        }
+      ],
+      "id": "A12",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：爪·发怒·破坏后+形态变化。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Mizutsune",
+      "monsterZh": "泡狐龙",
+      "index": 10,
+      "part": "Tail",
+      "partZh": "尾巴",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        43,
+        33,
+        40,
+        5,
+        0,
+        10,
+        5,
+        5,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "尾巴·普通·普通",
+        "尾巴·发怒·普通"
+      ],
+      "reference": [
+        {
+          "label": "尾巴·普通·普通",
+          "values": [
+            43,
+            33,
+            40,
+            5,
+            0,
+            10,
+            5,
+            5,
+            0
+          ]
+        },
+        {
+          "label": "尾巴·发怒·普通",
+          "values": [
+            43,
+            33,
+            40,
+            5,
+            0,
+            10,
+            5,
+            5,
+            0
+          ]
+        }
+      ],
+      "id": "A13",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：尾巴·普通·普通；尾巴·发怒·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Guardian Fulgur Anjanath",
+      "monsterZh": "护雷颚龙",
+      "index": 2,
+      "part": "Head",
+      "partZh": "头部",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        55,
+        55,
+        45,
+        10,
+        30,
+        0,
+        20,
+        30,
+        100
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "头部·带电·普通"
+      ],
+      "reference": [
+        {
+          "label": "头部·带电·普通",
+          "values": [
+            55,
+            55,
+            45,
+            10,
+            30,
+            0,
+            20,
+            30,
+            100
+          ]
+        },
+        {
+          "label": "头部·普通·普通",
+          "values": [
+            60,
+            60,
+            45,
+            10,
+            20,
+            0,
+            30,
+            30,
+            100
+          ]
+        }
+      ],
+      "id": "A14",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：头部·带电·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Guardian Fulgur Anjanath",
+      "monsterZh": "护雷颚龙",
+      "index": 4,
+      "part": "Nose",
+      "partZh": "鼻部",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        65,
+        60,
+        55,
+        15,
+        40,
+        0,
+        25,
+        30,
+        100
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "鼻部·带电·普通"
+      ],
+      "reference": [
+        {
+          "label": "鼻部·带电·普通",
+          "values": [
+            65,
+            60,
+            55,
+            15,
+            40,
+            0,
+            25,
+            30,
+            100
+          ]
+        },
+        {
+          "label": "鼻部·普通·普通",
+          "values": [
+            65,
+            60,
+            55,
+            15,
+            25,
+            0,
+            35,
+            30,
+            100
+          ]
+        }
+      ],
+      "id": "A15",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：鼻部·带电·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Guardian Fulgur Anjanath",
+      "monsterZh": "护雷颚龙",
+      "index": 6,
+      "part": "Neck",
+      "partZh": "颈部",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        26,
+        26,
+        10,
+        5,
+        25,
+        0,
+        20,
+        5,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "颈部·带电·普通"
+      ],
+      "reference": [
+        {
+          "label": "颈部·带电·普通",
+          "values": [
+            26,
+            26,
+            10,
+            5,
+            25,
+            0,
+            20,
+            5,
+            0
+          ]
+        },
+        {
+          "label": "颈部·普通·普通",
+          "values": [
+            30,
+            30,
+            10,
+            5,
+            20,
+            0,
+            25,
+            5,
+            0
+          ]
+        }
+      ],
+      "id": "A16",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：颈部·带电·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Guardian Fulgur Anjanath",
+      "monsterZh": "护雷颚龙",
+      "index": 8,
+      "part": "Torso",
+      "partZh": "躯干",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        26,
+        26,
+        40,
+        5,
+        20,
+        0,
+        15,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "躯干·带电·普通"
+      ],
+      "reference": [
+        {
+          "label": "躯干·带电·普通",
+          "values": [
+            26,
+            26,
+            40,
+            5,
+            20,
+            0,
+            15,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "躯干·普通·普通",
+          "values": [
+            30,
+            30,
+            45,
+            5,
+            15,
+            0,
+            20,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A17",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：躯干·带电·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Guardian Fulgur Anjanath",
+      "monsterZh": "护雷颚龙",
+      "index": 10,
+      "part": "Wing",
+      "partZh": "翅膀",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        55,
+        40,
+        50,
+        15,
+        40,
+        0,
+        25,
+        10,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "翅膀·带电·普通"
+      ],
+      "reference": [
+        {
+          "label": "翅膀·带电·普通",
+          "values": [
+            55,
+            40,
+            50,
+            15,
+            40,
+            0,
+            25,
+            10,
+            0
+          ]
+        },
+        {
+          "label": "翅膀·普通·普通",
+          "values": [
+            65,
+            45,
+            55,
+            15,
+            25,
+            0,
+            35,
+            10,
+            0
+          ]
+        }
+      ],
+      "id": "A18",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：翅膀·带电·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Guardian Fulgur Anjanath",
+      "monsterZh": "护雷颚龙",
+      "index": 13,
+      "part": "Leg",
+      "partZh": "腿",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        35,
+        35,
+        15,
+        5,
+        20,
+        0,
+        15,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "后腿·带电·普通（异名部位，仅同值）"
+      ],
+      "reference": [
+        {
+          "label": "后腿·带电·普通",
+          "values": [
+            35,
+            35,
+            15,
+            5,
+            20,
+            0,
+            15,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "躯干·带电·普通",
+          "values": [
+            26,
+            26,
+            40,
+            5,
+            20,
+            0,
+            15,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A19",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：后腿·带电·普通（异名部位，仅同值）。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Guardian Fulgur Anjanath",
+      "monsterZh": "护雷颚龙",
+      "index": 14,
+      "part": "Leg",
+      "partZh": "腿",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        45,
+        45,
+        50,
+        5,
+        20,
+        0,
+        20,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "后腿·普通·破坏后（异名部位，仅同值）"
+      ],
+      "reference": [
+        {
+          "label": "后腿·普通·破坏后",
+          "values": [
+            45,
+            45,
+            50,
+            5,
+            20,
+            0,
+            20,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "躯干·普通·普通",
+          "values": [
+            30,
+            30,
+            45,
+            5,
+            15,
+            0,
+            20,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A20",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：后腿·普通·破坏后（异名部位，仅同值）。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Guardian Fulgur Anjanath",
+      "monsterZh": "护雷颚龙",
+      "index": 18,
+      "part": "Tail",
+      "partZh": "尾巴",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        55,
+        55,
+        70,
+        10,
+        25,
+        0,
+        20,
+        5,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "尾巴·带电·普通"
+      ],
+      "reference": [
+        {
+          "label": "尾巴·带电·普通",
+          "values": [
+            55,
+            55,
+            70,
+            10,
+            25,
+            0,
+            20,
+            5,
+            0
+          ]
+        },
+        {
+          "label": "尾巴·普通·切断后",
+          "values": [
+            60,
+            60,
+            75,
+            10,
+            20,
+            0,
+            20,
+            5,
+            0
+          ]
+        }
+      ],
+      "id": "A21",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：尾巴·带电·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Guardian Fulgur Anjanath",
+      "monsterZh": "护雷颚龙",
+      "index": 19,
+      "part": "Tail",
+      "partZh": "尾巴",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        60,
+        60,
+        75,
+        10,
+        20,
+        0,
+        20,
+        5,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "尾巴·普通·切断后"
+      ],
+      "reference": [
+        {
+          "label": "尾巴·普通·切断后",
+          "values": [
+            60,
+            60,
+            75,
+            10,
+            20,
+            0,
+            20,
+            5,
+            0
+          ]
+        },
+        {
+          "label": "尾巴·普通·普通",
+          "values": [
+            60,
+            60,
+            75,
+            10,
+            20,
+            0,
+            25,
+            5,
+            0
+          ]
+        }
+      ],
+      "id": "A22",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：尾巴·普通·切断后。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Rompopolo",
+      "monsterZh": "沼喷龙",
+      "index": 2,
+      "part": "Head",
+      "partZh": "头部",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        45,
+        45,
+        45,
+        10,
+        20,
+        10,
+        10,
+        5,
+        100
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "头部·普通·瘪掉"
+      ],
+      "reference": [
+        {
+          "label": "头部·普通·瘪掉",
+          "values": [
+            45,
+            45,
+            45,
+            10,
+            20,
+            10,
+            10,
+            5,
+            100
+          ]
+        },
+        {
+          "label": "头部·普通·普通",
+          "values": [
+            60,
+            65,
+            60,
+            10,
+            25,
+            10,
+            10,
+            5,
+            100
+          ]
+        }
+      ],
+      "id": "A23",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：头部·普通·瘪掉。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Rompopolo",
+      "monsterZh": "沼喷龙",
+      "index": 5,
+      "part": "Back",
+      "partZh": "背部",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        45,
+        45,
+        45,
+        10,
+        20,
+        10,
+        10,
+        5,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "背部·普通·瘪掉"
+      ],
+      "reference": [
+        {
+          "label": "背部·普通·瘪掉",
+          "values": [
+            45,
+            45,
+            45,
+            10,
+            20,
+            10,
+            10,
+            5,
+            0
+          ]
+        },
+        {
+          "label": "背部·普通·普通",
+          "values": [
+            55,
+            55,
+            45,
+            10,
+            20,
+            10,
+            10,
+            5,
+            0
+          ]
+        }
+      ],
+      "id": "A24",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：背部·普通·瘪掉。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Rompopolo",
+      "monsterZh": "沼喷龙",
+      "index": 9,
+      "part": "Tail",
+      "partZh": "尾巴",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        45,
+        45,
+        45,
+        10,
+        20,
+        10,
+        10,
+        5,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "尾巴·普通·瘪掉"
+      ],
+      "reference": [
+        {
+          "label": "尾巴·普通·瘪掉",
+          "values": [
+            45,
+            45,
+            45,
+            10,
+            20,
+            10,
+            10,
+            5,
+            0
+          ]
+        },
+        {
+          "label": "尾巴·普通·普通",
+          "values": [
+            60,
+            60,
+            60,
+            10,
+            25,
+            10,
+            10,
+            5,
+            0
+          ]
+        }
+      ],
+      "id": "A25",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：尾巴·普通·瘪掉。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Arkveld",
+      "monsterZh": "锁刃龙",
+      "index": 1,
+      "part": "Head",
+      "partZh": "头部",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        45,
+        48,
+        45,
+        10,
+        10,
+        10,
+        10,
+        10,
+        100
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "头部·历战王·普通"
+      ],
+      "reference": [
+        {
+          "label": "头部·历战王·普通",
+          "values": [
+            45,
+            48,
+            45,
+            10,
+            10,
+            10,
+            10,
+            10,
+            100
+          ]
+        },
+        {
+          "label": "头部·伤口·历战王·历战伤口",
+          "values": [
+            65,
+            68,
+            62,
+            10,
+            10,
+            10,
+            10,
+            10,
+            100
+          ]
+        }
+      ],
+      "id": "A26",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：头部·历战王·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Arkveld",
+      "monsterZh": "锁刃龙",
+      "index": 8,
+      "part": "Chainblade",
+      "partZh": "锁翼刃",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        50,
+        50,
+        45,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "锁翼刃·普通·普通",
+        "锁翼刃·历战王·锁刃1根时·属性吸收状态"
+      ],
+      "reference": [
+        {
+          "label": "锁翼刃·普通·普通",
+          "values": [
+            50,
+            50,
+            45,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "锁翼刃·历战王·锁刃1根时·属性吸收状态",
+          "values": [
+            50,
+            50,
+            45,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A27",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：锁翼刃·普通·普通；锁翼刃·历战王·锁刃1根时·属性吸收状态。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Arkveld",
+      "monsterZh": "锁刃龙",
+      "index": 9,
+      "part": "Chainblade",
+      "partZh": "锁翼刃",
+      "state": "AT Guardian",
+      "field": "Meat",
+      "values": [
+        50,
+        50,
+        45,
+        20,
+        20,
+        20,
+        20,
+        20,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "锁翼刃·历战王·锁刃2根时"
+      ],
+      "reference": [
+        {
+          "label": "锁翼刃·历战王·锁刃2根时",
+          "values": [
+            50,
+            50,
+            45,
+            20,
+            20,
+            20,
+            20,
+            20,
+            0
+          ]
+        },
+        {
+          "label": "锁翼刃·临时弱点·普通",
+          "values": [
+            52,
+            52,
+            48,
+            20,
+            20,
+            20,
+            20,
+            25,
+            0
+          ]
+        }
+      ],
+      "id": "A28",
+      "status": "resolved",
+      "decision": "已覆盖：历战王·锁刃2根时（AT代表历战王模板）"
+    },
+    {
+      "monster": "Arkveld",
+      "monsterZh": "锁刃龙",
+      "index": 12,
+      "part": "Head",
+      "partZh": "头部",
+      "state": "AT Wnd",
+      "field": "Meat",
+      "values": [
+        65,
+        68,
+        62,
+        10,
+        10,
+        10,
+        10,
+        10,
+        100
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "头部·伤口·历战王·历战伤口"
+      ],
+      "reference": [
+        {
+          "label": "头部·伤口·历战王·历战伤口",
+          "values": [
+            65,
+            68,
+            62,
+            10,
+            10,
+            10,
+            10,
+            10,
+            100
+          ]
+        },
+        {
+          "label": "头部·历战王·普通",
+          "values": [
+            45,
+            48,
+            45,
+            10,
+            10,
+            10,
+            10,
+            10,
+            100
+          ]
+        }
+      ],
+      "id": "A29",
+      "status": "resolved",
+      "decision": "已补入：锁刃龙头部·历战王·历战伤口"
+    },
+    {
+      "monster": "Arkveld",
+      "monsterZh": "锁刃龙",
+      "index": 13,
+      "part": "Chainblade",
+      "partZh": "锁翼刃",
+      "state": "AT Wnd",
+      "field": "Meat",
+      "values": [
+        70,
+        70,
+        68,
+        30,
+        30,
+        30,
+        30,
+        30,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "锁翼刃·伤口·历战王·历战伤口"
+      ],
+      "reference": [
+        {
+          "label": "锁翼刃·伤口·历战王·历战伤口",
+          "values": [
+            70,
+            70,
+            68,
+            30,
+            30,
+            30,
+            30,
+            30,
+            0
+          ]
+        },
+        {
+          "label": "锁翼刃·伤口",
+          "values": [
+            70,
+            70,
+            68,
+            30,
+            30,
+            30,
+            30,
+            38,
+            0
+          ]
+        }
+      ],
+      "id": "A30",
+      "status": "resolved",
+      "decision": "已补入：锁刃龙锁翼刃·历战王·历战伤口"
+    },
+    {
+      "monster": "Arkveld",
+      "monsterZh": "锁刃龙",
+      "index": 14,
+      "part": "All Others",
+      "partZh": "其余部位",
+      "state": "AT Wnd",
+      "field": "Meat",
+      "values": [
+        60,
+        62,
+        65,
+        10,
+        10,
+        10,
+        10,
+        10,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "躯干·伤口·历战王·历战伤口（异名部位，仅同值）",
+        "腿·伤口·历战王·历战伤口（异名部位，仅同值）",
+        "尾巴·伤口·历战王·历战伤口（异名部位，仅同值）"
+      ],
+      "reference": [
+        {
+          "label": "躯干·伤口·历战王·历战伤口",
+          "values": [
+            60,
+            62,
+            65,
+            10,
+            10,
+            10,
+            10,
+            10,
+            0
+          ]
+        },
+        {
+          "label": "腿·伤口·历战王·历战伤口",
+          "values": [
+            60,
+            62,
+            65,
+            10,
+            10,
+            10,
+            10,
+            10,
+            0
+          ]
+        }
+      ],
+      "id": "A31",
+      "status": "resolved",
+      "decision": "已补入：锁刃龙躯干、腿（左右共用）、尾巴·历战王·历战伤口"
+    },
+    {
+      "monster": "Ajarakan",
+      "monsterZh": "赫猿兽",
+      "index": 1,
+      "part": "Head",
+      "partZh": "头部",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        50,
+        50,
+        45,
+        0,
+        20,
+        5,
+        15,
+        10,
+        100
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "头部·红莲·普通"
+      ],
+      "reference": [
+        {
+          "label": "头部·红莲·普通",
+          "values": [
+            50,
+            50,
+            45,
+            0,
+            20,
+            5,
+            15,
+            10,
+            100
+          ]
+        },
+        {
+          "label": "头部·普通·普通",
+          "values": [
+            45,
+            45,
+            40,
+            0,
+            20,
+            5,
+            15,
+            10,
+            100
+          ]
+        }
+      ],
+      "id": "A32",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：头部·红莲·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Ajarakan",
+      "monsterZh": "赫猿兽",
+      "index": 4,
+      "part": "Foreleg",
+      "partZh": "前腿",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        65,
+        65,
+        60,
+        0,
+        25,
+        5,
+        15,
+        10,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "前腿·红莲·普通"
+      ],
+      "reference": [
+        {
+          "label": "前腿·红莲·普通",
+          "values": [
+            65,
+            65,
+            60,
+            0,
+            25,
+            5,
+            15,
+            10,
+            0
+          ]
+        },
+        {
+          "label": "前腿·普通·普通",
+          "values": [
+            50,
+            50,
+            45,
+            0,
+            25,
+            5,
+            15,
+            10,
+            0
+          ]
+        }
+      ],
+      "id": "A33",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：前腿·红莲·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Ajarakan",
+      "monsterZh": "赫猿兽",
+      "index": 10,
+      "part": "Belly",
+      "partZh": "腹部",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        45,
+        45,
+        45,
+        0,
+        15,
+        5,
+        10,
+        5,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "腹部·红莲·普通"
+      ],
+      "reference": [
+        {
+          "label": "腹部·红莲·普通",
+          "values": [
+            45,
+            45,
+            45,
+            0,
+            15,
+            5,
+            10,
+            5,
+            0
+          ]
+        },
+        {
+          "label": "腹部·普通·普通",
+          "values": [
+            30,
+            30,
+            25,
+            0,
+            15,
+            5,
+            10,
+            5,
+            0
+          ]
+        }
+      ],
+      "id": "A34",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：腹部·红莲·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Uth Duna",
+      "monsterZh": "波衣龙",
+      "index": 4,
+      "part": "Foreleg",
+      "partZh": "前腿",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        65,
+        65,
+        40,
+        10,
+        0,
+        15,
+        5,
+        5,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "前腿·历战王·普通"
+      ],
+      "reference": [
+        {
+          "label": "前腿·历战王·普通",
+          "values": [
+            65,
+            65,
+            40,
+            10,
+            0,
+            15,
+            5,
+            5,
+            0
+          ]
+        },
+        {
+          "label": "前腿·普通·普通",
+          "values": [
+            65,
+            65,
+            55,
+            10,
+            0,
+            15,
+            5,
+            5,
+            0
+          ]
+        }
+      ],
+      "id": "A35",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：前腿·历战王·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Uth Duna",
+      "monsterZh": "波衣龙",
+      "index": 6,
+      "part": "Hind Leg",
+      "partZh": "后腿",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        55,
+        55,
+        35,
+        10,
+        0,
+        15,
+        5,
+        5,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "后腿·历战王·普通"
+      ],
+      "reference": [
+        {
+          "label": "后腿·历战王·普通",
+          "values": [
+            55,
+            55,
+            35,
+            10,
+            0,
+            15,
+            5,
+            5,
+            0
+          ]
+        },
+        {
+          "label": "后腿·普通·普通",
+          "values": [
+            55,
+            55,
+            45,
+            10,
+            0,
+            15,
+            5,
+            5,
+            0
+          ]
+        }
+      ],
+      "id": "A36",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：后腿·历战王·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Uth Duna",
+      "monsterZh": "波衣龙",
+      "index": 9,
+      "part": "Veil",
+      "partZh": "水膜",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        90,
+        75,
+        35,
+        0,
+        0,
+        20,
+        0,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "水膜·历战王·普通"
+      ],
+      "reference": [
+        {
+          "label": "水膜·历战王·普通",
+          "values": [
+            90,
+            75,
+            35,
+            0,
+            0,
+            20,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "水膜·普通·普通",
+          "values": [
+            90,
+            60,
+            60,
+            0,
+            0,
+            25,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A37",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：水膜·历战王·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Uth Duna",
+      "monsterZh": "波衣龙",
+      "index": 12,
+      "part": "Veil:Foreleg",
+      "partZh": "水膜·前腿",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        90,
+        75,
+        35,
+        0,
+        0,
+        20,
+        0,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "水膜·历战王·普通（异名部位，仅同值）"
+      ],
+      "reference": [
+        {
+          "label": "水膜·历战王·普通",
+          "values": [
+            90,
+            75,
+            35,
+            0,
+            0,
+            20,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "水膜·普通·普通",
+          "values": [
+            90,
+            60,
+            60,
+            0,
+            0,
+            25,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A38",
+      "status": "resolved",
+      "decision": "已覆盖：水膜·历战王；只显示一个水膜部位"
+    },
+    {
+      "monster": "Uth Duna",
+      "monsterZh": "波衣龙",
+      "index": 14,
+      "part": "Veil:Tail (Middle)",
+      "partZh": "水膜·尾（中段）",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        90,
+        75,
+        35,
+        0,
+        0,
+        20,
+        0,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "水膜·历战王·普通（异名部位，仅同值）"
+      ],
+      "reference": [
+        {
+          "label": "水膜·历战王·普通",
+          "values": [
+            90,
+            75,
+            35,
+            0,
+            0,
+            20,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "水膜·普通·普通",
+          "values": [
+            90,
+            60,
+            60,
+            0,
+            0,
+            25,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A39",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：水膜·历战王·普通（异名部位，仅同值）。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Uth Duna",
+      "monsterZh": "波衣龙",
+      "index": 15,
+      "part": "Head",
+      "partZh": "头部",
+      "state": "AT Wnd",
+      "field": "Meat",
+      "values": [
+        88,
+        90,
+        70,
+        15,
+        0,
+        20,
+        5,
+        5,
+        100
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "头部·伤口·历战王·历战伤口"
+      ],
+      "reference": [
+        {
+          "label": "头部·伤口·历战王·历战伤口",
+          "values": [
+            88,
+            90,
+            70,
+            15,
+            0,
+            20,
+            5,
+            5,
+            100
+          ]
+        },
+        {
+          "label": "头部·伤口",
+          "values": [
+            88,
+            90,
+            88,
+            15,
+            0,
+            25,
+            5,
+            5,
+            100
+          ]
+        }
+      ],
+      "id": "A40",
+      "status": "resolved",
+      "decision": "已补入：波衣龙头部·历战王·历战伤口"
+    },
+    {
+      "monster": "Uth Duna",
+      "monsterZh": "波衣龙",
+      "index": 16,
+      "part": "All Others",
+      "partZh": "其余部位",
+      "state": "AT Wnd",
+      "field": "Meat",
+      "values": [
+        80,
+        80,
+        65,
+        15,
+        0,
+        20,
+        5,
+        5,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "躯干·伤口·历战王·历战伤口（异名部位，仅同值）",
+        "前腿·伤口·历战王·历战伤口（异名部位，仅同值）",
+        "后腿·伤口·历战王·历战伤口（异名部位，仅同值）",
+        "尾巴·伤口·历战王·历战伤口（异名部位，仅同值）"
+      ],
+      "reference": [
+        {
+          "label": "躯干·伤口·历战王·历战伤口",
+          "values": [
+            80,
+            80,
+            65,
+            15,
+            0,
+            20,
+            5,
+            5,
+            0
+          ]
+        },
+        {
+          "label": "前腿·伤口·历战王·历战伤口",
+          "values": [
+            80,
+            80,
+            65,
+            15,
+            0,
+            20,
+            5,
+            5,
+            0
+          ]
+        }
+      ],
+      "id": "A41",
+      "status": "resolved",
+      "decision": "已补入：波衣龙躯干、前腿、后腿、尾巴·历战王·历战伤口；水膜不作为伤口部位"
+    },
+    {
+      "monster": "Jin Dahaad",
+      "monsterZh": "冻峰龙",
+      "index": 5,
+      "part": "Leg",
+      "partZh": "腿",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        45,
+        45,
+        30,
+        15,
+        5,
+        5,
+        0,
+        5,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "前腿·历战王·普通（异名部位，仅同值）",
+        "后腿·历战王·普通（异名部位，仅同值）"
+      ],
+      "reference": [
+        {
+          "label": "前腿·历战王·普通",
+          "values": [
+            45,
+            45,
+            30,
+            15,
+            5,
+            5,
+            0,
+            5,
+            0
+          ]
+        },
+        {
+          "label": "后腿·历战王·普通",
+          "values": [
+            45,
+            45,
+            30,
+            15,
+            5,
+            5,
+            0,
+            5,
+            0
+          ]
+        }
+      ],
+      "id": "A42",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：前腿·历战王·普通（异名部位，仅同值）；后腿·历战王·普通（异名部位，仅同值）。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Nu Udra",
+      "monsterZh": "狱焰蛸",
+      "index": 1,
+      "part": "Head",
+      "partZh": "头部",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        60,
+        65,
+        45,
+        0,
+        18,
+        5,
+        5,
+        5,
+        100
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "头部·附油·普通"
+      ],
+      "reference": [
+        {
+          "label": "头部·附油·普通",
+          "values": [
+            60,
+            65,
+            45,
+            0,
+            18,
+            5,
+            5,
+            5,
+            100
+          ]
+        },
+        {
+          "label": "头部·附炎·普通",
+          "values": [
+            65,
+            70,
+            48,
+            0,
+            20,
+            5,
+            5,
+            10,
+            100
+          ]
+        }
+      ],
+      "id": "A43",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：头部·附油·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Nu Udra",
+      "monsterZh": "狱焰蛸",
+      "index": 2,
+      "part": "Head",
+      "partZh": "头部",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        65,
+        70,
+        48,
+        0,
+        20,
+        5,
+        5,
+        10,
+        100
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "头部·附炎·普通"
+      ],
+      "reference": [
+        {
+          "label": "头部·附炎·普通",
+          "values": [
+            65,
+            70,
+            48,
+            0,
+            20,
+            5,
+            5,
+            10,
+            100
+          ]
+        },
+        {
+          "label": "头部·普通·普通",
+          "values": [
+            70,
+            75,
+            50,
+            0,
+            15,
+            10,
+            5,
+            10,
+            100
+          ]
+        }
+      ],
+      "id": "A44",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：头部·附炎·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Nu Udra",
+      "monsterZh": "狱焰蛸",
+      "index": 4,
+      "part": "Tentacle",
+      "partZh": "触腕",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        25,
+        35,
+        20,
+        0,
+        18,
+        5,
+        5,
+        5,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "触腕·附油·普通"
+      ],
+      "reference": [
+        {
+          "label": "触腕·附油·普通",
+          "values": [
+            25,
+            35,
+            20,
+            0,
+            18,
+            5,
+            5,
+            5,
+            0
+          ]
+        },
+        {
+          "label": "触腕·附炎·普通",
+          "values": [
+            35,
+            40,
+            30,
+            0,
+            20,
+            5,
+            5,
+            10,
+            0
+          ]
+        }
+      ],
+      "id": "A45",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：触腕·附油·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Nu Udra",
+      "monsterZh": "狱焰蛸",
+      "index": 5,
+      "part": "Tentacle",
+      "partZh": "触腕",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        35,
+        40,
+        30,
+        0,
+        20,
+        5,
+        5,
+        10,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "触腕·附炎·普通"
+      ],
+      "reference": [
+        {
+          "label": "触腕·附炎·普通",
+          "values": [
+            35,
+            40,
+            30,
+            0,
+            20,
+            5,
+            5,
+            10,
+            0
+          ]
+        },
+        {
+          "label": "触腕·普通·普通",
+          "values": [
+            30,
+            43,
+            25,
+            0,
+            15,
+            10,
+            5,
+            10,
+            0
+          ]
+        }
+      ],
+      "id": "A46",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：触腕·附炎·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Nu Udra",
+      "monsterZh": "狱焰蛸",
+      "index": 7,
+      "part": "Membrane",
+      "partZh": "伞膜",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        25,
+        35,
+        20,
+        0,
+        18,
+        5,
+        5,
+        5,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "伞膜·附油·普通"
+      ],
+      "reference": [
+        {
+          "label": "伞膜·附油·普通",
+          "values": [
+            25,
+            35,
+            20,
+            0,
+            18,
+            5,
+            5,
+            5,
+            0
+          ]
+        },
+        {
+          "label": "伞膜·附炎·普通",
+          "values": [
+            35,
+            40,
+            30,
+            0,
+            20,
+            5,
+            5,
+            10,
+            0
+          ]
+        }
+      ],
+      "id": "A47",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：伞膜·附油·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Nu Udra",
+      "monsterZh": "狱焰蛸",
+      "index": 8,
+      "part": "Membrane",
+      "partZh": "伞膜",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        35,
+        40,
+        30,
+        0,
+        20,
+        5,
+        5,
+        10,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "伞膜·附炎·普通"
+      ],
+      "reference": [
+        {
+          "label": "伞膜·附炎·普通",
+          "values": [
+            35,
+            40,
+            30,
+            0,
+            20,
+            5,
+            5,
+            10,
+            0
+          ]
+        },
+        {
+          "label": "伞膜·普通·普通",
+          "values": [
+            30,
+            43,
+            25,
+            0,
+            15,
+            10,
+            5,
+            10,
+            0
+          ]
+        }
+      ],
+      "id": "A48",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：伞膜·附炎·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Nu Udra",
+      "monsterZh": "狱焰蛸",
+      "index": 10,
+      "part": "Torso",
+      "partZh": "躯干",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        45,
+        50,
+        30,
+        0,
+        18,
+        5,
+        5,
+        5,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "躯干·附油·普通"
+      ],
+      "reference": [
+        {
+          "label": "躯干·附油·普通",
+          "values": [
+            45,
+            50,
+            30,
+            0,
+            18,
+            5,
+            5,
+            5,
+            0
+          ]
+        },
+        {
+          "label": "躯干·附炎·普通",
+          "values": [
+            48,
+            53,
+            35,
+            0,
+            20,
+            5,
+            5,
+            10,
+            0
+          ]
+        }
+      ],
+      "id": "A49",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：躯干·附油·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Nu Udra",
+      "monsterZh": "狱焰蛸",
+      "index": 11,
+      "part": "Torso",
+      "partZh": "躯干",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        48,
+        53,
+        35,
+        0,
+        20,
+        5,
+        5,
+        10,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "躯干·附炎·普通"
+      ],
+      "reference": [
+        {
+          "label": "躯干·附炎·普通",
+          "values": [
+            48,
+            53,
+            35,
+            0,
+            20,
+            5,
+            5,
+            10,
+            0
+          ]
+        },
+        {
+          "label": "躯干·普通·普通",
+          "values": [
+            50,
+            65,
+            43,
+            0,
+            15,
+            10,
+            5,
+            10,
+            0
+          ]
+        }
+      ],
+      "id": "A50",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：躯干·附炎·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Nu Udra",
+      "monsterZh": "狱焰蛸",
+      "index": 13,
+      "part": "Arm",
+      "partZh": "腕",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        45,
+        45,
+        43,
+        0,
+        18,
+        5,
+        5,
+        5,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "腕·附油·普通"
+      ],
+      "reference": [
+        {
+          "label": "腕·附油·普通",
+          "values": [
+            45,
+            45,
+            43,
+            0,
+            18,
+            5,
+            5,
+            5,
+            0
+          ]
+        },
+        {
+          "label": "腕·附炎·普通",
+          "values": [
+            48,
+            45,
+            45,
+            0,
+            20,
+            5,
+            5,
+            10,
+            0
+          ]
+        }
+      ],
+      "id": "A51",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：腕·附油·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Nu Udra",
+      "monsterZh": "狱焰蛸",
+      "index": 14,
+      "part": "Arm",
+      "partZh": "腕",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        48,
+        45,
+        45,
+        0,
+        20,
+        5,
+        5,
+        10,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "腕·附炎·普通"
+      ],
+      "reference": [
+        {
+          "label": "腕·附炎·普通",
+          "values": [
+            48,
+            45,
+            45,
+            0,
+            20,
+            5,
+            5,
+            10,
+            0
+          ]
+        },
+        {
+          "label": "腕·附油·普通",
+          "values": [
+            45,
+            45,
+            43,
+            0,
+            18,
+            5,
+            5,
+            5,
+            0
+          ]
+        }
+      ],
+      "id": "A52",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：腕·附炎·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 2,
+      "part": "Head",
+      "partZh": "头部",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        50,
+        50,
+        50,
+        25,
+        0,
+        0,
+        5,
+        0,
+        100
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "克隆影蜘蛛·头部·普通·普通（仅同值）"
+      ],
+      "reference": [
+        {
+          "label": "头部·普通·普通",
+          "values": [
+            50,
+            65,
+            50,
+            15,
+            0,
+            0,
+            5,
+            0,
+            100
+          ]
+        },
+        {
+          "label": "头部·伤口",
+          "values": [
+            75,
+            75,
+            75,
+            25,
+            0,
+            15,
+            15,
+            0,
+            100
+          ]
+        }
+      ],
+      "id": "A53",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：克隆影蜘蛛·头部·普通·普通（仅同值）。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 3,
+      "part": "Head",
+      "partZh": "头部",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        50,
+        50,
+        50,
+        5,
+        0,
+        10,
+        5,
+        0,
+        100
+      ],
+      "woundSlots": null,
+      "matchingExisting": [],
+      "reference": [
+        {
+          "label": "头部·普通·普通",
+          "values": [
+            50,
+            65,
+            50,
+            15,
+            0,
+            0,
+            5,
+            0,
+            100
+          ]
+        },
+        {
+          "label": "头部·伤口",
+          "values": [
+            75,
+            75,
+            75,
+            25,
+            0,
+            15,
+            15,
+            0,
+            100
+          ]
+        }
+      ],
+      "id": "A54",
+      "status": "pending",
+      "decision": "尚无对应的已命名条件，需说明实际触发状态。"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 6,
+      "part": "Torso",
+      "partZh": "躯干",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        36,
+        36,
+        40,
+        25,
+        0,
+        0,
+        5,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "躯干·普通·普通",
+        "克隆影蜘蛛·躯干·普通·普通（仅同值）"
+      ],
+      "reference": [
+        {
+          "label": "躯干·普通·普通",
+          "values": [
+            36,
+            36,
+            40,
+            25,
+            0,
+            0,
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "躯干·伤口",
+          "values": [
+            55,
+            55,
+            45,
+            25,
+            0,
+            25,
+            15,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A55",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：躯干·普通·普通；克隆影蜘蛛·躯干·普通·普通（仅同值）。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 7,
+      "part": "Torso",
+      "partZh": "躯干",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        36,
+        36,
+        40,
+        5,
+        0,
+        25,
+        5,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [],
+      "reference": [
+        {
+          "label": "躯干·普通·普通",
+          "values": [
+            36,
+            36,
+            40,
+            25,
+            0,
+            0,
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "躯干·伤口",
+          "values": [
+            55,
+            55,
+            45,
+            25,
+            0,
+            25,
+            15,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A56",
+      "status": "pending",
+      "decision": "尚无对应的已命名条件，需说明实际触发状态。"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 10,
+      "part": "Belly",
+      "partZh": "腹部",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        45,
+        45,
+        45,
+        25,
+        0,
+        10,
+        5,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "克隆影蜘蛛·腹部·普通·普通（仅同值）"
+      ],
+      "reference": [
+        {
+          "label": "腹部·普通·普通",
+          "values": [
+            65,
+            50,
+            45,
+            15,
+            0,
+            20,
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "腹部·伤口",
+          "values": [
+            55,
+            55,
+            45,
+            25,
+            0,
+            25,
+            15,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A57",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：克隆影蜘蛛·腹部·普通·普通（仅同值）。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 11,
+      "part": "Belly",
+      "partZh": "腹部",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        45,
+        45,
+        45,
+        5,
+        0,
+        20,
+        5,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [],
+      "reference": [
+        {
+          "label": "腹部·普通·普通",
+          "values": [
+            65,
+            50,
+            45,
+            15,
+            0,
+            20,
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "腹部·伤口",
+          "values": [
+            55,
+            55,
+            45,
+            25,
+            0,
+            25,
+            15,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A58",
+      "status": "pending",
+      "decision": "尚无对应的已命名条件，需说明实际触发状态。"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 14,
+      "part": "Claw",
+      "partZh": "爪",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        30,
+        30,
+        30,
+        5,
+        0,
+        5,
+        5,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "克隆影蜘蛛·爪·普通·普通（仅同值）"
+      ],
+      "reference": [
+        {
+          "label": "爪·普通·普通",
+          "values": [
+            20,
+            30,
+            20,
+            5,
+            0,
+            10,
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "爪·伤口",
+          "values": [
+            55,
+            55,
+            45,
+            25,
+            0,
+            25,
+            15,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A59",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：克隆影蜘蛛·爪·普通·普通（仅同值）。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 15,
+      "part": "Claw",
+      "partZh": "爪",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        30,
+        30,
+        30,
+        5,
+        0,
+        10,
+        5,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [],
+      "reference": [
+        {
+          "label": "爪·普通·普通",
+          "values": [
+            20,
+            30,
+            20,
+            5,
+            0,
+            10,
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "爪·伤口",
+          "values": [
+            55,
+            55,
+            45,
+            25,
+            0,
+            25,
+            15,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A60",
+      "status": "pending",
+      "decision": "尚无对应的已命名条件，需说明实际触发状态。"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 19,
+      "part": "Foreleg",
+      "partZh": "前腿",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        35,
+        35,
+        25,
+        20,
+        0,
+        0,
+        5,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "腿根·普通·普通（异名部位，仅同值）"
+      ],
+      "reference": [
+        {
+          "label": "腿根·普通·普通",
+          "values": [
+            35,
+            35,
+            25,
+            20,
+            0,
+            0,
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "外套膜·普通·普通",
+          "values": [
+            45,
+            45,
+            35,
+            20,
+            0,
+            0,
+            5,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A61",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：腿根·普通·普通（异名部位，仅同值）。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 20,
+      "part": "Foreleg",
+      "partZh": "前腿",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        35,
+        35,
+        25,
+        5,
+        0,
+        10,
+        5,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [],
+      "reference": [
+        {
+          "label": "外套膜·普通·破坏后",
+          "values": [
+            45,
+            45,
+            25,
+            5,
+            0,
+            10,
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "腿根·普通·普通",
+          "values": [
+            35,
+            35,
+            25,
+            20,
+            0,
+            0,
+            5,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A62",
+      "status": "pending",
+      "decision": "尚无对应的已命名条件，需说明实际触发状态。"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 23,
+      "part": "Mantle",
+      "partZh": "外套膜",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        45,
+        45,
+        35,
+        20,
+        0,
+        0,
+        5,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "外套膜·普通·普通",
+        "克隆影蜘蛛·外套膜·普通·普通（仅同值）"
+      ],
+      "reference": [
+        {
+          "label": "外套膜·普通·普通",
+          "values": [
+            45,
+            45,
+            35,
+            20,
+            0,
+            0,
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "外套膜·普通·破坏后",
+          "values": [
+            45,
+            45,
+            25,
+            5,
+            0,
+            10,
+            5,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A63",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：外套膜·普通·普通；克隆影蜘蛛·外套膜·普通·普通（仅同值）。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 24,
+      "part": "Mantle",
+      "partZh": "外套膜",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        45,
+        45,
+        25,
+        5,
+        0,
+        10,
+        5,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "外套膜·普通·破坏后",
+        "克隆影蜘蛛·外套膜·普通·破坏后（仅同值）"
+      ],
+      "reference": [
+        {
+          "label": "外套膜·普通·破坏后",
+          "values": [
+            45,
+            45,
+            25,
+            5,
+            0,
+            10,
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "外套膜·普通·普通",
+          "values": [
+            45,
+            45,
+            35,
+            20,
+            0,
+            0,
+            5,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A64",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：外套膜·普通·破坏后；克隆影蜘蛛·外套膜·普通·破坏后（仅同值）。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 27,
+      "part": "HIDE",
+      "partZh": "HIDE（部位待确认）",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        45,
+        45,
+        35,
+        20,
+        0,
+        0,
+        5,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "外套膜·普通·普通（异名部位，仅同值）"
+      ],
+      "reference": [
+        {
+          "label": "外套膜·普通·普通",
+          "values": [
+            45,
+            45,
+            35,
+            20,
+            0,
+            0,
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "外套膜·普通·破坏后",
+          "values": [
+            45,
+            45,
+            25,
+            5,
+            0,
+            10,
+            5,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A65",
+      "status": "excluded",
+      "decision": "按用户要求暂不收录"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 28,
+      "part": "HIDE",
+      "partZh": "HIDE（部位待确认）",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        45,
+        45,
+        25,
+        5,
+        0,
+        10,
+        5,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "外套膜·普通·破坏后（异名部位，仅同值）"
+      ],
+      "reference": [
+        {
+          "label": "外套膜·普通·破坏后",
+          "values": [
+            45,
+            45,
+            25,
+            5,
+            0,
+            10,
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "爪·普通·普通",
+          "values": [
+            20,
+            30,
+            20,
+            5,
+            0,
+            10,
+            5,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A66",
+      "status": "excluded",
+      "decision": "按用户要求暂不收录"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 31,
+      "part": "Hind Leg",
+      "partZh": "后腿",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        28,
+        35,
+        20,
+        10,
+        0,
+        0,
+        5,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "脚尖·普通·普通（异名部位，仅同值）"
+      ],
+      "reference": [
+        {
+          "label": "脚尖·普通·普通",
+          "values": [
+            28,
+            35,
+            20,
+            10,
+            0,
+            0,
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "毒刺·普通·普通",
+          "values": [
+            28,
+            35,
+            65,
+            25,
+            0,
+            0,
+            5,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A67",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：脚尖·普通·普通（异名部位，仅同值）。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 32,
+      "part": "Hind Leg",
+      "partZh": "后腿",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        45,
+        45,
+        35,
+        5,
+        0,
+        10,
+        5,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [],
+      "reference": [
+        {
+          "label": "外套膜·普通·破坏后",
+          "values": [
+            45,
+            45,
+            25,
+            5,
+            0,
+            10,
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "外套膜·普通·普通",
+          "values": [
+            45,
+            45,
+            35,
+            20,
+            0,
+            0,
+            5,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A68",
+      "status": "pending",
+      "decision": "尚无对应的已命名条件，需说明实际触发状态。"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 35,
+      "part": "Stinger",
+      "partZh": "毒刺",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        30,
+        30,
+        30,
+        25,
+        0,
+        0,
+        5,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "克隆影蜘蛛·毒刺·普通·普通（仅同值）"
+      ],
+      "reference": [
+        {
+          "label": "毒刺·普通·普通",
+          "values": [
+            28,
+            35,
+            65,
+            25,
+            0,
+            0,
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "毒刺·普通·1阶破坏后",
+          "values": [
+            28,
+            35,
+            65,
+            5,
+            0,
+            35,
+            5,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A69",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：克隆影蜘蛛·毒刺·普通·普通（仅同值）。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 36,
+      "part": "Stinger",
+      "partZh": "毒刺",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        30,
+        30,
+        30,
+        5,
+        0,
+        35,
+        5,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [],
+      "reference": [
+        {
+          "label": "毒刺·普通·1阶破坏后",
+          "values": [
+            28,
+            35,
+            65,
+            5,
+            0,
+            35,
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "毒刺·普通·普通",
+          "values": [
+            28,
+            35,
+            65,
+            25,
+            0,
+            0,
+            5,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A70",
+      "status": "pending",
+      "decision": "尚无对应的已命名条件，需说明实际触发状态。"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 39,
+      "part": "HIDE",
+      "partZh": "HIDE（部位待确认）",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        30,
+        30,
+        30,
+        25,
+        0,
+        0,
+        5,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [],
+      "reference": [
+        {
+          "label": "躯干·普通·普通",
+          "values": [
+            36,
+            36,
+            40,
+            25,
+            0,
+            0,
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "毒刺·普通·普通",
+          "values": [
+            28,
+            35,
+            65,
+            25,
+            0,
+            0,
+            5,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A71",
+      "status": "excluded",
+      "decision": "按用户要求暂不收录"
+    },
+    {
+      "monster": "Nerscylla",
+      "monsterZh": "影蜘蛛",
+      "index": 40,
+      "part": "HIDE",
+      "partZh": "HIDE（部位待确认）",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        30,
+        30,
+        30,
+        5,
+        0,
+        35,
+        5,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [],
+      "reference": [
+        {
+          "label": "爪·普通·普通",
+          "values": [
+            20,
+            30,
+            20,
+            5,
+            0,
+            10,
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "label": "毒刺·普通·1阶破坏后",
+          "values": [
+            28,
+            35,
+            65,
+            5,
+            0,
+            35,
+            5,
+            0,
+            0
+          ]
+        }
+      ],
+      "id": "A72",
+      "status": "excluded",
+      "decision": "按用户要求暂不收录"
+    },
+    {
+      "monster": "Zoh Shia",
+      "monsterZh": "白炽龙",
+      "index": 4,
+      "part": "Wingarm",
+      "partZh": "翼腕",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        65,
+        65,
+        55,
+        5,
+        5,
+        5,
+        5,
+        10,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "翼腕·普通·黑化·翼腕倒地后",
+        "翼腕·发怒（挑战者判定）·黑化·翼腕倒地后",
+        "翼腕·最终形态·翼腕倒地后"
+      ],
+      "reference": [
+        {
+          "label": "翼腕·普通·黑化·翼腕倒地后",
+          "values": [
+            65,
+            65,
+            55,
+            5,
+            5,
+            5,
+            5,
+            10,
+            0
+          ]
+        },
+        {
+          "label": "翼腕·发怒（挑战者判定）·黑化·翼腕倒地后",
+          "values": [
+            65,
+            65,
+            55,
+            5,
+            5,
+            5,
+            5,
+            10,
+            0
+          ]
+        }
+      ],
+      "id": "A73",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：翼腕·普通·黑化·翼腕倒地后；翼腕·发怒（挑战者判定）·黑化·翼腕倒地后；翼腕·最终形态·翼腕倒地后。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Zoh Shia",
+      "monsterZh": "白炽龙",
+      "index": 8,
+      "part": "Wingarm",
+      "partZh": "翼腕",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        60,
+        60,
+        50,
+        5,
+        5,
+        5,
+        5,
+        10,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "翼腕·普通·结晶剥落·翼腕倒地后",
+        "翼腕·发怒（挑战者判定）·结晶剥落·翼腕倒地后"
+      ],
+      "reference": [
+        {
+          "label": "翼腕·普通·结晶剥落·翼腕倒地后",
+          "values": [
+            60,
+            60,
+            50,
+            5,
+            5,
+            5,
+            5,
+            10,
+            0
+          ]
+        },
+        {
+          "label": "翼腕·发怒（挑战者判定）·结晶剥落·翼腕倒地后",
+          "values": [
+            60,
+            60,
+            50,
+            5,
+            5,
+            5,
+            5,
+            10,
+            0
+          ]
+        }
+      ],
+      "id": "A74",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：翼腕·普通·结晶剥落·翼腕倒地后；翼腕·发怒（挑战者判定）·结晶剥落·翼腕倒地后。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Zoh Shia",
+      "monsterZh": "白炽龙",
+      "index": 10,
+      "part": "Foreleg",
+      "partZh": "前腿",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        50,
+        50,
+        50,
+        15,
+        5,
+        5,
+        10,
+        20,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "前腿·最终形态·普通"
+      ],
+      "reference": [
+        {
+          "label": "前腿·最终形态·普通",
+          "values": [
+            50,
+            50,
+            50,
+            15,
+            5,
+            5,
+            10,
+            20,
+            0
+          ]
+        },
+        {
+          "label": "前腿·伤口·最终形态",
+          "values": [
+            60,
+            60,
+            60,
+            15,
+            5,
+            5,
+            10,
+            30,
+            0
+          ]
+        }
+      ],
+      "id": "A75",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：前腿·最终形态·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Zoh Shia",
+      "monsterZh": "白炽龙",
+      "index": 12,
+      "part": "Hind Leg",
+      "partZh": "后腿",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        40,
+        40,
+        40,
+        10,
+        5,
+        5,
+        5,
+        20,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "后腿·最终形态·普通"
+      ],
+      "reference": [
+        {
+          "label": "后腿·最终形态·普通",
+          "values": [
+            40,
+            40,
+            40,
+            10,
+            5,
+            5,
+            5,
+            20,
+            0
+          ]
+        },
+        {
+          "label": "后腿·普通·普通",
+          "values": [
+            25,
+            25,
+            25,
+            5,
+            5,
+            5,
+            5,
+            10,
+            0
+          ]
+        }
+      ],
+      "id": "A76",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：后腿·最终形态·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Zoh Shia",
+      "monsterZh": "白炽龙",
+      "index": 14,
+      "part": "Neck",
+      "partZh": "颈部",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        35,
+        35,
+        45,
+        15,
+        5,
+        5,
+        10,
+        30,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "颈部·最终形态·普通"
+      ],
+      "reference": [
+        {
+          "label": "颈部·最终形态·普通",
+          "values": [
+            35,
+            35,
+            45,
+            15,
+            5,
+            5,
+            10,
+            30,
+            0
+          ]
+        },
+        {
+          "label": "颈部·伤口·最终形态",
+          "values": [
+            60,
+            60,
+            60,
+            15,
+            5,
+            5,
+            10,
+            30,
+            0
+          ]
+        }
+      ],
+      "id": "A77",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：颈部·最终形态·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Zoh Shia",
+      "monsterZh": "白炽龙",
+      "index": 16,
+      "part": "Torso",
+      "partZh": "躯干",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        30,
+        30,
+        10,
+        10,
+        5,
+        5,
+        5,
+        20,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "躯干·最终形态·普通"
+      ],
+      "reference": [
+        {
+          "label": "躯干·最终形态·普通",
+          "values": [
+            30,
+            30,
+            10,
+            10,
+            5,
+            5,
+            5,
+            20,
+            0
+          ]
+        },
+        {
+          "label": "躯干·普通·普通",
+          "values": [
+            25,
+            25,
+            5,
+            5,
+            5,
+            5,
+            5,
+            10,
+            0
+          ]
+        }
+      ],
+      "id": "A78",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：躯干·最终形态·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Zoh Shia",
+      "monsterZh": "白炽龙",
+      "index": 18,
+      "part": "Tail",
+      "partZh": "尾巴",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        45,
+        45,
+        45,
+        10,
+        5,
+        5,
+        5,
+        30,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "尾巴·最终形态·普通"
+      ],
+      "reference": [
+        {
+          "label": "尾巴·最终形态·普通",
+          "values": [
+            45,
+            45,
+            45,
+            10,
+            5,
+            5,
+            5,
+            30,
+            0
+          ]
+        },
+        {
+          "label": "尾巴·普通·普通",
+          "values": [
+            35,
+            35,
+            40,
+            10,
+            5,
+            5,
+            5,
+            10,
+            0
+          ]
+        }
+      ],
+      "id": "A79",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：尾巴·最终形态·普通。无需再次确认，不新增重复状态。"
+    },
+    {
+      "monster": "Guardian Arkveld",
+      "monsterZh": "护锁刃龙",
+      "index": 1,
+      "part": "Head",
+      "partZh": "头部",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        45,
+        48,
+        45,
+        10,
+        10,
+        10,
+        10,
+        10,
+        100
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "头部·普通·普通"
+      ],
+      "reference": [
+        {
+          "label": "头部·普通·普通",
+          "values": [
+            45,
+            48,
+            45,
+            10,
+            10,
+            10,
+            10,
+            10,
+            100
+          ]
+        },
+        {
+          "label": "头部·伤口",
+          "values": [
+            45,
+            48,
+            45,
+            5,
+            5,
+            5,
+            5,
+            5,
+            100
+          ]
+        }
+      ],
+      "id": "A80",
+      "status": "resolved",
+      "decision": "已替换护锁刃龙普通头部肉质"
+    },
+    {
+      "monster": "Guardian Arkveld",
+      "monsterZh": "护锁刃龙",
+      "index": 8,
+      "part": "Chainblade",
+      "partZh": "锁翼刃",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        50,
+        50,
+        45,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [],
+      "reference": [
+        {
+          "label": "锁翼刃·普通·普通",
+          "values": [
+            50,
+            50,
+            45,
+            20,
+            20,
+            20,
+            20,
+            20,
+            0
+          ]
+        },
+        {
+          "label": "锁翼刃·临时弱点·普通",
+          "values": [
+            52,
+            52,
+            48,
+            20,
+            20,
+            20,
+            20,
+            25,
+            0
+          ]
+        }
+      ],
+      "id": "A81",
+      "status": "superseded",
+      "decision": "已按用户要求采用A82作为普通锁翼刃；旧普通值不再另行确认。"
+    },
+    {
+      "monster": "Guardian Arkveld",
+      "monsterZh": "护锁刃龙",
+      "index": 9,
+      "part": "Chainblade",
+      "partZh": "锁翼刃",
+      "state": "State 2",
+      "field": "Meat",
+      "values": [
+        50,
+        50,
+        45,
+        20,
+        20,
+        20,
+        20,
+        20,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "锁翼刃·普通·普通"
+      ],
+      "reference": [
+        {
+          "label": "锁翼刃·普通·普通",
+          "values": [
+            50,
+            50,
+            45,
+            20,
+            20,
+            20,
+            20,
+            20,
+            0
+          ]
+        },
+        {
+          "label": "锁翼刃·临时弱点·普通",
+          "values": [
+            52,
+            52,
+            48,
+            20,
+            20,
+            20,
+            20,
+            25,
+            0
+          ]
+        }
+      ],
+      "id": "A82",
+      "status": "resolved",
+      "decision": "已替换护锁刃龙普通锁翼刃肉质"
+    },
+    {
+      "monster": "Gore Magala",
+      "monsterZh": "黑蚀龙",
+      "index": 4,
+      "part": "Wingarm",
+      "partZh": "翼腕",
+      "state": "State 1",
+      "field": "Meat",
+      "values": [
+        60,
+        55,
+        45,
+        20,
+        0,
+        15,
+        5,
+        10,
+        0
+      ],
+      "woundSlots": null,
+      "matchingExisting": [
+        "翼腕·普通·特殊",
+        "翼腕·发怒·特殊"
+      ],
+      "reference": [
+        {
+          "label": "翼腕·普通·特殊",
+          "values": [
+            60,
+            55,
+            45,
+            20,
+            0,
+            15,
+            5,
+            10,
+            0
+          ]
+        },
+        {
+          "label": "翼腕·发怒·特殊",
+          "values": [
+            60,
+            55,
+            45,
+            20,
+            0,
+            15,
+            5,
+            10,
+            0
+          ]
+        }
+      ],
+      "id": "A83",
+      "status": "covered",
+      "decision": "现有数据库已覆盖，对应：翼腕·普通·特殊；翼腕·发怒·特殊。无需再次确认，不新增重复状态。"
     }
   ],
   "unknown": [

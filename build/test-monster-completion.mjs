@@ -50,6 +50,28 @@ eq(k.Seregios.Neck.wound.Slash,60,'conflicting neck wound unchanged pending deci
 check(k['Omega Planetes']['Rear Power Unit'].wounds.some(x=>x.m.Slash===80&&x.m.Shot===20),'known rear power unit wound integrated');
 const pending=JSON.parse(read('raw/hzv-pending-decisions-20261121.json'));
 check(pending.states.length===83,'all 83 numbered/AT states listed for review');check(pending.unknown.length===50,'all unnamed and hidden rows listed');
+check(pending.pending.map(r=>r.id).join(',')==='A54,A56,A58,A60,A62,A68,A70','only seven unmatched spider State2 rows need confirmation; IDs stable');
+check(pending.pending.every(r=>!r.matchingExisting.length&&r.status==='pending'),'no covered rows in pending queue');
+check(pending.resolved.some(r=>r.id==='A01'&&r.status==='covered')&&pending.resolved.some(r=>r.id==='A03'&&r.status==='covered'),'frog stone and Gog down matches need no reconfirmation');
+const spiderBase={
+ Head:[[50,65,50,15,0,0,5,0,100],[50,50,50,25,0,0,5,0,100]],
+ Claw:[[20,30,20,5,0,10,5,0,0],[30,30,30,5,0,5,5,0,0]],
+ Torso:[[36,36,40,25,0,0,5,0,0]],'Leg Root':[[35,35,25,20,0,0,5,0,0]],
+ Mantle:[[45,45,35,20,0,0,5,0,0]],'Leg Tip':[[28,35,20,10,0,0,5,0,0]],
+ Stinger:[[28,35,65,25,0,0,5,0,0],[30,30,30,25,0,0,5,0,0]],
+ Belly:[[65,50,45,15,0,20,5,0,0],[45,45,45,25,0,10,5,0,0]]
+};
+for(const [ni,n]of ['Nerscylla','Nerscylla Clone'].entries()){
+ check(Object.keys(k[n]).length===8,n+' exactly eight reviewed anatomical parts');
+ for(const [part,vs]of Object.entries(spiderBase)){
+  const p=k[n][part],v=vs[ni]||vs[0];check(el.every((e,i)=>p.groups['普通'][0].m[e]===v[i]),n+'/'+part+' ordinary values equal approved comparison');
+  const wound=part==='Head'?[75,75,75,25,0,15,15,0,100]:[55,55,45,25,0,25,15,0,0];
+  check(el.every((e,i)=>p.wound[e]===wound[i]),n+'/'+part+' wound equals approved comparison');
+ }
+}
+const cloneFallback=raw['Monster Data'][raw['Monster Names']['Nerscylla Clone']].Hitzones.Rows;
+check(cloneFallback.some(r=>r.Part==='Leg Root')&&!cloneFallback.some(r=>r.Part==='Leg'),'clone fallback uses reviewed anatomy');
+check(cloneFallback.every(r=>r.ScarMeat),'clone fallback wound data retained');
 for(const r of [...pending.states,...pending.unknown,...pending.conflicts]){const original=rawSource.monsters.find(d=>d.name===r.monster).rows[r.index][r.field];check(el.every((e,i)=>original[e]===r.values[i]),r.monster+' pending values match source');}
 const C=createRequire(import.meta.url)('../app/calculator.js'),data=w.MHWCALC;
 const calc=(wid,name,target={},extra={})=>C.calculateCombo({weaponId:wid,moves:data.weaponMoves[wid],weaponGroups:data.weaponGroups,attack:200,element:200,elementType:'Fire',statusType:'None',affinity:0,sharpness:data.sharpness.white,hitzones:{Slash:50,Blow:50,Shot:50,Fire:30,Dragon:30},mode:'expected',combo:[{moveId:data.weaponMoves[wid].find(m=>m.name===name).id,rangedHits:3}],target,...extra});
