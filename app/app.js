@@ -2196,7 +2196,7 @@
       else if(rect.bottom>bounds.bottom)list.scrollTop+=Math.min(rect.bottom-bounds.bottom,rect.top-bounds.top);
     }
     function layoutMoveOptions(row, item, index) {
-      const labels = {critical:'会心',charge:'档位',dbMode:'形态',bowgunShot:'射击方式',mantlePick:'衣装',bgDistance:'射击距离',bgPellets:'命中弹丸',bgSpecialHits:'命中数',bgHeatStage:'龙热穿甲阶段',bgClipSize:'弹容量',bgFullClip:'满弹仓开始',bgSequence:'本发位置',rangedVariant:'招式类型',rangedHits:'每箭／发命中数',rangedFollowHits:'伤口追击命中数',rangedExtraHits:'追加命中数',sequence:'命中方式',recovery:'收招形态',sound:'旋律',soundCountPick:'旋律数量',precise:'精密命中',counter:'反击',completion:'完成段数',bloom:'命中绽伤',forceGuard:'力防层数',saw:'电锯跳数',phial:'瓶爆次数',shells:'发炮数',wound:'命中伤口',woundCount:'伤口数量',woundLegendary:'历战伤口',energy:'能量充足',gp:'当身成功',aim:'变化点',qi:'有气',finish:'打完',cancelPrev:'打断上一招',hits:'命中数',spin:'圈数'};
+      const labels = {critical:'会心',charge:'档位',dbMode:'形态',bowgunShot:'射击方式',mantlePick:'衣装',bgDistance:'射击距离',bgPellets:'命中弹丸',bgSpecialHits:'命中数',bgHeatStage:'龙热穿甲阶段',bgClipSize:'弹容量',bgFullClip:'满弹仓开始',bgSequence:'本发位置',rangedVariant:'招式类型',rangedHits:'每箭／发命中数',rangedFollowHits:'追击贯通跳数',rangedExtraHits:'追加命中数',sequence:'命中方式',recovery:'收招形态',sound:'旋律',soundCountPick:'旋律数量',precise:'精密命中',counter:'反击',completion:'完成段数',bloom:'命中绽伤',forceGuard:'力防层数',saw:'电锯跳数',phial:'瓶爆次数',shells:'发炮数',wound:'命中伤口',woundCount:'伤口数量',woundLegendary:'历战伤口',energy:'能量充足',gp:'当身成功',aim:'变化点',qi:'有气',finish:'打完',cancelPrev:'打断上一招',hits:'命中数',spin:'圈数'};
       const coreOrder = ['critical','charge','dbMode','bowgunShot','rangedVariant','completion','sound','sequence','wound','bloom','hits','spin','rangedHits','shells','bgPellets','bgSpecialHits','soundCountPick'];
       const controls = Array.from(row.children).filter(n => n.dataset.moveField).map((node, order) => {
         const field = node.dataset.moveField, wrapper = document.createElement('div');
@@ -2204,6 +2204,7 @@
         const picker = node.matches('select') && node.previousElementSibling?.classList.contains('picker-btn') ? node.previousElementSibling : null;
         if (picker) wrapper.appendChild(picker);
         wrapper.appendChild(node);
+        if(node.dataset.moveNote){const note=document.createElement('span');note.className='calc-muted';note.textContent=node.dataset.moveNote;wrapper.appendChild(note);}
         const priority = coreOrder.indexOf(field);
         return {field,node,wrapper,order,priority:priority<0?100:priority};
       });
@@ -2261,7 +2262,7 @@
       (desktop?[...primary,...advanced]:advanced).forEach(c=>{
         const node=c.node,select=node.matches('select')?node:node.querySelector('select'),checkbox=node.querySelector('input[type="checkbox"]');
         let value=select?select.options[select.selectedIndex]?.textContent:checkbox?(checkbox.checked?'是':'否'):node.querySelector('.seg-btn.active')?.textContent;
-        if(!value&&c.field==='bgSequence')value=node.querySelector('input')?.value||'自动';
+        if(!value&&node.querySelector('input[type="number"]'))value=node.querySelector('input').value||'自动';
         const link=document.createElement('button');link.type='button';link.textContent=['charge','mantlePick'].includes(c.field)&&value?value:(labels[c.field]||c.field)+(value?' · '+value:'');
         link.addEventListener('click',()=>openMoveSettings(item,index,c.field));summary.appendChild(link);
       });
@@ -2567,9 +2568,16 @@
             }
             const v=move.rangedVariants?.[item.rangedVariant??0]||move;
             for(const [model,field]of [[v.rangedStages,'rangedHits'],[item.wound&&v.rangedFollow,'rangedFollowHits'],[v.rangedExtra,'rangedExtraHits']])if(model){
-              item[field]=Math.min(Math.max(item[field]??model.default,model.min),model.max);
+              item[field]=Math.min(Math.max(Math.floor(Number(item[field]??model.default))||model.default,model.min),model.unverifiedMax?Number.MAX_SAFE_INTEGER:(model.max??Number.MAX_SAFE_INTEGER));
               const unit=field==='rangedHits'?(move.bowgunPreview?'跳／发':model.label.includes('每箭')?'跳／箭':'hit'):model.label;
-              cbSel(unit,model.min,model.max,item[field],model.default,field);
+              if(model.unverifiedMax||model.max==null){
+                const lab=document.createElement('label');lab.className='calc-check';lab.textContent=unit+' ';
+                lab.title=model.note||'';lab.dataset.moveField=field;
+                const input=document.createElement('input');input.type='number';input.min=String(model.min);input.step='1';input.value=String(item[field]);input.className='calc-native-select calc-hitselect';input.dataset.moveDefault=String(model.default);input.setAttribute('aria-label',unit);
+                input.addEventListener('change',()=>{const value=Number(input.value);state.combo[i][field]=Number.isSafeInteger(value)&&value>=model.min?value:model.default;refreshComboUI();});
+                lab.appendChild(input);row.appendChild(lab);
+                if(model.note){const note=document.createElement('span');note.className='calc-muted';note.textContent=model.note;lab.appendChild(note);}
+              }else cbSel(unit,model.min,model.max,item[field],model.default,field);
             }
           }},
           { key:'sequence', has:m=>!!(m.sequenceOptions || m.chargeLevels?.some(lv=>lv.sequenceOptions)), render:()=>{
@@ -2632,8 +2640,9 @@
               //   爆伤口伤害 = 伤口系数（1 处 30 / 2 处 50 / 3 处 80）× 表内 Scar Raw × 破坏王
               if (burstOn && move.woundCountOption) {
                 const wo = move.woundCountOption;
-                const cur = Math.min(Math.max(Number(item.woundCount != null ? item.woundCount : wo['default']) || 1, wo.min), wo.max);
+                const cur = Math.min(Math.max(Number(item.woundCount != null ? item.woundCount : wo['default']) || wo.min, wo.min), wo.max);
                 cbSel(wo.unit || '处', wo.min, wo.max, cur, wo['default'], 'woundCount', move.name + ' · 命中伤口数');
+                if(wo.note)row.querySelector('[data-move-field="woundCount"]').dataset.moveNote=wo.note;
               }
             } },
           // 斩击斧（用户 2026-10-06 拍板）：变形斩的「能量是否充足」——不足时该变形动作变为装瓶动作

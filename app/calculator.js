@@ -1833,8 +1833,8 @@ function calculateBowgunCombo(p) {
       //     伤害 = 伤口系数（1 处 30 / 2 处 50 / 3 处 80）× 任务Scar Raw × 人数倍率 × 历战伤口倍率
       //            × 破坏王（每级 +10%，woundBurstPct）
       //   不吃肉质 / 会心 / 斩味 / 属性 / 发怒受击倍率 —— 与炮击系同为「附加命中」，单列展示
-      if (woundOn && move.woundBurst && !(move.skipPrefixAfter && comboList[comboIdx-1]?.moveId === move.skipPrefixAfter && comboList[comboIdx-1]?.wound) && n(params.scarRaw, 0) > 0) {
-        const wc = clamp(Math.round(n(item && item.woundCount, 1)), 1, 3);
+      if (woundOn && move.woundBurst && n(item && item.woundCount, 1) > 0 && !(move.skipPrefixAfter && comboList[comboIdx-1]?.moveId === move.skipPrefixAfter && comboList[comboIdx-1]?.wound) && n(params.scarRaw, 0) > 0) {
+        const wc = clamp(Math.round(n(item && item.woundCount, 1)), move.woundCountOption?.min ?? 1, move.woundCountOption?.max ?? 3);
         const coeff = n(move.woundBurst[wc] != null ? move.woundBurst[wc] : move.woundBurst[1], 0);
         const legendary = item && typeof item.woundLegendary === 'boolean' ? item.woundLegendary : !!params.scarLegendary;
         const legendaryMul = legendary ? 1.3 : 1;
@@ -2094,7 +2094,7 @@ function calculateBowgunCombo(p) {
     const variant=move.rangedVariants?.[item.rangedVariant??0]||move.rangedVariants?.[0]||{};
     const m={...move,...variant,id:move.id,name:move.name};
     const expand=(model,value)=>{
-      const count=Math.floor(clamp(n(value,model.default),model.min,model.max)),out=[];
+      const count=Math.floor(clamp(n(value,model.default),model.min,model.unverifiedMax?Number.MAX_SAFE_INTEGER:(model.max??Number.MAX_SAFE_INTEGER))),out=[];
       // 一发弹／一支箭的全部命中相邻，速射及多箭按各自阶段展开，不把弹数误作阶段数。
       const width=Math.max(...model.stages.map(s=>s.hits.length));
       for(let projectile=0;projectile<width;projectile++)for(let k=1;k<=count;k++){
