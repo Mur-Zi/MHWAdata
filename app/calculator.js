@@ -978,7 +978,7 @@ function calculateBowgunCombo(p) {
           if(heat&&['offset','grenade'].includes(m.rangedHeatType)){fixed=true;artillery=true;if(m.rangedHeatType==='grenade'){fixedFire=10;element='Fire';}}
           emit({mv:h.mv,type,fixed,mult,special:isFocus||heat||/竜弾/.test(name),heatBoost:heat||isFocus&&(it.rangedVariant??0)>0,artillery,fixedFire:fixedFire||undefined,elementType:element,elementMotion:0,distance:false,fixedExtra:extra,stun:family==='sticky'&&fixed?40:0,tick:hi+1});
         }
-        if(isFocus&&it.wound&&n(p.scarRaw)>0){const wounds=clampCount(it.woundCount,1,3),coef=[0,30,50,80][wounds],raw=round(coef*p.scarRaw*n(baseR.state.woundBurstPct,1));hits.push({moveId:m.id,moveName:m.name,comboIndex:ci,raw,element:0,total:raw,status:0,stun:0,mv:0,effectiveMv:0,elemRate:0,type:'FIXED',fixed:true,woundBurst:true,woundCount:wounds,woundCoeff:coef,woundScarRaw:p.scarRaw,noSharp:true,sharpCost:0});}
+        if(isFocus&&it.wound&&n(p.scarRaw)>0){const wounds=clampCount(it.woundCount,1,3),coef=[0,30,80,160][wounds],raw=round(coef*p.scarRaw*n(baseR.state.woundBurstPct,1));hits.push({moveId:m.id,moveName:m.name,comboIndex:ci,raw,element:0,total:raw,status:0,stun:0,mv:0,effectiveMv:0,elemRate:0,type:'FIXED',fixed:true,woundBurst:true,woundCount:wounds,woundCoeff:coef,woundScarRaw:p.scarRaw,noSharp:true,sharpCost:0});}
       }
       const own=hits.slice(begin);contributions.push({comboIndex:ci,moveId:m.id,damage:own.reduce((a,h)=>a+h.total,0),physical:own.filter(h=>!h.fixed).reduce((a,h)=>a+h.raw-n(h.fixedExtraDamage),0),fixed:own.reduce((a,h)=>a+(h.fixed?h.raw:n(h.fixedExtraDamage)),0),element:own.reduce((a,h)=>a+h.element,0)});
     }
@@ -1830,12 +1830,13 @@ function calculateBowgunCombo(p) {
 
       // ===== 集中处决「爆伤口」（用户 2026-10-08）=====
       //   勾了「命中伤口」且本招带伤口系数表（数据层 woundBurst）时，命中处数决定一次额外伤害：
-      //     伤害 = 伤口系数（1 处 30 / 2 处 50 / 3 处 80）× 任务Scar Raw × 人数倍率 × 历战伤口倍率
+      //     伤害 = 逐个伤口的系数累加（通常为 30 + 50 + 80，弓使用专属数值）× 任务Scar Raw × 人数倍率 × 历战伤口倍率
       //            × 破坏王（每级 +10%，woundBurstPct）
       //   不吃肉质 / 会心 / 斩味 / 属性 / 发怒受击倍率 —— 与炮击系同为「附加命中」，单列展示
       if (woundOn && move.woundBurst && n(item && item.woundCount, 1) > 0 && !(move.skipPrefixAfter && comboList[comboIdx-1]?.moveId === move.skipPrefixAfter && comboList[comboIdx-1]?.wound) && n(params.scarRaw, 0) > 0) {
         const wc = clamp(Math.round(n(item && item.woundCount, 1)), move.woundCountOption?.min ?? 1, move.woundCountOption?.max ?? 3);
-        const coeff = n(move.woundBurst[wc] != null ? move.woundBurst[wc] : move.woundBurst[1], 0);
+        const steps = move.woundBurstSteps || move.woundBurst;
+        const coeff = Array.from({length:wc}, (_,i)=>n(steps[i+1],0)).reduce((a,b)=>a+b,0);
         const legendary = item && typeof item.woundLegendary === 'boolean' ? item.woundLegendary : !!params.scarLegendary;
         const legendaryMul = legendary ? 1.3 : 1;
         const burstRaw = Math.max(0, coeff * n(params.scarRaw, 0) * legendaryMul * n(state.woundBurstPct, 1));

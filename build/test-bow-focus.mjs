@@ -7,9 +7,9 @@ const d=ctx.window.MHWCALC,C=createRequire(import.meta.url)('../app/calculator.j
 const calc=item=>C.calculateCombo({weaponId:'bow',moves:d.weaponMoves.bow,attack:200,element:300,elementType:'Fire',affinity:0,hitzones:{Shot:45,Slash:45,Fire:20},sharpness:d.sharpness.white,skills:[],scarRaw:2,combo:[{moveId:'bow_051',rangedWholeVersion:1,rangedVariant:2,wound:true,...item}]});
 const base=calc({woundCount:0,rangedFollowHits:2});
 assert.equal(base.hits.filter(h=>h.woundBurst).length,0);
-for(const [count,expected]of [[1,60],[2,100],[3,160]]){
+for(const [count,expected]of [[1,100],[2,265],[3,529],[4,802.4]]){
  const r=calc({woundCount:count,rangedFollowHits:2});
- assert.equal(r.woundBurst.raw,expected);
+ assert.ok(Math.abs(r.woundBurst.raw-expected)<1e-8);
  assert.equal(r.hits.filter(h=>!h.woundBurst).length,base.hits.length);
  assert.ok(Math.abs(r.totalDamage-base.totalDamage-expected)<.02);
 }

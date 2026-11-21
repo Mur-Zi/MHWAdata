@@ -2636,8 +2636,8 @@
               const sc = scarRawOf();
               const legendary = typeof item.woundLegendary === 'boolean' ? item.woundLegendary : sc.legendary;
               if (burstOn && move.woundBurst) cbCheck({ label: '历战伤口' }, legendary, 'woundLegendary', '普通伤口不勾选；历战伤口爆伤口伤害 ×1.3');
-              // 命中伤口数（用户 2026-10-08）：1~3 处（默认 1）
-              //   爆伤口伤害 = 伤口系数（1 处 30 / 2 处 50 / 3 处 80）× 表内 Scar Raw × 破坏王
+              // 命中伤口数：按招式数据限制，弓最多4处。
+              //   爆伤口伤害 = 逐个伤口的系数累加 × 表内 Scar Raw × 破坏王
               if (burstOn && move.woundCountOption) {
                 const wo = move.woundCountOption;
                 const cur = Math.min(Math.max(Number(item.woundCount != null ? item.woundCount : wo['default']) || wo.min, wo.min), wo.max);

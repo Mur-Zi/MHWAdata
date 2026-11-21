@@ -12,8 +12,8 @@ try{for(const width of [1440,412]){
  const wound=page.locator('[data-move-field="wound"] input').filter({visible:true});await wound.first().check();
  const count=page.locator('select[data-move-field="woundCount"]').filter({visible:true});
  // Enhanced selects are hidden; inspect their options and dispatch the native event.
- const report=await page.evaluate(()=>{const q=s=>document.querySelector(s),w=q('select[data-move-field="woundCount"]'),input=q('input[aria-label="追击贯通跳数"]');return {wounds:w&&Array.from(w.options).map(o=>o.value),input:!!input,max:input?.getAttribute('max'),note:document.body.textContent.includes('资料尚未确认总命中上限')};});
- assert.deepEqual(report.wounds,['0','1','2','3']);assert.equal(report.input,true);assert.equal(report.max,null);assert.equal(report.note,true);
+ const report=await page.evaluate(()=>{const q=s=>document.querySelector(s),w=q('select[data-move-field="woundCount"]'),input=q('input[aria-label="追击贯通跳数"]');return {wounds:w&&Array.from(w.options).map(o=>o.value),input:!!input,max:input?.getAttribute('max'),note:document.body.textContent.includes('资料尚未确认总命中上限')||document.body.textContent.includes('仅命中临时弱点时选0处')};});
+ assert.deepEqual(report.wounds,['0','1','2','3','4']);assert.equal(report.input,true);assert.equal(report.max,null);assert.equal(report.note,false);
  await page.evaluate(()=>{const input=document.querySelector('input[aria-label="追击贯通跳数"]');input.value='100';input.dispatchEvent(new Event('change',{bubbles:true}));});
  assert.equal(await page.locator('input[aria-label="追击贯通跳数"]').first().inputValue(),'100');assert.deepEqual(errors,[]);await page.close();console.log(width+'px bow focus options passed');
 }}finally{await browser.close();await new Promise(r=>server.close(r));}
