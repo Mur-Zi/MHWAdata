@@ -2142,16 +2142,16 @@
 
     // 主行只留两个核心选项；其余控件沿用原事件和数据，移入招式设置面板。
     function renderMoveCriticalComparison(target,index) {
-      if(!comboCritResults||['light_bowgun','heavy_bowgun'].includes(state.weaponId))return;
+      if(!comboCritResults)return;
       const section=document.createElement('section');section.className='calc-critical-outcomes';section.setAttribute('aria-label','本招会心伤害对照');
       for(const [key,label]of [['expected','期望伤害'],['critical','100%会心'],['normal','非会心']]){
         const c=comboCritResults[key].moveContributions?.find(c=>c.comboIndex===index);
         if(!c)continue;
         const card=document.createElement('div');card.dataset.critOutcome=key;
-        card.innerHTML='<span>'+label+'</span><b>'+Number(c.damage).toFixed(2)+'</b><small>物理 '+Number(c.physical).toFixed(2)+' · 属性 '+Number(c.element).toFixed(2)+(c.fixed>0?' · 固伤 '+Number(c.fixed).toFixed(2):'')+'</small>';
+        card.innerHTML='<span>'+label+'</span><b>'+Number(c.damage).toFixed(2)+'</b>';
         section.append(card);
       }
-      const note=document.createElement('p');note.textContent='不允许会心的伤害按原规则计算。';section.append(note);target.prepend(section);
+      target.prepend(section);
     }
     function renderBowgunMagazine(target,index) {
       const item=state.combo[index],move=moveOf(item?.moveId);
@@ -2163,8 +2163,8 @@
       const calc=mode=>window.MHCalculator.calculateCombo({...params,combo,mode,perMoveCrit:false});
       const expected=calc('expected'),critical=calc('guaranteedCrit'),normal=calc('noCrit');
       const section=document.createElement('section');section.className='calc-magazine';
-      const damage=(r,i)=>{const c=r.moveContributions.find(c=>c.comboIndex===i);return '<b>'+Number(c?.damage||0).toFixed(2)+'</b><small>'+Number(c?.physical||0).toFixed(2)+' / '+Number(c?.element||0).toFixed(2)+'</small>';};
-      section.innerHTML='<h4>'+ (state.weaponId==='light_bowgun'?'整匣逐发对照（'+count+'发）':'第1～9发伤害对照')+'</h4><p>沿用本招条件，每行含整次射击；小字：物理 / 属性。'+(state.weaponId==='light_bowgun'?'打空后按装填完成，从第1发重新计算。':'满弹仓起算：'+(actual.fullClip?'是':'否')+'。')+'</p>'
+      const damage=(r,i)=>{const c=r.moveContributions.find(c=>c.comboIndex===i);return '<b>'+Number(c?.damage||0).toFixed(2)+'</b>';};
+      section.innerHTML='<h4>'+ (state.weaponId==='light_bowgun'?'整匣逐发对照（'+count+'发）':'第1～9发伤害对照')+'</h4>'
         +'<div class="calc-magazine-scroll"><table><thead><tr><th>射击</th><th>会心率</th><th>期望伤害</th><th>100%会心</th><th>非会心</th></tr></thead><tbody>'
         +Array.from({length:count},(_,i)=>{const hit=expected.hits.find(h=>h.comboIndex===i),b=hit?.bowgun;
           const tags=[b?.opening?'首发迅击':'',state.skillLevels.HunterSkill_197>0&&[4,6].includes(i+1)?'强四射击':''].filter(Boolean).join(' · ');
@@ -2184,11 +2184,45 @@
         target.replaceChildren();
         const source=el.querySelector('#calc-hit-table [data-combo-index="'+target.dataset.moveIndex+'"]');
         if(!source){const empty=document.createElement('p');empty.className='empty';empty.textContent='此招式没有伤害 hit。';target.append(empty);return;}
-        const detail=source.cloneNode(true),body=detail.querySelector('.calc-hit-body'),head=detail.querySelector('.calc-hit-head');
-        if(body)body.hidden=false;
-        if(head){head.classList.add('open');head.setAttribute('aria-expanded','true');head.addEventListener('click',()=>{body.hidden=!body.hidden;head.classList.toggle('open',!body.hidden);head.setAttribute('aria-expanded',String(!body.hidden));});}
-        target.append(detail);
-        if(!target.hidden){renderBowgunMagazine(target,Number(target.dataset.moveIndex));renderMoveCriticalComparison(target,Number(target.dataset.moveIndex));}
+        const index=Number(target.dataset.moveIndex),hits=comboResult.hits.filter(h=>h.comboIndex===index);
+        const facts=document.createElement('div');facts.className='calc-damage-facts';
+        const fact=text=>{const span=document.createElement('span');span.textContent=text;facts.append(span);};
+        fact('命中 '+hits.length+' hit');
+        if(hits.length===1)fact('动作值 '+rd2(hits[0].effectiveMv??hits[0].mv??0));
+        if(!isRangedWeapon())fact('耗斩 '+rd2(hits.reduce((sum,h)=>sum+(h.sharpCost||0),0)/10)+' 刀');
+        target.append(facts);
+        if(hits.length>1){
+          const table=document.createElement('table');table.className='calc-damage-hit-table';table.setAttribute('aria-label','逐段最终伤害');
+          table.innerHTML='<thead><tr><th>命中</th><th>动作值</th><th>最终伤害</th></tr></thead>';
+          const tbody=document.createElement('tbody');
+          hits.forEach((h,i)=>{
+            const tr=document.createElement('tr'),label=document.createElement('td'),mv=document.createElement('td'),amount=document.createElement('td');
+            label.textContent='第 '+(i+1)+' 段';
+            const kind=h.kinsect?'猎虫':h.hornSound?'音波':h.woundBurst?'爆伤口':h.shelling?'炮击':h.phial?'瓶爆':h.mantle?'衣装':'';
+            if(kind){const tag=document.createElement('small');tag.textContent=kind;label.append(tag);}
+            mv.textContent=h.woundBurst||h.phial&&h.phialKind==='element'?'—':rd2(h.shellMv??h.phialMv??h.effectiveMv??h.mv??0);
+            amount.textContent=Number(h.total??((h.raw||0)+(h.element||0))).toFixed(2);
+            tr.append(label,mv,amount);tbody.append(tr);
+          });
+          table.append(tbody);target.append(table);
+        }
+        const extra=document.createElement('details');extra.className='calc-damage-extra';
+        const summary=document.createElement('summary');summary.textContent='其他数据';extra.append(summary);
+        const breakdown=document.createElement('dl');breakdown.className='calc-damage-breakdown';
+        const c=comboResult.moveContributions?.find(c=>c.comboIndex===index);
+        for(const [label,value]of [['物理伤害',c?.physical],['属性伤害',c?.element],['固定伤害',c?.fixed],['昏厥累计',hits.reduce((sum,h)=>sum+(h.stun||0),0)]]){
+          const pair=document.createElement('div'),dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=label;dd.textContent=Number(value||0).toFixed(2);pair.append(dt,dd);breakdown.append(pair);
+        }
+        extra.append(breakdown);
+        const body=source.querySelector('.calc-hit-body')?.cloneNode(true);
+        if(body){body.hidden=false;extra.append(body);}
+        target.append(extra);
+        if(!target.hidden){
+          renderMoveCriticalComparison(target,index);
+          const magazine=document.createElement('details'),content=document.createElement('div'),heading=document.createElement('summary');
+          magazine.className='calc-damage-extra calc-magazine-extra';heading.textContent='逐发伤害对照';magazine.append(heading,content);
+          renderBowgunMagazine(content,index);if(content.childElementCount)target.append(magazine);
+        }
       });
     }
     function revealComboSelection() {
