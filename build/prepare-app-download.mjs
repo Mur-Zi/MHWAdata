@@ -7,5 +7,5 @@ assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),report.apk.
 const folder=new URL('app/downloads/',root);fs.mkdirSync(folder,{recursive:true});
 fs.writeFileSync(new URL('MHWA-v'+version+'.apk',folder),bytes);
 fs.writeFileSync(new URL('release.json',folder),JSON.stringify({version,versionCode:report.versionCode,date:report.date,file:'MHWA-v'+version+'.apk',bytes:bytes.length,sha256:report.apk.sha256},null,2)+'\n');
-fs.writeFileSync(new URL('dist/交付说明-'+version+'.md',root),`# MHWA数据库 ${version}\n\n日期：${report.date}。Android versionCode：${report.versionCode}，包名：com.mhwilds.db。\n\n沿用旧版签名，可覆盖安装并保留本地预设。修复移动端招式档位与长选项挤压换行，373个招式通过多尺寸和放大字号排版检查。移除逐招伤害详情快捷入口，将展开条件按钮移至伤害行右侧；展开后仍可切换伤害详情页签。\n\n下载：https://mhwadata.pages.dev/downloads/MHWA-v${version}.apk\n\nSHA-256：${report.apk.sha256}\n\n已校验签名、资源一致性和ZIP对齐；未进行安卓真机安装测试。\n`);
+fs.writeFileSync(new URL('dist/交付说明-'+version+'.md',root),`# MHWA数据库 ${version}\n\n日期：${report.date}。Android versionCode：${report.versionCode}，包名：com.mhwilds.db。\n\n沿用旧版签名，可覆盖安装并保留本地预设。相邻招式框之间增加细分隔线，间距扩大至24px，方便区分每个招式的条件与伤害内容。\n\n下载：https://mhwadata.pages.dev/downloads/MHWA-v${version}.apk\n\nSHA-256：${report.apk.sha256}\n\n已校验签名、资源一致性和ZIP对齐；未进行安卓真机安装测试。\n`);
 console.log('Published APK prepared: '+bytes.length+' bytes, '+report.apk.sha256);

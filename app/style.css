@@ -370,7 +370,7 @@ th .ic { display: block; margin: 0 auto; }
   border-radius: 8px; padding: 8px 10px; font-size: 14px; flex: 1; min-width: 120px;
 }
 .calc-btn { background: var(--accent); color: #1c1506; border: none; border-radius: 8px; padding: 9px 16px; font-size: 14px; font-weight: 600; cursor: pointer; }
-.calc-combo-list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.calc-combo-list { display: flex; flex-direction: column; gap: 24px; margin-top: 10px; }
 /* 连段行：控件多时换行，招式名永远保持横排（不能被挤成竖排） */
 .calc-combo-item { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: var(--bg2); border-radius: 8px; padding: 7px 10px; }
 .calc-move-name {
@@ -396,7 +396,8 @@ th .ic { display: block; margin: 0 auto; }
 .calc-rm { background: transparent; color: var(--bad); border: none; font-size: 18px; cursor: pointer; padding: 0 4px; }
 /* 宽屏集中编辑，窄屏随行展开；只改变控件位置，不改变连段数据。 */
 .calc-combo-workspace { min-width: 0; }
-.calc-combo-item { display: block; padding: 10px 12px; border: 1px solid var(--line); }
+.calc-combo-item { position: relative; display: block; padding: 10px 12px; border: 1px solid var(--line); }
+.calc-combo-item + .calc-combo-item::before { content: ''; position: absolute; top: -13px; left: 8px; right: 8px; border-top: 1px solid #806639; pointer-events: none; }
 .calc-move-header { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .calc-move-select { flex: 1 1 0; min-width: 0; border: 0; padding: 4px 0; background: none; text-align: left; cursor: pointer; }
 .calc-move-select .calc-move-name { display: block; white-space: normal; overflow-wrap: anywhere; }
