@@ -10,6 +10,7 @@ try{for(const width of [1440,412]){
   const q=s=>document.querySelector(s),change=(s,v)=>{q(s).value=v;q(s).dispatchEvent(new Event('change',{bubbles:true}));},metric=name=>Number(Array.from(document.querySelectorAll('#calc-result-grid .calc-stat')).find(e=>e.querySelector('span').textContent===name)?.querySelector('strong').textContent);
   q('#nav-calculator').click();change('#calc-weapon','bow');if(q('#calc-derive-toggle').checked)q('#calc-derive-toggle').click();change('#calc-move','bow_001');q('#calc-add').click();q('.calc-combo-item .calc-move-select').click();
   const options=Array.from(q('[data-move-field="bowCoating"]').options).map(o=>o.textContent);
+  if(Array.from(q('#calc-move').options).some(o=>o.value==='bow_ready'||o.textContent.includes('回到自由态')))throw Error('Retired bow placeholder remains visible');
   change('[data-move-field="rangedVariant"]','4');const raw=metric('物理伤害');
   change('[data-move-field="bowCoating"]','power');const power=metric('物理伤害'),level=q('[data-move-field="rangedVariant"]').value;
   change('[data-move-field="bowCoating"]','pierce');const pierceLevel=q('[data-move-field="rangedVariant"]').value,stages=!!q('[data-move-field="rangedHits"]');

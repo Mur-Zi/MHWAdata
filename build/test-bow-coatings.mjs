@@ -35,3 +35,11 @@ for(const m of p.moves.filter(m=>m.bowCoatings)){
 }
 const focus=C.calculateCombo({...p,combo:[{moveId:'bow_051',wound:true,woundCount:4,bowCoating:'power',rangedWholeVersion:1}],scarRaw:1});near(focus.woundBurst.raw,401.2);
 console.log(checks+' coating checks plus all supported move/coating combinations passed');
+
+// Retired zero-damage placeholders must never be offered as bow derivatives.
+for(const moveId of ['bow_011','bow_021','bow_025']){
+ const next=C.rangedNextMoves('bow',p.moves,[{moveId,rangedWholeVersion:1}]);
+ assert.ok(next.some(m=>m.id==='bow_001'));assert.ok(!next.some(m=>m.id==='bow_ready'));
+}
+assert.deepEqual(C.migrateRangedCombo([{moveId:'bow_011'},{moveId:'bow_ready'},{moveId:'bow_001'}],{}).map(x=>x.moveId),['bow_011','bow_001']);
+console.log('Retired bow placeholder and continuation checks passed');

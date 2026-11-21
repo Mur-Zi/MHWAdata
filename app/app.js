@@ -961,7 +961,7 @@
     // 当前武器的招式表（所有读取招式的地方都走这里，避免混用别的武器）
     function currentMoves(source=state) {
       const all = CALC.weaponMoves || {};
-      return all[source.weaponId] || CALC.moves || [];
+      return (all[source.weaponId] || CALC.moves || []).filter(m=>!m.legacyOnly);
     }
     const isRangedWeapon = (source=state) => ['bow', 'light_bowgun', 'heavy_bowgun'].includes(source.weaponId);
     // 射击方式留在招式行内；保留各方式原有 ID，兼容已保存连段和计算数据。

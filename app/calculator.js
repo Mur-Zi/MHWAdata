@@ -2149,6 +2149,7 @@ function calculateBowgunCombo(p) {
   function migrateRangedCombo(combo,aliases){
     const out=[];
     for(const item of combo){
+      if(item.moveId==='bow_ready'||item.id==='bow_ready')continue;
       const alias=item.rangedWholeVersion===1?null:aliases?.[item.moveId];
       const migrated=alias?{...alias,...item,moveId:alias.moveId,rangedWholeVersion:1}:{...item};
       const prev=out.at(-1);
@@ -2190,11 +2191,11 @@ function calculateBowgunCombo(p) {
       if(weapon==='light_bowgun'&&m.rangedRole==='special')lightSpecial=/圧着/.test(m.rangedAmmo||m.nameJa||'')?'adhesive':'blast';
     }
     return moves.filter(m=>{
-      const r=m.rangedRole,lr=last?.rangedRole;
+      const r=m.rangedRole,lr=weapon==='bow'&&['dragon','thousand','rain'].includes(last?.rangedRole)?'ready':last?.rangedRole;
       if(m.rangedPart)return !!last && m.rangedAmmo===last.rangedAmmo && r===lr && m.rangedRapid===last.rangedRapid;
       if(weapon==='bow'){
         if(m.rangedGuided&&!guided)return false;
-        if(r==='ready')return !!last;
+        if(r==='ready')return false;
         if(r==='rainExplosion')return lr==='rain';
         if(r==='guideExplosion')return guided&&!!last&&['charge','quick','power','volley','dragon','thousand','flying'].includes(lr);
         if(r==='focusFollow')return lr==='focus'&&!!lastItem.wound || lr==='focusFollow';
@@ -2202,8 +2203,6 @@ function calculateBowgunCombo(p) {
         if(r==='power')return !!last&&(['charge','quick','flying','ready'].includes(lr))&&m.rangedLevel===(lr==='charge'?Math.min(3,last.rangedLevel+1):lr==='quick'?1:3);
         if(r==='dragon'&&m.rangedInstant)return !!last&&!['ready','dragon','thousand'].includes(lr);
         if(r==='dragon'&&!m.rangedInstant)return !last||['ready','flying','guide'].includes(lr);
-        if(lr==='rain')return r==='rainExplosion'||r==='ready';
-        if(lr==='dragon'||lr==='thousand')return r==='ready';
         if(r==='charge'&&lr==='charge')return m.rangedLevel>last.rangedLevel||last.rangedLevel===3;
         if(r==='charge'&&lr==='power')return m.rangedLevel>=last.rangedLevel;
         if(r==='charge'&&lr==='volley')return m.rangedLevel>=last.rangedLevel;
