@@ -1685,6 +1685,7 @@
         stat('连招总动作值', (r.totalMotionValue||0).toFixed(2)),
         stat('连招总属补', (r.totalElementRate||0).toFixed(2)),
         stat('异常累计(期望)', r.bowgunStatusPending?'待补数据':r.totalStatus.toFixed(2)),
+        ...(r.totalExhaust>0?[stat('减气累计',r.totalExhaust.toFixed(2))]:[]),
         stat('晕厥累计', r.totalStun.toFixed(2)),
         stat('最终会心率', (r.affinityVsTarget != null ? r.affinityVsTarget : r.affinity).toFixed(1) + '%')
       ].join('');
@@ -1837,6 +1838,8 @@
             + rd2(woundHits.reduce((a, h) => a + (Number(h.mv) || 0), 0)) + '）');
         }
         // 集中处决「爆伤口」（用户 2026-10-08）：命中伤口后按处数造成的额外伤害（计入总伤害，单列标注）
+        const coatingLabel=g.hits.find(h=>h.bowCoatingLabel&&h.bowCoating!=='none')?.bowCoatingLabel;
+        if(coatingLabel)tags.push(coatingLabel);
         const bursts = g.hits.filter((h) => h.woundBurst);
         if (bursts.length) {
           const braw = bursts.reduce((a, h) => a + h.raw, 0);
@@ -2196,8 +2199,8 @@
       else if(rect.bottom>bounds.bottom)list.scrollTop+=Math.min(rect.bottom-bounds.bottom,rect.top-bounds.top);
     }
     function layoutMoveOptions(row, item, index) {
-      const labels = {critical:'会心',charge:'档位',dbMode:'形态',bowgunShot:'射击方式',mantlePick:'衣装',bgDistance:'射击距离',bgPellets:'命中弹丸',bgSpecialHits:'命中数',bgHeatStage:'龙热穿甲阶段',bgClipSize:'弹容量',bgFullClip:'满弹仓开始',bgSequence:'本发位置',rangedVariant:'招式类型',rangedHits:'每箭／发命中数',rangedFollowHits:'追击贯通跳数',rangedExtraHits:'追加命中数',sequence:'命中方式',recovery:'收招形态',sound:'旋律',soundCountPick:'旋律数量',precise:'精密命中',counter:'反击',completion:'完成段数',bloom:'命中绽伤',forceGuard:'力防层数',saw:'电锯跳数',phial:'瓶爆次数',shells:'发炮数',wound:'命中伤口',woundCount:'伤口数量',woundLegendary:'历战伤口',energy:'能量充足',gp:'当身成功',aim:'变化点',qi:'有气',finish:'打完',cancelPrev:'打断上一招',hits:'命中数',spin:'圈数'};
-      const coreOrder = ['critical','charge','dbMode','bowgunShot','rangedVariant','completion','sound','sequence','wound','bloom','hits','spin','rangedHits','shells','bgPellets','bgSpecialHits','soundCountPick'];
+      const labels = {critical:'会心',charge:'档位',dbMode:'形态',bowgunShot:'射击方式',mantlePick:'衣装',bgDistance:'射击距离',bgPellets:'命中弹丸',bgSpecialHits:'命中数',bgHeatStage:'龙热穿甲阶段',bgClipSize:'弹容量',bgFullClip:'满弹仓开始',bgSequence:'本发位置',rangedVariant:'招式类型',bowCoating:'瓶种',rangedHits:'每箭／发命中数',rangedFollowHits:'追击贯通跳数',rangedExtraHits:'追加命中数',sequence:'命中方式',recovery:'收招形态',sound:'旋律',soundCountPick:'旋律数量',precise:'精密命中',counter:'反击',completion:'完成段数',bloom:'命中绽伤',forceGuard:'力防层数',saw:'电锯跳数',phial:'瓶爆次数',shells:'发炮数',wound:'命中伤口',woundCount:'伤口数量',woundLegendary:'历战伤口',energy:'能量充足',gp:'当身成功',aim:'变化点',qi:'有气',finish:'打完',cancelPrev:'打断上一招',hits:'命中数',spin:'圈数'};
+      const coreOrder = ['critical','charge','dbMode','bowgunShot','rangedVariant','bowCoating','completion','sound','sequence','wound','bloom','hits','spin','rangedHits','shells','bgPellets','bgSpecialHits','soundCountPick'];
       const controls = Array.from(row.children).filter(n => n.dataset.moveField).map((node, order) => {
         const field = node.dataset.moveField, wrapper = document.createElement('div');
         wrapper.className = 'calc-move-control'; wrapper.dataset.moveControl = field;
@@ -2488,7 +2491,7 @@
             sel.appendChild(el);
           });
           sel.value = String(cur);
-          sel.addEventListener('change', () => { if(field==='mantlePick')state.combo[i].mantleMode=['none','before','after','evasion'][Number(sel.value)];else if(field==='bgSequence'&&Number(sel.value)===0)delete state.combo[i].bgSequence;else state.combo[i][field==='soundCountPick'?'soundCount':field] = Number(sel.value)+(field==='soundCountPick'?1:0); refreshComboUI(); });
+          sel.addEventListener('change', () => { if(field==='bowCoating'){state.combo[i].bowCoating=sel.value;state.combo[i].rangedVariant=window.MHCalculator.bowCoatingVariant(move,state.combo[i],sel.value);}else if(field==='mantlePick')state.combo[i].mantleMode=['none','before','after','evasion'][Number(sel.value)];else if(field==='bgSequence'&&Number(sel.value)===0)delete state.combo[i].bgSequence;else state.combo[i][field==='soundCountPick'?'soundCount':field] = Number(sel.value)+(field==='soundCountPick'?1:0); refreshComboUI(); });
           row.appendChild(sel);
           enhanceSelect(sel, tip);
         };
@@ -2538,6 +2541,11 @@
           row.appendChild(sel);
           enhanceSelect(sel, '射击方式');
         }
+        if(move.bowCoatings&&state.weaponId==='bow'){
+          item.bowCoating=window.MHCalculator.bowCoatingOf(move,item).id;
+          item.rangedVariant=window.MHCalculator.bowCoatingVariant(move,item,item.bowCoating);
+          cbPick(move.bowCoatings.map(c=>({label:c.label,value:c.id})),item.bowCoating,'bowCoating','瓶种');
+        }
         if(state.expectedCrit===false)cbCheck({label:'会心'},item.critical===true,'critical');
         cbPick([{label:'无衣装',value:0},{label:'蚀攻衣装·克服前',value:1},{label:'蚀攻衣装·克服后',value:2},{label:'回避衣装',value:3}],['none','before','after','evasion'].indexOf(item.mantleMode||'none'),'mantlePick','衣装');
         if(move?.bowgunPreview&&!['reload','mode'].includes(move.rangedRole)){
@@ -2563,7 +2571,7 @@
               const choices=state.deriveMode?window.MHCalculator.rangedVariantChoices(state.weaponId,currentMoves(),state.combo.slice(0,i),move.id):move.rangedVariants.map((_,j)=>j);
               const bowgun=['light_bowgun','heavy_bowgun'].includes(state.weaponId);
               if(!bowgun&&choices.length&&!choices.includes(item.rangedVariant??0))item.rangedVariant=choices[0];
-              const opts=move.rangedVariants.map((v,j)=>({label:v.label,value:j,disabled:state.deriveMode&&!choices.includes(j)})).filter(v=>!state.deriveMode||choices.includes(v.value)||bowgun&&v.value===(item.rangedVariant??0));
+              const opts=move.rangedVariants.map((v,j)=>({label:move.bowCoatings?v.label.replace(/ · (普通|贯通瓶)$/,''):v.label,value:j,disabled:state.deriveMode&&!choices.includes(j)})).filter(v=>(!move.bowCoatings||(move.rangedVariants[v.value].coatingType==='pierce')===(item.bowCoating==='pierce'))&&(!state.deriveMode||choices.includes(v.value)||bowgun&&v.value===(item.rangedVariant??0)));
               if(opts.length>1)cbPick(opts,item.rangedVariant??0,'rangedVariant',move.name+' · 类型');
             }
             const v=move.rangedVariants?.[item.rangedVariant??0]||move;
@@ -3195,9 +3203,9 @@
     function skillVisibleFor(s,source) {
       if(['light_bowgun','heavy_bowgun'].includes(source.weaponId))return !s.poolHidden&&(!s.weapons||s.weapons.includes(source.weaponId))&&!['HunterSkill_018','HunterSkill_020','HunterSkill_056'].includes(s.id);
       if (s.elementType && s.elementType !== source.elementType) return false;
-      if (s.statusType && s.statusType !== source.statusType) return false;
+      if (s.statusType && s.statusType !== source.statusType && source.weaponId!=='bow') return false;
       if (s.requireElement && source.elementType === 'None') return false;
-      if (s.requireStatus && source.statusType === 'None') return false;
+      if (s.requireStatus && source.statusType === 'None' && source.weaponId!=='bow') return false;
       if (Array.isArray(s.weapons) && s.weapons.indexOf(source.weaponId) < 0) return false;
       return true;
     }
@@ -3703,6 +3711,7 @@
         const body=document.createElement('tbody');rows.forEach(row=>{const tr=document.createElement('tr');row.forEach((value,i)=>{const cell=document.createElement(i?'td':'th');if(!i)cell.scope='row';cell.textContent=value;tr.append(cell);});body.append(tr);});t.append(body);wrap.append(t);return wrap;
       }
       const metrics=[['总伤害',r=>r.totalDamage],['物理伤害',r=>r.totalPhysical??r.totalRaw],['属性伤害',r=>r.totalElement],['固伤',r=>r.totalFixed],['伤害 hit 数',r=>r.hits.length],['总动作值',r=>r.totalMotionValue],['总属补',r=>r.totalElementRate],['异常累计（期望）',r=>r.bowgunStatusPending?'待补数据':r.totalStatus],['昏厥累计',r=>r.totalStun]];
+      if(a.result.totalExhaust>0||b.result.totalExhaust>0)metrics.push(['减气累计',r=>r.totalExhaust||0]);
       if(!isRangedWeapon())metrics.push(['耗斩（刀）',r=>r.sharpKnives]);
       output.append(table(['指标','A · '+a.name,'B · '+b.name,'差值 B − A'],metrics.map(([label,get])=>{const x=get(a.result),y=get(b.result);return [label,typeof x==='string'?x:format(x),typeof y==='string'?y:format(y),typeof x==='string'||typeof y==='string'?'—':delta(x,y)];})));
       const contributions=new Map();
@@ -3714,6 +3723,7 @@
           if(!item)return '—';const move=moveOf(item.moveId),notes=[];
           if(item.charge!=null)notes.push(levelsOf(move)?.find(l=>l.level===item.charge)?.name||(['great_sword','hammer'].includes(state.weaponId)?item.charge+'蓄':'档位 '+item.charge));
           notes.push({none:'无衣装',before:'蚀攻衣装·克服前',after:'蚀攻衣装·克服后',evasion:'回避衣装'}[item.mantleMode]||'无衣装');
+          if(move?.bowCoatings)notes.push(window.MHCalculator.bowCoatingOf(move,item)?.label||'无瓶');
           if(item.completion!=null)notes.push('完成 '+item.completion+' 段');
           if(item.wound!=null)notes.push(item.wound?'命中伤口':'未命中伤口');
           [['hits','命中数'],['shells','发炮数'],['rangedHits','命中数'],['spin','圈数'],['soundCount','旋律数']].forEach(([key,label])=>{if(item[key]!=null)notes.push(label+' '+item[key]);});
@@ -4202,6 +4212,7 @@
       const lvs = move ? levelsOf(move) : null;
       state.combo.push({
         moveId, mantleMode:state.combo.at(-1)?.mantleMode||'none',
+        ...(state.weaponId==='bow'&&move?.bowCoatings?{bowCoating:state.combo.findLast(it=>it.bowCoating)?.bowCoating||'none'}:{}),
         ...(move?.bowgunPreview?{bgDistance:state.combo.at(-1)?.bgDistance??0}:{}),
         ...(state.weaponId==='light_bowgun'&&['shot','chase','stepShot'].includes(move?.rangedRole)?{bgClipSize:lightBowgunClipSize(move)}:{}),
         ...(move?.skipPrefixAfter && state.combo.at(-1)?.moveId === move.skipPrefixAfter && state.combo.at(-1)?.wound ? {wound:true} : {}),

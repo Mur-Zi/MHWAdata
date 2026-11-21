@@ -800,6 +800,7 @@
     const enrageMul = n(p.enrageMul, 1);
     if (enrageMul !== 1) { raw *= enrageMul; elemental *= enrageMul; }
     raw *= n(p.hammerChargeDamageMult, 1);
+    if(p.bowCoating)raw*= (p.bowCoatingMelee?1:n(p.bowCoating.physical,1))*n(p.bowBladescale,1);
     // 重奏的10点追加是绝对固定伤害，不走攻击力、属性或其他补正。
     if (hit.constantDamage != null) { raw=n(hit.constantDamage,0); elemental=0; }
 
@@ -808,20 +809,24 @@
       ? n(hit.waveStatusValue, 0) * statusCrit * st.convertStatusMult * chargeStatus
       : statusDisplay
         * statusRate
-        * STATUS_PROC
+        * (p.bowCoating?.statusType?1/10:STATUS_PROC)
         * statusCrit
         * st.convertStatusMult
         * chargeStatus;
 
     // 晕厥：只有命中头部才累计（其他部位不涨）
-    const stun = (p.isHead ? n(hit.stun) : 0) * st.stunMult * n(p.hammerChargeStunMult, 1) * Math.max(0,n(p.hitzones?.Stun,100))/100;
+    const stun = (p.isHead ? n(hit.stun)+n(p.bowCoating?.stun)*statusRate : 0) * st.stunMult * n(p.hammerChargeStunMult, 1) * Math.max(0,n(p.hitzones?.Stun,100))/100;
 
     return {
       attackUsed:attack,attackCap:attackLimit,attackCapped:attackBeforeCap>=attackLimit,
       raw: Math.max(0, raw),
       element: Math.max(0, elemental),
       total: Math.max(0, raw + elemental),
-      status: Math.max(0, status),
+      status: p.bowCoating?.statusType==='Exhaust'?0:Math.max(0, status),
+      exhaust: p.bowCoating?.statusType==='Exhaust'?Math.max(0,n(p.bowCoating.status)*statusRate)*n(p.bowExhaustMult,1):0,
+      statusType:p.bowCoating?.statusType||p.statusType,
+      bowCoating:p.bowCoating?.id,
+      bowCoatingLabel:p.bowCoating?.label,
       stun: Math.max(0, stun),
       mv: mvValue,                               // 当前灯态下的表内动作值（三灯时取 mvLamp）
       fixed: isFixed,
@@ -1052,6 +1057,19 @@ function calculateBowgunCombo(p) {
       if (m.statusPct) state.statusPct *= (1 + n(m.statusPct));
       if (m.affinity) state.affinity += n(m.affinity);
     });
+    const bowStatusCache=new Map();
+    const bowStatusState=type=>{
+      if(!bowStatusCache.has(type)){
+        const st=applySkills({affinity:params.affinity,weaponGroups:params.weaponGroups,elementType:'None',statusType:type,sharpness:params.sharpness},params.skills,'bow',Object.assign({sharpness:params.sharpness},params.context||{}));
+        applyItems(st,params.items);activeMelodies.forEach(m=>{if(m.statusPct)st.statusPct*=1+m.statusPct;});
+        bowStatusCache.set(type,st);
+      }
+      const st=bowStatusCache.get(type);return {...state,statusPct:st.statusPct,statusFlat:st.statusFlat,statusCritMult:st.statusCritMult,convertStatusMult:st.convertStatusMult,chargeStatusMult:st.chargeStatusMult};
+    };
+    const bowBladescaleSkill=(params.skills||[]).find(x=>(x.skill||x).id==='custom_bladescale_loading'&&n(x.level,1)>0);
+    const bowBladescale=bowBladescaleSkill?1+.25*clamp(n(bowBladescaleSkill.coverage,100),0,100)/100:1;
+    const bowExhaustSkill=(params.skills||[]).find(x=>(x.skill||x).id==='HunterSkill_033');
+    const bowExhaustMult=bowExhaustSkill?1+([0,.2,.3,.4][clamp(n(bowExhaustSkill.level,1),0,3)]||0)*clamp(n(bowExhaustSkill.coverage,100),0,100)/100:1;
     const melody = activeMelodies.length ? activeMelodies[0] : null;
     if (melody) state.melodyName = melody.name || null;
 
@@ -1702,13 +1720,14 @@ function calculateBowgunCombo(p) {
         //   且只给前 N hit（表内 r116 口径 = 前 3 hit）
         const fgThis = (!isMantle && !entry.wound && fgRemain > 0) ? n(forceGuard.mul, 1) : 1;
         if (fgThis !== 1) { fgRemain -= 1; fgApplied += 1; }
+        const bowCoating=params.weaponId==='bow'?move.bowCoating:null;
         let r = calcHit({
           hit: hit,
           hitzones: params.hitzones,
           hitzoneRaw: params.hitzoneRaw,
           hitzoneElement: params.hitzoneElement,
-          elementType: params.elementType,
-          statusType: params.statusType,   // 「无」异常 → 异常链路归零
+          elementType: bowCoating?.statusType?'None':params.elementType,
+          statusType: bowCoating?.statusType||params.statusType,
           threeLamp: threeLamp,            // 三灯：动作值取 mvLamp + 攻击力加算
           lampFlat: move.noLampBonus ? 0 : lampFlat,
           baseAttack: baseAttack,          // 基础攻击力（含「攻击」技能）
@@ -1716,10 +1735,14 @@ function calculateBowgunCombo(p) {
           element: n(params.element),
           elementDisabled: noElemType,     // 面板选「无」属性 → 猎虫也不吃属性
           kinsect: kinsectCfg,             // 猎虫（共斗虫）配置：虫种 + 等级 → 威力倍率
-          status: n(params.status),
+          status: bowCoating?.statusType?n(bowCoating.status)*10:n(params.status),
+          bowCoating,
+          bowBladescale:bowCoating&&bowCoating.id!=='none'&&!move.bowCoatingMelee?bowBladescale:1,
+          bowExhaustMult,
+          bowCoatingMelee:move.bowCoatingMelee,
           sharpness: sharpness,
           sharpGreen: params.sharpGreen,   // 绿斩倍率（狩猎笛响周波固定绿斩用）
-          state: state,
+          state: bowCoating?.statusType?bowStatusState(bowCoating.statusType):state,
           mode: critMode,
           // 蚀攻衣装加段：表内给的就是它自己的实测动作值/属补/耗斩（独立于原招式），
           // 不再吃原招式的蓄力倍率（大剑那些「3 蓄才有」的加段已在数据层按档位挂好）
@@ -1727,7 +1750,7 @@ function calculateBowgunCombo(p) {
           danceMul: danceMul,
           // 长枪力防：紧接力量格挡之后的那一招前 N hit 的动作值倍率（只作用动作值）
           forceGuardMul: fgThis,
-          chargeable: usesCharge,
+          chargeable: usesCharge||(params.weaponId==='bow'&&['charge','power','volley'].includes(move.rangedRole)),
           hammerChargeDamageMult: params.weaponId === 'hammer' && ['hammer_007','hammer_023','hammer_010','hammer_032','hammer_053'].indexOf(move.id) >= 0 ? n(state.hammerChargeDamageMult, 1) : 1,
           hammerChargeStunMult: params.weaponId === 'hammer' && ['hammer_007','hammer_023','hammer_010','hammer_032','hammer_053'].indexOf(move.id) >= 0 ? n(state.hammerChargeStunMult, 1) : 1,
           hien: !!hit.hien,   // 飞燕适用（表列39 IsSkillHien）
@@ -1992,6 +2015,7 @@ function calculateBowgunCombo(p) {
     };
     return {
       totalRaw, totalElement, totalDamage, totalStatus, totalStun,
+      totalExhaust:hits.reduce((a,h)=>a+n(h.exhaust),0),
       totalFixed,totalPhysical,totalMotionValue,totalElementRate,moveContributions,
       affinityVsTarget: affinityVsTarget,    // 结果卡「最终会心率」用（含弱点特效/伤口）
       attackFinal: attackFinal,
@@ -2091,9 +2115,21 @@ function calculateBowgunCombo(p) {
     });
   }
 
+  function bowCoatingOf(move,item){
+    const options=move.bowCoatings||[];
+    const legacy=move.rangedVariants?.[item.rangedVariant??0]?.coatingType==='pierce'?'pierce':'none';
+    return options.find(c=>c.id===(item.bowCoating??legacy))||options[0]||null;
+  }
+  function bowCoatingVariant(move,item,coating){
+    const variants=move.rangedVariants;if(!variants)return 0;
+    const old=variants[item.rangedVariant??0]||variants[0],pierce=(coating||bowCoatingOf(move,item)?.id)==='pierce';
+    const candidates=variants.map((v,i)=>({v,i})).filter(x=>(x.v.coatingType==='pierce')===pierce);
+    return (candidates.find(x=>x.v.rangedLevel===old.rangedLevel)||candidates[0])?.i??(item.rangedVariant??0);
+  }
   function rangedWholeMove(move,item){
-    const variant=move.rangedVariants?.[item.rangedVariant??0]||move.rangedVariants?.[0]||{};
-    const m={...move,...variant,id:move.id,name:move.name};
+    const coating=bowCoatingOf(move,item);
+    const variant=move.rangedVariants?.[coating?bowCoatingVariant(move,item,coating.id):(item.rangedVariant??0)]||move.rangedVariants?.[0]||{};
+    const m={...move,...variant,id:move.id,name:move.name,bowCoating:coating};
     const expand=(model,value)=>{
       const count=Math.floor(clamp(n(value,model.default),model.min,model.unverifiedMax?Number.MAX_SAFE_INTEGER:(model.max??Number.MAX_SAFE_INTEGER))),out=[];
       // 一发弹／一支箭的全部命中相邻，速射及多箭按各自阶段展开，不把弹数误作阶段数。
@@ -2200,7 +2236,7 @@ function calculateBowgunCombo(p) {
     SHARPNESS_ORDER, SHARPNESS_CN,
     ELEMENT_CAP_RATE, ELEMENT_CAP_MIN, elementCap, floorAtk,
     groupValue, conditionActive, applySkills, attackCap, cappedAttack, rawCritMultiplier, elementCritMultiplier,
-    calcHit, calculateCombo, targetDamageRules, lightBowgunMagazinePlan, buildMonsterParts,rangedNextMoves,rangedVariantChoices,rangedWholeMove,migrateRangedCombo,
+    calcHit, calculateCombo, targetDamageRules, lightBowgunMagazinePlan, buildMonsterParts,rangedNextMoves,rangedVariantChoices,rangedWholeMove,bowCoatingOf,bowCoatingVariant,migrateRangedCombo,
     kinsectPowerMult, kinsectMultipliers, KINSECT_MUL: {
       base: KINSECT_BASE, sever: KINSECT_SEVER, extract: KINSECT_EXTRACT,
       link: KINSECT_LINK, linkElem: KINSECT_LINK_ELEM, charged: KINSECT_CHARGED,
