@@ -4,7 +4,7 @@ const root=new URL('../app/',import.meta.url),server=http.createServer((req,res)
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port,browser=await chromium.launch({headless:true});
 try{for(const width of [1440,412]){
  const page=await browser.newPage({viewport:{width,height:950}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.route('**/*',r=>r.request().url().startsWith(origin)?r.continue():r.abort());await page.addInitScript(()=>localStorage.setItem('mhwa_announcement_dismissed','2026-10-15-update'));
+ await page.route('**/*',r=>r.request().url().startsWith(origin)?r.continue():r.abort());await page.addInitScript(id=>localStorage.setItem('mhwa_announcement_dismissed',id),fs.readFileSync(new URL('announcement.js',root),'utf8').match(/"id":\s*"([^"]+)"/)[1]);
  await page.goto(origin);await page.waitForFunction(()=>!!window.__MHWILD_DEBUG__);
  const report=await page.evaluate(()=>{
   const q=s=>document.querySelector(s),change=(s,v)=>{q(s).value=v;q(s).dispatchEvent(new Event('change',{bubbles:true}));},metric=name=>Number(Array.from(document.querySelectorAll('#calc-result-grid .calc-stat')).find(e=>e.querySelector('span').textContent===name)?.querySelector('strong').textContent);

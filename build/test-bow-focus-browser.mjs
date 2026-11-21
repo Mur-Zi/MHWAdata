@@ -6,7 +6,7 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.
 try{for(const width of [1440,412]){
  const page=await browser.newPage({viewport:{width,height:950}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',r=>r.request().url().startsWith(origin)?r.continue():r.abort());
- await page.addInitScript(()=>localStorage.setItem('mhwa_announcement_dismissed','2026-10-15-update'));
+ await page.addInitScript(id=>localStorage.setItem('mhwa_announcement_dismissed',id),fs.readFileSync(new URL('announcement.js',root),'utf8').match(/"id":\s*"([^"]+)"/)[1]);
  await page.goto(origin);await page.waitForFunction(()=>!!window.__MHWILD_DEBUG__);
  await page.evaluate(()=>{document.getElementById('nav-calculator').click();const change=(id,v)=>{const e=document.getElementById(id);e.value=v;e.dispatchEvent(new Event('change',{bubbles:true}));};change('calc-weapon','bow');const derive=document.getElementById('calc-derive-toggle');if(derive.checked)derive.click();change('calc-move','bow_051');document.getElementById('calc-add').click();document.querySelector('.calc-combo-item .calc-move-select').click();});
  const wound=page.locator('[data-move-field="wound"] input').filter({visible:true});await wound.first().check();

@@ -210,6 +210,11 @@ th .ic { display: block; margin: 0 auto; }
 .announcement-panel h2 { margin: 0 0 16px; font-size: 19px; color: var(--accent2); }
 .announcement-panel p { margin: 0 0 12px; line-height: 1.7; }
 .announcement-panel button { display: block; width: 100%; margin-top: 18px; white-space: normal; }
+.announcement-date { display: block; margin: -6px 0 16px; color: var(--text-dim); font-size: 13px; }
+.announcement-history { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
+.announcement-history summary { color: var(--accent2); cursor: pointer; line-height: 1.7; }
+.announcement-entry { margin-top: 12px; }
+.announcement-entry > summary { margin-bottom: 10px; }
 
 /* 底部栏（搜索 + 导航） */
 .bottom-bar {
