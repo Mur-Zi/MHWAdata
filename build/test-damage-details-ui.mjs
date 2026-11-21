@@ -5,7 +5,9 @@ const latest=fs.readFileSync(new URL('announcement.js',root),'utf8').match(/"id"
 try{for(const width of [1440,412,320]){
  const page=await browser.newPage({viewport:{width,height:1000}}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.route(/^https?:/,r=>r.abort());await page.addInitScript(id=>localStorage.setItem('mhwa_announcement_dismissed',id),latest);await page.goto(new URL('index.html',root).href);await page.waitForFunction(()=>!!window.__MHWILD_DEBUG__);
  await page.evaluate(()=>{const q=s=>document.querySelector(s),change=(s,v)=>{q(s).value=v;q(s).dispatchEvent(new Event('change',{bubbles:true}));};q('#nav-calculator').click();change('#calc-weapon','great_sword');if(q('#calc-derive-toggle').checked)q('#calc-derive-toggle').click();for(const id of ['gs_charged','gs_strong_charge','gs_true_charge']){change('#calc-move',id);q('#calc-add').click();}});
- await page.locator('.calc-combo-item').nth(2).locator('.calc-move-damage-link').click();let editor=page.locator('.calc-editor-damage:visible');
+ const openDamage=async row=>{await row.locator(width<900?'.calc-move-output .calc-move-expand':'.calc-move-select').click();await page.locator('.calc-editor-tabs:visible button').filter({hasText:'伤害详情'}).click();};
+ assert.equal(await page.locator('.calc-move-damage-link').count(),0);assert.equal(await page.locator('.calc-move-header .calc-move-expand').count(),0);
+ await openDamage(page.locator('.calc-combo-item').nth(2));let editor=page.locator('.calc-editor-damage:visible');
  assert.equal(await editor.locator('.calc-critical-outcomes small,.calc-critical-outcomes p').count(),0);assert.equal(await editor.locator('.calc-critical-outcomes>div').count(),3);
  assert.deepEqual(await editor.locator('.calc-damage-hit-table tbody td:last-child').allTextContents(),['19.01','317.20']);
  const contrast=await editor.locator('.calc-damage-hit-table td').first().evaluate(e=>{const luminance=s=>{const c=s.match(/[\d.]+/g).slice(0,3).map(Number).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;});return c[0]*.2126+c[1]*.7152+c[2]*.0722;},fg=luminance(getComputedStyle(e).color),bg=luminance(getComputedStyle(e.closest('.calc-editor-damage')).backgroundColor);return(Math.max(fg,bg)+.05)/(Math.min(fg,bg)+.05);});assert.ok(contrast>=10,'contrast '+contrast);
@@ -15,7 +17,7 @@ try{for(const width of [1440,412,320]){
  for(const weapon of ['insect_glaive','gunlance','light_bowgun','heavy_bowgun']){
   const moves=d.MHWCALC.weaponMoves[weapon],move=weapon==='gunlance'?moves.find(m=>m.name==='全弹发射'):weapon.includes('bowgun')?moves.find(m=>m.bowgunPreview&&m.rangedRole==='shot'):moves.find(m=>m.hits?.length>1);
   assert.ok(move,weapon);await page.evaluate(({weapon,id})=>{const q=s=>document.querySelector(s),change=(s,v)=>{q(s).value=v;q(s).dispatchEvent(new Event('change',{bubbles:true}));};change('#calc-weapon',weapon);change('#calc-move',id);q('#calc-add').click();},{weapon,id:move.id});
-  await page.locator('.calc-combo-item').last().locator('.calc-move-damage-link').click();editor=page.locator('.calc-editor-damage:visible');
+  await openDamage(page.locator('.calc-combo-item').last());editor=page.locator('.calc-editor-damage:visible');
   const result=await editor.evaluate(e=>({values:[...e.querySelectorAll('.calc-damage-hit-table tbody td:last-child')].map(n=>Number(n.textContent)),total:Number(e.querySelector('[data-crit-outcome="expected"] b')?.textContent)}));
   if(result.values.length)assert.ok(Math.abs(result.values.reduce((a,b)=>a+b,0)-result.total)<=result.values.length*.011,weapon+' per-hit total');
   if(weapon.includes('bowgun')){await editor.locator('.calc-magazine-extra>summary').click();assert.ok(await editor.locator('.calc-magazine tbody tr').count()>=6);assert.equal(await editor.locator('.calc-magazine td b+small').count(),0);}

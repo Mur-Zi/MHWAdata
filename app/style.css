@@ -405,12 +405,15 @@ th .ic { display: block; margin: 0 auto; }
 .calc-editor-nav button:disabled { opacity: .4; cursor: default; }
 .calc-move-select:focus-visible, .calc-move-expand:focus-visible, .calc-editor-nav button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .calc-combo-item .calc-rm { margin: 0; min-width: 32px; min-height: 36px; border-radius: 6px; }
-.calc-move-primary { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-.calc-move-primary > .calc-move-control { flex: 1 1 calc(50% - 8px); }
+.calc-move-primary { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,160px),1fr)); align-items: center; gap: 8px; margin-top: 8px; }
+.calc-move-primary > .calc-move-control:has(.seg-group) { grid-column: 1 / -1; }
 .calc-move-primary > .calc-move-control > .picker-btn { width: 100%; min-height: 40px; }
 .calc-move-control { min-width: 0; max-width: 100%; }
 .calc-move-control > .picker-btn { max-width: 100%; margin: 0; }
 .calc-move-control .calc-field-inline { margin: 0; }
+.calc-move-control .seg-group { display: flex; width: fit-content; max-width: 100%; flex-wrap: wrap; }
+.calc-move-control .seg-btn { flex: 0 0 auto; min-width: 42px; min-height: 36px; white-space: nowrap; }
+.calc-move-control .picker-btn-text { white-space: normal; overflow: visible; overflow-wrap: break-word; }
 .calc-move-summary { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 8px; }
 .calc-move-summary button { max-width: 100%; padding: 3px 0; background: none; border: 0; text-align: left; color: var(--accent2); font-size: 11px; line-height: 1.6; cursor: pointer; overflow-wrap: anywhere; }
 .calc-move-summary button:hover { text-decoration: underline; }
@@ -780,6 +783,7 @@ th .ic { display: block; margin: 0 auto; }
 .calc-move-actions { margin-left: auto; }
 .calc-move-output { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; margin-top: 5px; font-size: 12px; }
 .calc-move-output-values { color: var(--accent); font-variant-numeric: tabular-nums; }
+.calc-move-output .calc-move-expand { flex: 0 0 auto; margin-left: auto; }
 .calc-move-damage-link { background: none; border: 0; padding: 3px 0; color: var(--accent2); cursor: pointer; font-size: 12px; }
 .calc-editor-tabs { display: flex; gap: 6px; margin: 12px 0; }
 .calc-editor-tabs button { flex: 1; padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg2); color: var(--text-dim); cursor: pointer; }

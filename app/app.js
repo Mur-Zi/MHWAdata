@@ -2269,7 +2269,7 @@
       expand.textContent=openMoveItem===item?'收起条件 ▴':'展开条件 ▾';expand.hidden=desktop;
       expand.setAttribute('aria-expanded',String(openMoveItem===item));expand.setAttribute('aria-controls','calc-move-options-'+index);
       expand.addEventListener('click',()=>openMoveSettings(item,index,null,true));
-      remove.setAttribute('aria-label','删除第'+(index+1)+'招');actions.append(expand,remove);head.append(choose,actions);row.prepend(head);
+      remove.setAttribute('aria-label','删除第'+(index+1)+'招');actions.append(remove);head.append(choose,actions);row.prepend(head);
       const main=document.createElement('div');main.className='calc-move-primary';main.hidden=desktop;
       primary.forEach(c=>main.appendChild(c.wrapper));row.appendChild(main);
       const body=document.createElement('section');body.className='calc-move-options';body.id='calc-move-options-'+index;
@@ -2306,9 +2306,7 @@
       if(summary.childElementCount)head.insertBefore(summary,actions);
       const output=document.createElement('div');output.className='calc-move-output';
       const values=document.createElement('span');values.className='calc-move-output-values';
-      const details=document.createElement('button');details.type='button';details.textContent='伤害详情';details.className='calc-move-damage-link';
-      details.addEventListener('click',()=>openMoveSettings(item,index,null,false,'damage'));
-      output.append(values,details);row.append(output,body);
+      output.append(values,expand);row.append(output,body);
       if(desktop&&selected||!desktop&&openMoveItem===item){
         const host=desktop?editor:body;
         const tabs=document.createElement('div');tabs.className='calc-editor-tabs';tabs.setAttribute('aria-label','招式编辑内容');
