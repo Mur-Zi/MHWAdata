@@ -7,7 +7,7 @@
 (function () {
   'use strict';
   var isWeb = /^https?:$/.test(window.location.protocol);
-  var dataMeta = isWeb && document.querySelector('meta[name="mhwa-data-version"]');
+  var dataMeta = document.querySelector('meta[name="mhwa-data-version"]');
   var bundledDataVersion = dataMeta ? Number(dataMeta.content) || 0 : 0;
   // 网页先用部署自带数据，只允许更新的镜像数据覆盖。
   if (isWeb) {
@@ -68,7 +68,7 @@
     var cached = localStorage.getItem(CACHE_KEY);
     if (cached) {
       var cachedPackage = JSON.parse(cached);
-      if (!isWeb || cachedPackage.version > bundledDataVersion) apply(cachedPackage);
+      if (cachedPackage.version > bundledDataVersion) apply(cachedPackage);
     }
   } catch (e) { /* 缓存不存在或损坏则用内置数据 */ }
 
@@ -93,7 +93,7 @@
   function checkUpdate() {
     var localVer = 0;
     try { localVer = parseInt(localStorage.getItem(VER_KEY) || '0', 10) || 0; } catch (e) {}
-    if (isWeb) localVer = Math.max(localVer, bundledDataVersion);
+    localVer = Math.max(localVer, bundledDataVersion);
 
     function checkFallback() { return Promise.all(BASES.slice(1).map(function (base) {
       return fetchJson(base + 'version.json')

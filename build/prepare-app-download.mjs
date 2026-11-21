@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
+const root=new URL('../',import.meta.url),report=JSON.parse(fs.readFileSync(new URL('dist/交付校验-2.0.json',root)));
+const bytes=fs.readFileSync(new URL('dist/'+report.apk.file,root));
+assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),report.apk.sha256);
+const folder=new URL('app/downloads/',root);fs.mkdirSync(folder,{recursive:true});
+fs.writeFileSync(new URL('MHWA-v2.0.apk',folder),bytes);
+fs.writeFileSync(new URL('release.json',folder),JSON.stringify({version:'2.0',versionCode:84,date:report.date,file:'MHWA-v2.0.apk',bytes:bytes.length,sha256:report.apk.sha256},null,2)+'\n');
+fs.writeFileSync(new URL('dist/交付说明-2.0.md',root),`# MHWA数据库 2.0\n\n日期：2026-11-21。Android versionCode：84，包名：com.mhwilds.db。\n\n沿用旧版签名，可直接覆盖安装并保留本地预设。包含当前网页版功能、数据版本36，以及按日期保留的历史更新公告。修复旧缓存覆盖新版内置数据的问题。\n\n网页顶部提供“下载 App”入口，安装包与网站同源托管。\n\n下载：https://mhwadata.pages.dev/downloads/MHWA-v2.0.apk\n\nSHA-256：${report.apk.sha256}\n\n已校验签名、资源一致性和ZIP对齐；浏览器验证记录见构建目录。未进行安卓真机安装测试。\n`);
+console.log('Published APK prepared: '+bytes.length+' bytes, '+report.apk.sha256);

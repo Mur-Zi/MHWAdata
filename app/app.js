@@ -4241,6 +4241,8 @@
   }
 
   // 页脚联系/勘误按钮
+  const appDownload = document.getElementById('download-app');
+  if (appDownload) appDownload.hidden = !/^https?:$/.test(window.location.protocol);
   const footerBtn = document.getElementById('footer-contact');
   const footerInfo = document.getElementById('footer-contact-info');
   if (footerBtn && footerInfo) {
