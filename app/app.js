@@ -359,6 +359,7 @@
   }
 
   let detailMonsterSearch='';
+  let detailMonsterScroll=null;
   const monsterMeatSummaries=new Map();
   function monsterMeatSummary(m){
     if(monsterMeatSummaries.has(m.id))return monsterMeatSummaries.get(m.id);
@@ -417,7 +418,7 @@
       if(!list.children.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='没有匹配的怪物';list.appendChild(empty);}
     }
     input.addEventListener('input',()=>{detailMonsterSearch=input.value;renderSide();});
-    list.addEventListener('click',event=>{const button=event.target.closest('[data-monster-id]');if(button){const next=monsters.find(x=>x.id===button.dataset.monsterId);if(next)openMonster(next.name);}});
+    list.addEventListener('click',event=>{const button=event.target.closest('[data-monster-id]');if(button){const next=monsters.find(x=>x.id===button.dataset.monsterId);if(next){detailMonsterScroll=list.scrollTop;openMonster(next.name);}}});
     const body=document.createElement('div');body.className='monster-detail-body';
     const hero=el.querySelector('.detail-hero'),context=el.querySelector('.monster-task-context');context.dataset.detailPanel='tasks';
     const links=document.createElement('nav');links.className='monster-detail-links';links.setAttribute('aria-label','资料目录');
@@ -425,7 +426,8 @@
     const meat=el.querySelector('.section');meat.dataset.detailPanel='meat';
     body.append(hero,meat,context,el.querySelector('#data-groups'));workspace.append(side,body);el.replaceChildren(workspace);renderSide();
     const selected=list.querySelector('[aria-pressed="true"]');
-    if(selected){const row=selected.getBoundingClientRect(),bounds=list.getBoundingClientRect();if(row.bottom>bounds.bottom)list.scrollTop+=row.bottom-bounds.bottom;}
+    if(detailMonsterScroll!==null){list.scrollTop=detailMonsterScroll;detailMonsterScroll=null;}
+    else if(selected){const row=selected.getBoundingClientRect(),bounds=list.getBoundingClientRect();if(row.bottom>bounds.bottom)list.scrollTop+=row.bottom-bounds.bottom;}
   }
 
   // ---- 怪物详情 ----

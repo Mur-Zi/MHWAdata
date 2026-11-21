@@ -8,9 +8,10 @@ let checks=0;const check=(v,msg)=>{assert.ok(v,msg);checks++;},eq=(a,b,msg)=>che
 // Every source label, numeric row and phase must survive; equal values cannot hide a lost condition.
 for(const r of source.rows){
  if(r.monster==='Guardian Arkveld'&&['頭','鎖翼刃'].includes(r.label))continue; // Explicit user replacements.
+ if(['Guardian Fulgur Anjanath','Gypceros','Rathian'].includes(r.monster)&&r.label.includes('弱点')&&r.values.slice(3,8).every(v=>v===0))continue;
  if(r.monster==='Arkveld'&&r.label==='鎖翼刃[弱点](歴戦王)')continue; // User deleted nonexistent row.
  const candidates=Object.values(k[r.monster]).flatMap(p=>[...Object.values(p.groups).flat(),...(p.at||[]),...(p.wounds||[])]);
- check(candidates.some(x=>[x,...(x.sourceAliases||[])].some(a=>a.sourceLabel===r.label&&a.sourceSection===r.section)&&el.every((e,i)=>x.m[e]===r.values[i])&&x.extract===r.extract),r.monster+'/'+r.section+'/'+r.label);}
+ check(candidates.some(x=>[x,...(x.sourceAliases||[])].some(a=>a.sourceLabel===r.label&&a.sourceSection===r.section)&&el.every((e,i)=>x.m[e]===r.values[i])&&x.extract===(r.monster==='Gore Magala'&&r.label.startsWith('翼')&&!r.label.startsWith('翼脚')?'白':r.extract)),r.monster+'/'+r.section+'/'+r.label);}
 check(Object.keys(raw['Monster Data']).length===36,'36 monster records');check(w.MHWILD_META.monsterCount===36,'metadata monster count');check(!Object.values(raw['Monster Data']).some(d=>d.SourceOnly&&d.Zako),'small monster records removed');check(!k['Omega Micros']&&!k.Dalthydon,'small monster HZV removed');check(Object.keys(raw['Quest Data']).length===602,'602 quests');
 const q=raw['Quest Data']['25425'];check(q?.Level===10&&Object.values(q.Targets).flat().every(t=>t.legendaryID===2&&raw.Difficulty._DifficultyRateArray._DataArray[t.diff]),'new arch-tempered task has valid difficulty');
 eq(k.Chatacabra.Tongue.groups['普通'][0].m.Slash,85,'tongue slash');eq(k.Chatacabra.Tongue.groups['普通'][0].m.Shot,90,'tongue shot');
@@ -91,6 +92,18 @@ const cloneFallback=raw['Monster Data'][raw['Monster Names']['Nerscylla Clone']]
 check(cloneFallback.some(r=>r.Part==='Leg Root')&&!cloneFallback.some(r=>r.Part==='Leg'),'clone fallback uses reviewed anatomy');
 check(cloneFallback.every(r=>r.ScarMeat),'clone fallback wound data retained');
 for(const r of [...pending.states,...pending.unknown,...pending.conflicts]){const original=rawSource.monsters.find(d=>d.name===r.monster).rows[r.index][r.field];check(el.every((e,i)=>original[e]===r.values[i]),r.monster+' pending values match source');}
+for(const n of ['Gore Magala','Mizutsune','Xu Wu'])check(Object.values(k[n]).every(p=>!p.groups['发怒']),n+' rage removed and unique rows preserved');
+check(k['Gore Magala'].Antenna.groups['普通'][0].s==='狂龙','Gore antenna frenzy condition');
+check(k['Gore Magala'].Wingarm.groups['普通'].some(r=>r.s==='狂龙'&&r.m.Slash===60),'Gore 60 wingarm frenzy');
+check(k['Gore Magala'].Wing.groups['普通'].every(r=>r.extract==='白')&&k['Gore Magala'].Wing.wounds.every(r=>r.extract==='白'),'Gore wing white extract');
+check(!k.Chatacabra.Head.groups['临时弱点']&&k.Chatacabra.Tongue.groups['临时弱点'][0].m.Slash===90,'frog temporary weak point is tongue');
+for(const n of ['Guardian Fulgur Anjanath','Gypceros'])check(k[n].Head.groups['临时弱点'].every(r=>!r.s.includes('ver')&&el.slice(3,8).some(e=>r.m[e]>0)),n+' current weak HZV only');
+check(Object.values(k['Omega Planetes']).every(p=>p.groups['普通'].every(r=>r.s==='普通')),'Omega ordinary condition concise');
+check(k.Quematrice.Head.groups['临时弱点'][0].s==='普通','Quematrice weak condition ordinary');
+check(k['Xu Wu'].Mouth.groups['普通'][0].m.Slash===100,'Xu Wu mouth ordinary');
+for(const[n,pp]of Object.entries(k))for(const[part,p]of Object.entries(pp))for(const rows of [p.wounds,p.groups['临时弱点']||[]]){
+ const keys=rows.map(r=>JSON.stringify([el.map(e=>r.m[e]),r.extract||'',!!r.tempered,!!r.archTempered]));check(new Set(keys).size===keys.length,n+'/'+part+' no state-only wound or weak duplicate');
+}
 const C=createRequire(import.meta.url)('../app/calculator.js'),data=w.MHWCALC;
 const calc=(wid,name,target={},extra={})=>C.calculateCombo({weaponId:wid,moves:data.weaponMoves[wid],weaponGroups:data.weaponGroups,attack:200,element:200,elementType:'Fire',statusType:'None',affinity:0,sharpness:data.sharpness.white,hitzones:{Slash:50,Blow:50,Shot:50,Fire:30,Dragon:30},mode:'expected',combo:[{moveId:data.weaponMoves[wid].find(m=>m.name===name).id,rangedHits:3}],target,...extra});
 for(const wid of ['light_bowgun','heavy_bowgun'])for(const [ammo,t,mul]of [['Lv2火炎弹',{name:'Gogmazios'},.85],['Lv2灭龙弹',{name:'Gogmazios'},.35],['Lv2灭龙弹',{name:'Zoh Shia',questLevel:10},.7]]){

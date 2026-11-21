@@ -2,6 +2,27 @@
   "checkedMonsters": 36,
   "removedGroups": [
     {
+      "monster": "Gore Magala",
+      "monsterZh": "黑蚀龙",
+      "removedGroup": "发怒",
+      "keptGroup": "普通",
+      "removedRows": 15
+    },
+    {
+      "monster": "Mizutsune",
+      "monsterZh": "泡狐龙",
+      "removedGroup": "发怒",
+      "keptGroup": "普通",
+      "removedRows": 14
+    },
+    {
+      "monster": "Xu Wu",
+      "monsterZh": "暗器蛸",
+      "removedGroup": "发怒",
+      "keptGroup": "普通",
+      "removedRows": 8
+    },
+    {
       "monster": "Ajarakan",
       "monsterZh": "赫猿兽",
       "removedGroup": "发怒",

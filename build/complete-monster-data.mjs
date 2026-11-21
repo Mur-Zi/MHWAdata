@@ -171,6 +171,50 @@ const mergeSource=(keep,removed)=>{
  keep.sourceAliases=aliases.filter((r,i)=>r.sourceLabel&&aliases.findIndex(x=>JSON.stringify(x)===JSON.stringify(r))===i);
  if(removed.note&&removed.note!==keep.note)keep.note=[...new Set([keep.note,removed.note].filter(Boolean))].join('\n');
 };
+// Reviewed anatomy, version and state corrections (2026-11-21).
+for(const p of Object.values(result['Gore Magala']))for(const rows of [...Object.values(p.groups),p.wounds])for(const r of rows){
+ if(p===result['Gore Magala'].Wing)r.extract='白';
+ if(p===result['Gore Magala'].Wingarm)r.s=r.s.replaceAll('特殊','狂龙');
+ if(p===result['Gore Magala'].Antenna)r.s='狂龙';
+}
+for(const name of ['Gore Magala','Mizutsune','Xu Wu']){
+ let removedRows=0;
+ for(const p of Object.values(result[name])){
+  for(const r of p.groups['发怒']||[]){
+   const rows=p.groups['普通']||=[];const prior=rows.find(x=>rowKey(x)===rowKey(r));
+   if(prior)mergeSource(prior,r);else rows.push(r);removedRows++;
+  }
+  delete p.groups['发怒'];
+  for(const rows of [...Object.values(p.groups),p.wounds])for(const r of rows){
+   if(r.s==='发怒')r.s='普通';
+   else if(r.s.startsWith('发怒·'))r.s=r.s.slice('发怒·'.length);
+  }
+ }
+ duplicateAudit.push({monster:name,monsterZh:tr.monster[name],removedGroup:'发怒',keptGroup:'普通',removedRows});
+}
+const frog=result.Chatacabra;
+frog.Tongue.groups['临时弱点']=frog.Head.groups['临时弱点'];delete frog.Head.groups['临时弱点'];
+for(const pp of Object.values(result))for(const p of Object.values(pp)){
+ const weak=p.groups['临时弱点'];
+ if(weak?.some(r=>/ver1\.02/.test(r.s))){
+  p.groups['临时弱点']=weak.filter(r=>!el.slice(3,8).every(e=>r.m[e]===0));
+  for(const r of p.groups['临时弱点'])r.s=r.s.split('·').filter(s=>!/^ver/.test(s)&&s!=='普通').join('·')||'普通';
+ }
+}
+for(const p of Object.values(result['Omega Planetes']))for(const r of p.groups['普通']||[])r.s='普通';
+for(const r of result.Quematrice.Head.groups['临时弱点']||[])r.s='普通';
+// State-independent wound/weak-point HZV needs only one row per value set.
+for(const pp of Object.values(result))for(const p of Object.values(pp))for(const rows of [p.wounds,p.groups['临时弱点']||[]]){
+ const buckets=new Map();
+ for(const r of rows){const key=JSON.stringify([el.map(e=>r.m[e]),r.extract||'',!!r.tempered,!!r.archTempered]);const list=buckets.get(key)||[];list.push(r);buckets.set(key,list);}
+ const merged=[];
+ for(const list of buckets.values()){
+  const keep=list[0];
+  if(list.length>1){for(const r of list.slice(1))mergeSource(keep,r);keep.s=keep.archTempered?'历战王·历战伤口':rows===p.wounds?'':'普通';}
+  merged.push(keep);
+ }
+ rows.splice(0,rows.length,...merged);
+}
 for(const [name,pp]of Object.entries(result)){
  const groupKey=g=>JSON.stringify(Object.entries(pp).flatMap(([part,p])=>(p.groups[g]||[]).map(r=>JSON.stringify([part,rowKey(r)]))).sort());
  for(const group of ['发怒','发怒（挑战者判定）']){
